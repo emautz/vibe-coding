@@ -3,11 +3,6 @@
 <head>
     <meta charset="UTF-8">
 
-    <!--
-        Makes the page scale correctly on phones and tablets.
-        Without this, mobile browsers may display the page as though
-        it were designed only for a desktop screen.
-    -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <meta
@@ -19,35 +14,47 @@
 
     <style>
         /* =========================================================
-           v1.0 - Initial build
+           v2.1 - Removed Hello Project
            Personal project homepage for Elizabeth Mautz
+
+           This version includes:
+           - Tattoo-inspired decorative artwork
+           - Cybersecurity / networking visual elements
+           - Interactive project links
+           - Purple cyber glow effects
+           - Subtle animations
+           - Responsive and accessible design
+           - Six personal web projects
            ========================================================= */
+
 
         /* ---------------------------------------------------------
            COLOR VARIABLES
 
-           These variables keep the main colors in one place.
-           If you want to change the look later, you can change these
-           colors instead of searching through the entire stylesheet.
+           Keeping the main colors here makes it easy to completely
+           change the color scheme later.
            --------------------------------------------------------- */
         :root {
-            --background: #0d0f14;
-            --surface: #151821;
-            --surface-light: #1d2130;
-            --text: #f4f4f6;
-            --muted-text: #b5b8c4;
-            --accent: #9d7cff;
-            --accent-light: #c4b3ff;
-            --border: #2c3140;
-            --focus: #ffffff;
+            --background: #090a0f;
+            --background-soft: #10121a;
+
+            --surface: #141720;
+            --surface-hover: #1b1f2b;
+
+            --text: #f5f3f7;
+            --muted: #aaa8b2;
+
+            --purple: #a879ff;
+            --purple-light: #d0b8ff;
+            --purple-dark: #6945a8;
+
+            --border: #2b2e3a;
+            --white: #ffffff;
         }
 
 
         /* ---------------------------------------------------------
-           BASIC PAGE RESET
-
-           Browsers add their own default spacing to elements.
-           This makes sizing and spacing more predictable.
+           BASIC RESET
            --------------------------------------------------------- */
         * {
             box-sizing: border-box;
@@ -69,35 +76,81 @@
                 "Segoe UI",
                 sans-serif;
 
+            color: var(--text);
+
             background:
                 radial-gradient(
-                    circle at top right,
-                    rgba(157, 124, 255, 0.12),
-                    transparent 35%
+                    circle at 85% 10%,
+                    rgba(168, 121, 255, 0.14),
+                    transparent 25rem
+                ),
+                radial-gradient(
+                    circle at 5% 60%,
+                    rgba(168, 121, 255, 0.07),
+                    transparent 25rem
                 ),
                 var(--background);
 
-            color: var(--text);
-            line-height: 1.6;
+            overflow-x: hidden;
         }
 
 
         /* ---------------------------------------------------------
-           ACCESSIBILITY: SKIP LINK
+           SUBTLE TECH GRID
 
-           Keyboard and screen-reader users can use this link to skip
-           directly to the main page content.
+           This creates faint grid lines across the page using CSS
+           gradients. No image files are needed.
+           --------------------------------------------------------- */
+        body::before {
+            content: "";
+
+            position: fixed;
+            inset: 0;
+
+            pointer-events: none;
+
+            background-image:
+                linear-gradient(
+                    rgba(255, 255, 255, 0.018) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(255, 255, 255, 0.018) 1px,
+                    transparent 1px
+                );
+
+            background-size: 40px 40px;
+
+            mask-image:
+                linear-gradient(
+                    to bottom,
+                    black,
+                    transparent 85%
+                );
+
+            z-index: -1;
+        }
+
+
+        /* ---------------------------------------------------------
+           ACCESSIBILITY SKIP LINK
+
+           Keyboard users can use this link to skip directly to the
+           projects section without tabbing through the entire intro.
            --------------------------------------------------------- */
         .skip-link {
             position: absolute;
+
             top: -100px;
             left: 1rem;
 
-            background: var(--text);
-            color: var(--background);
+            padding: 0.8rem 1rem;
 
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
+            background: white;
+            color: black;
+
+            border-radius: 0.4rem;
 
             z-index: 1000;
         }
@@ -108,225 +161,71 @@
 
 
         /* ---------------------------------------------------------
-           MAIN PAGE WRAPPER
+           PAGE WRAPPER
 
-           Keeps the content from becoming too wide on large screens.
+           This prevents the content from becoming too wide on large
+           monitors while still allowing it to shrink on phones.
            --------------------------------------------------------- */
         .page-wrapper {
             width: min(1100px, calc(100% - 2rem));
-            margin: 0 auto;
+            margin: auto;
         }
 
 
         /* ---------------------------------------------------------
-           HEADER / INTRODUCTION
+           HERO AREA
            --------------------------------------------------------- */
         header {
-            padding: 5rem 0 3.5rem;
+            position: relative;
+
+            padding:
+                clamp(4rem, 10vw, 7rem)
+                0
+                4rem;
         }
 
-        .eyebrow {
-            margin: 0 0 0.75rem;
 
-            color: var(--accent-light);
-            font-size: 0.8rem;
-            font-weight: 700;
+        /* ---------------------------------------------------------
+           SMALL TECH LABEL ABOVE NAME
+           --------------------------------------------------------- */
+        .system-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
 
-            letter-spacing: 0.15em;
+            margin-bottom: 1rem;
+
+            color: var(--purple-light);
+
+            font-family: "Courier New", monospace;
+            font-size: 0.78rem;
+
+            letter-spacing: 0.12em;
             text-transform: uppercase;
         }
 
-        h1 {
-            margin: 0;
 
-            font-size: clamp(2.6rem, 8vw, 5.5rem);
-            line-height: 0.95;
-            letter-spacing: -0.05em;
-        }
+        /* Small glowing "online" dot */
+        .system-dot {
+            width: 8px;
+            height: 8px;
 
-        .intro {
-            max-width: 720px;
-            margin: 1.5rem 0 0;
+            background: var(--purple);
 
-            color: var(--muted-text);
-            font-size: clamp(1rem, 2vw, 1.2rem);
-        }
-
-        .intro strong {
-            color: var(--text);
-        }
-
-
-        /* ---------------------------------------------------------
-           INTEREST TAGS
-
-           These visually show Elizabeth's interests without needing
-           photographs or outside images.
-           --------------------------------------------------------- */
-        .interests {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-
-            margin-top: 2rem;
-        }
-
-        .interest {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-
-            padding: 0.6rem 0.9rem;
-
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 999px;
-
-            color: var(--text);
-            font-size: 0.9rem;
-
-            transition:
-                transform 180ms ease,
-                border-color 180ms ease,
-                background-color 180ms ease;
-        }
-
-        .interest:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent);
-            background: var(--surface-light);
-        }
-
-
-        /* ---------------------------------------------------------
-           SECTION HEADINGS
-           --------------------------------------------------------- */
-        main {
-            padding-bottom: 5rem;
-        }
-
-        .section-heading {
-            display: flex;
-            align-items: end;
-            justify-content: space-between;
-            gap: 1rem;
-
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        h2 {
-            margin: 0;
-            font-size: clamp(1.6rem, 4vw, 2.2rem);
-        }
-
-        .section-heading p {
-            margin: 0;
-            color: var(--muted-text);
-            font-size: 0.9rem;
-        }
-
-
-        /* ---------------------------------------------------------
-           PROJECT LIST
-
-           The projects use a simple list rather than large cards.
-           Each row is still large enough to be an easy click/tap
-           target on desktop, tablet, and mobile.
-           --------------------------------------------------------- */
-        .project-list {
-            list-style: none;
-
-            margin: 0;
-            padding: 0;
-        }
-
-        .project-item {
-            border-bottom: 1px solid var(--border);
-        }
-
-        .project-link {
-            display: grid;
-            grid-template-columns: minmax(180px, 0.8fr) 1.5fr auto;
-            align-items: center;
-            gap: 1.5rem;
-
-            padding: 1.4rem 0;
-
-            color: inherit;
-            text-decoration: none;
-
-            transition:
-                padding-left 180ms ease,
-                color 180ms ease;
-        }
-
-        .project-link:hover {
-            padding-left: 0.6rem;
-            color: var(--accent-light);
-        }
-
-        .project-link:focus-visible {
-            outline: 3px solid var(--focus);
-            outline-offset: 5px;
-            border-radius: 0.25rem;
-        }
-
-        .project-name {
-            font-weight: 700;
-            font-size: 1.05rem;
-        }
-
-        .project-description {
-            color: var(--muted-text);
-            font-size: 0.95rem;
-        }
-
-        .project-arrow {
-            font-size: 1.25rem;
-
-            transition: transform 180ms ease;
-        }
-
-        .project-link:hover .project-arrow {
-            transform: translate(4px, -4px);
-        }
-
-
-        /* ---------------------------------------------------------
-           SMALL TECH-STYLE DECORATION
-
-           This gives the page a subtle networking/cybersecurity feel
-           without making it look like an exaggerated "hacker" page.
-           --------------------------------------------------------- */
-        .status-line {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-
-            margin-top: 3rem;
-
-            color: var(--muted-text);
-            font-family: "Courier New", monospace;
-            font-size: 0.8rem;
-        }
-
-        .status-dot {
-            width: 0.55rem;
-            height: 0.55rem;
-
-            background: var(--accent);
             border-radius: 50%;
 
-            box-shadow: 0 0 10px rgba(157, 124, 255, 0.8);
+            box-shadow:
+                0 0 8px var(--purple),
+                0 0 18px rgba(168, 121, 255, 0.6);
 
-            animation: pulse 2.5s ease-in-out infinite;
+            animation: pulse 2.5s infinite;
         }
+
 
         @keyframes pulse {
             0%,
             100% {
-                opacity: 0.45;
+                opacity: 0.4;
             }
 
             50% {
@@ -336,49 +235,561 @@
 
 
         /* ---------------------------------------------------------
+           NAME
+           --------------------------------------------------------- */
+        h1 {
+            margin: 0;
+
+            max-width: 850px;
+
+            font-size: clamp(3.5rem, 11vw, 7.5rem);
+            line-height: 0.85;
+
+            letter-spacing: -0.065em;
+
+            text-transform: uppercase;
+        }
+
+
+        /* Gives the last name an outlined, poster/tattoo-inspired
+           appearance. */
+        .outline-name {
+            display: block;
+
+            color: transparent;
+
+            -webkit-text-stroke:
+                1px
+                var(--purple-light);
+
+            text-shadow:
+                0 0 25px
+                rgba(168, 121, 255, 0.16);
+        }
+
+
+        /* ---------------------------------------------------------
+           INTRODUCTION
+           --------------------------------------------------------- */
+        .intro {
+            max-width: 700px;
+
+            margin:
+                2rem
+                0
+                0;
+
+            color: var(--muted);
+
+            font-size:
+                clamp(
+                    1rem,
+                    2vw,
+                    1.2rem
+                );
+        }
+
+        .intro strong {
+            color: var(--white);
+        }
+
+
+        /* ---------------------------------------------------------
+           INTERESTS
+           --------------------------------------------------------- */
+        .interests {
+            display: flex;
+            flex-wrap: wrap;
+
+            gap: 0.75rem;
+
+            margin-top: 2rem;
+        }
+
+
+        .interest {
+            display: inline-flex;
+            align-items: center;
+
+            gap: 0.55rem;
+
+            padding:
+                0.65rem
+                1rem;
+
+            background:
+                rgba(
+                    20,
+                    23,
+                    32,
+                    0.8
+                );
+
+            border:
+                1px
+                solid
+                var(--border);
+
+            border-radius: 100px;
+
+            font-size: 0.9rem;
+
+            transition:
+                transform 180ms ease,
+                border-color 180ms ease,
+                box-shadow 180ms ease;
+        }
+
+
+        .interest:hover {
+            transform:
+                translateY(-3px);
+
+            border-color:
+                var(--purple);
+
+            box-shadow:
+                0 5px 20px
+                rgba(
+                    168,
+                    121,
+                    255,
+                    0.12
+                );
+        }
+
+
+        .interest-icon {
+            color: var(--purple-light);
+        }
+
+
+        /* ---------------------------------------------------------
+           TATTOO FLASH DECORATIONS
+
+           These symbols give the page some tattoo-flash personality
+           without requiring any image files.
+
+           They are decorative only and are hidden from screen
+           readers using aria-hidden in the HTML.
+           --------------------------------------------------------- */
+        .tattoo-decoration {
+            position: absolute;
+
+            color:
+                rgba(
+                    208,
+                    184,
+                    255,
+                    0.12
+                );
+
+            user-select: none;
+            pointer-events: none;
+        }
+
+
+        .tattoo-star {
+            right: 8%;
+            top: 15%;
+
+            font-size:
+                clamp(
+                    5rem,
+                    13vw,
+                    10rem
+                );
+
+            transform: rotate(12deg);
+        }
+
+
+        .tattoo-dagger {
+            right: 23%;
+            bottom: 4%;
+
+            font-size:
+                clamp(
+                    2.5rem,
+                    7vw,
+                    5rem
+                );
+
+            transform: rotate(25deg);
+        }
+
+
+        /* ---------------------------------------------------------
+           SECTION DIVIDER
+
+           Combines tattoo-style symbols with a tech-inspired line.
+           --------------------------------------------------------- */
+        .divider {
+            display: flex;
+            align-items: center;
+
+            gap: 1rem;
+
+            margin:
+                1rem
+                0
+                4rem;
+        }
+
+
+        .divider-line {
+            height: 1px;
+            flex: 1;
+
+            background:
+                linear-gradient(
+                    to right,
+                    var(--purple-dark),
+                    transparent
+                );
+        }
+
+
+        .divider-symbol {
+            color: var(--purple-light);
+
+            font-size: 1.2rem;
+        }
+
+
+        /* ---------------------------------------------------------
+           PROJECT SECTION
+           --------------------------------------------------------- */
+        main {
+            padding-bottom: 6rem;
+        }
+
+
+        .section-header {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+
+            gap: 1rem;
+
+            margin-bottom: 1rem;
+        }
+
+
+        h2 {
+            margin: 0;
+
+            font-size:
+                clamp(
+                    2rem,
+                    5vw,
+                    3rem
+                );
+
+            letter-spacing: -0.04em;
+        }
+
+
+        .section-number {
+            color: var(--purple-light);
+
+            font-family: "Courier New", monospace;
+
+            font-size: 0.8rem;
+        }
+
+
+        .section-description {
+            margin:
+                0
+                0
+                2rem;
+
+            color: var(--muted);
+        }
+
+
+        /* ---------------------------------------------------------
+           PROJECT LIST
+
+           The projects stay in a simple list instead of large cards,
+           but each entire row can be clicked.
+           --------------------------------------------------------- */
+        .project-list {
+            list-style: none;
+
+            margin: 0;
+            padding: 0;
+
+            border-top:
+                1px
+                solid
+                var(--border);
+        }
+
+
+        .project-item {
+            position: relative;
+
+            border-bottom:
+                1px
+                solid
+                var(--border);
+
+            overflow: hidden;
+        }
+
+
+        /* Purple glow that slides across a project row when the
+           visitor hovers over it. */
+        .project-item::before {
+            content: "";
+
+            position: absolute;
+
+            inset: 0;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(
+                        168,
+                        121,
+                        255,
+                        0.1
+                    ),
+                    transparent
+                    60%
+                );
+
+            transform: translateX(-100%);
+
+            transition:
+                transform
+                300ms
+                ease;
+
+            pointer-events: none;
+        }
+
+
+        .project-item:hover::before {
+            transform: translateX(0);
+        }
+
+
+        .project-link {
+            position: relative;
+
+            display: grid;
+
+            grid-template-columns:
+                50px
+                minmax(180px, 0.8fr)
+                1.5fr
+                auto;
+
+            align-items: center;
+
+            gap: 1rem;
+
+            padding:
+                1.5rem
+                0;
+
+            color: inherit;
+
+            text-decoration: none;
+
+            transition:
+                padding-left
+                200ms
+                ease;
+        }
+
+
+        .project-link:hover {
+            padding-left: 0.7rem;
+        }
+
+
+        /* Makes keyboard navigation easy to see. */
+        .project-link:focus-visible {
+            outline:
+                3px
+                solid
+                white;
+
+            outline-offset: 4px;
+        }
+
+
+        /* Number beside each project */
+        .project-number {
+            color: var(--purple);
+
+            font-family: "Courier New", monospace;
+
+            font-size: 0.75rem;
+        }
+
+
+        .project-name {
+            font-weight: 750;
+            font-size: 1.05rem;
+        }
+
+
+        .project-description {
+            color: var(--muted);
+
+            font-size: 0.92rem;
+        }
+
+
+        .project-arrow {
+            color: var(--purple-light);
+
+            font-size: 1.3rem;
+
+            transition:
+                transform
+                180ms
+                ease;
+        }
+
+
+        /* Moves the arrow slightly when a project is hovered over. */
+        .project-link:hover .project-arrow {
+            transform:
+                translate(
+                    5px,
+                    -5px
+                );
+        }
+
+
+        /* ---------------------------------------------------------
+           TECH TERMINAL SECTION
+
+           This is a decorative fake terminal that reinforces the
+           networking/cybersecurity theme.
+           --------------------------------------------------------- */
+        .terminal {
+            margin-top: 4rem;
+
+            padding: 1.25rem;
+
+            background:
+                rgba(
+                    10,
+                    11,
+                    16,
+                    0.7
+                );
+
+            border:
+                1px
+                solid
+                var(--border);
+
+            border-radius: 0.7rem;
+
+            font-family: "Courier New", monospace;
+
+            color: var(--muted);
+
+            font-size: 0.8rem;
+        }
+
+
+        .terminal-top {
+            display: flex;
+            gap: 0.4rem;
+
+            margin-bottom: 1rem;
+        }
+
+
+        .terminal-circle {
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            background: var(--purple-dark);
+        }
+
+
+        .terminal-line {
+            margin:
+                0.3rem
+                0;
+        }
+
+
+        .terminal-command {
+            color: var(--purple-light);
+        }
+
+
+        /* ---------------------------------------------------------
            FOOTER
            --------------------------------------------------------- */
         footer {
-            padding: 1.5rem 0 2.5rem;
+            padding:
+                1.5rem
+                0
+                2.5rem;
 
-            border-top: 1px solid var(--border);
+            border-top:
+                1px
+                solid
+                var(--border);
 
-            color: var(--muted-text);
+            color: var(--muted);
+
             font-size: 0.85rem;
         }
 
 
         /* ---------------------------------------------------------
-           RESPONSIVE DESIGN
+           MOBILE DESIGN
 
-           On smaller screens, the project information changes from
-           three columns to a simpler two-column layout.
+           On smaller screens the project rows change to a simpler
+           layout so the text has enough room.
            --------------------------------------------------------- */
         @media (max-width: 700px) {
-            header {
-                padding-top: 3.5rem;
+
+            .tattoo-dagger {
+                display: none;
             }
 
-            .section-heading {
-                display: block;
-            }
-
-            .section-heading p {
-                margin-top: 0.35rem;
+            .tattoo-star {
+                right: -1rem;
+                top: 10%;
             }
 
             .project-link {
-                grid-template-columns: 1fr auto;
-                gap: 0.35rem 1rem;
+                grid-template-columns:
+                    35px
+                    1fr
+                    auto;
+
+                gap:
+                    0.4rem
+                    0.7rem;
             }
 
             .project-description {
-                grid-column: 1;
+                grid-column: 2;
             }
 
             .project-arrow {
-                grid-column: 2;
-                grid-row: 1 / span 2;
+                grid-column: 3;
+
+                grid-row:
+                    1 / span 2;
             }
         }
 
@@ -386,11 +797,11 @@
         /* ---------------------------------------------------------
            REDUCED MOTION ACCESSIBILITY
 
-           Some users choose a device setting that asks websites to
-           minimize animations. If that setting is enabled, this
-           disables the decorative animations and transitions.
+           If someone has enabled "Reduce Motion" on their device,
+           the animations and transitions are minimized.
            --------------------------------------------------------- */
         @media (prefers-reduced-motion: reduce) {
+
             html {
                 scroll-behavior: auto;
             }
@@ -398,233 +809,505 @@
             *,
             *::before,
             *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
+                animation-duration:
+                    0.01ms !important;
+
+                animation-iteration-count:
+                    1 !important;
+
+                transition-duration:
+                    0.01ms !important;
             }
         }
     </style>
 </head>
 
+
 <body>
 
-    <!-- Allows keyboard users to skip the introductory content. -->
-    <a class="skip-link" href="#projects">Skip to projects</a>
+    <!--
+        Keyboard users can select this link to jump directly
+        to the projects section.
+    -->
+    <a
+        class="skip-link"
+        href="#projects"
+    >
+        Skip to projects
+    </a>
 
 
     <!-- =========================================================
-         INTRODUCTION
+         HERO / INTRODUCTION
          ========================================================= -->
     <header>
+
+        <!-- Decorative tattoo-inspired symbols -->
+        <span
+            class="tattoo-decoration tattoo-star"
+            aria-hidden="true"
+        >
+            ✦
+        </span>
+
+        <span
+            class="tattoo-decoration tattoo-dagger"
+            aria-hidden="true"
+        >
+            🗡
+        </span>
+
+
         <div class="page-wrapper">
 
-            <p class="eyebrow">Networking • Cybersecurity • Web Projects</p>
+            <!-- Small cyber/tech-style system label -->
+            <div class="system-label">
 
-            <h1>Elizabeth<br>Mautz</h1>
+                <span
+                    class="system-dot"
+                    aria-hidden="true"
+                ></span>
+
+                system://elizabeth-mautz
+
+            </div>
+
+
+            <h1>
+                Elizabeth
+                <span class="outline-name">
+                    Mautz
+                </span>
+            </h1>
+
 
             <p class="intro">
-                I'm an <strong>FLCC Networking and Cybersecurity student</strong>
-                and currently a <strong>middle school Spanish teacher</strong>.
-                This site is home to some of the small web projects I've created
-                while learning, experimenting, and building new skills.
+                I'm an
+                <strong>
+                    FLCC Networking and Cybersecurity student
+                </strong>
+                and currently a
+                <strong>
+                    middle school Spanish teacher.
+                </strong>
+
+                This is my corner of the internet for
+                experimenting, learning, and building
+                small web projects.
             </p>
 
 
             <!--
-                These tags visually represent personal interests.
-                The symbols are decorative, so aria-hidden prevents
-                screen readers from unnecessarily reading them aloud.
+                Personal interests are displayed as visual tags.
+
+                The small symbols are decorative, so they use
+                aria-hidden="true".
             -->
-            <div class="interests" aria-label="Interests">
+            <div
+                class="interests"
+                aria-label="Elizabeth's interests"
+            >
 
                 <span class="interest">
-                    <span aria-hidden="true">♫</span>
+                    <span
+                        class="interest-icon"
+                        aria-hidden="true"
+                    >
+                        ♫
+                    </span>
+
                     Heavy Metal
                 </span>
 
+
                 <span class="interest">
-                    <span aria-hidden="true">✈</span>
+                    <span
+                        class="interest-icon"
+                        aria-hidden="true"
+                    >
+                        ✈
+                    </span>
+
                     Travel
                 </span>
 
+
                 <span class="interest">
-                    <span aria-hidden="true">✦</span>
+                    <span
+                        class="interest-icon"
+                        aria-hidden="true"
+                    >
+                        ✦
+                    </span>
+
                     Tattoos
                 </span>
 
             </div>
 
-
-            <!-- Decorative cyber/network-inspired status indicator. -->
-            <div class="status-line" aria-hidden="true">
-                <span class="status-dot"></span>
-                projects_online
-            </div>
-
         </div>
+
     </header>
 
 
     <!-- =========================================================
-         MAIN PROJECT AREA
+         DECORATIVE DIVIDER
+         ========================================================= -->
+    <div
+        class="page-wrapper divider"
+        aria-hidden="true"
+    >
+        <span class="divider-symbol">
+            ✦
+        </span>
+
+        <span class="divider-line"></span>
+
+        <span class="divider-symbol">
+            ◆
+        </span>
+    </div>
+
+
+    <!-- =========================================================
+         PROJECTS
          ========================================================= -->
     <main id="projects">
+
         <div class="page-wrapper">
 
-            <div class="section-heading">
-                <h2>Projects</h2>
+            <div class="section-header">
 
-                <p>Select a project to try it out.</p>
+                <h2>
+                    Projects
+                </h2>
+
+                <!--
+                    There are now six projects on the homepage.
+                -->
+                <span
+                    class="section-number"
+                    aria-hidden="true"
+                >
+                    01 // 06
+                </span>
+
             </div>
 
 
-            <!--
-                Each project opens in a new browser tab.
+            <p class="section-description">
+                Things I've built while learning,
+                experimenting, and having fun with code.
+                Pick one and try it out.
+            </p>
 
-                target="_blank" opens the new tab.
 
-                rel="noopener" is included as a security best practice
-                whenever a link opens another tab.
-            -->
             <ul class="project-list">
 
+
+                <!-- =================================================
+                     PROJECT 1
+                     Concert Countdown
+                     ================================================= -->
                 <li class="project-item">
+
                     <a
                         class="project-link"
                         href="countdown/index.html"
                         target="_blank"
                         rel="noopener"
-                        aria-label="Open Concert Countdown project in a new tab"
+                        aria-label="Open Concert Countdown in a new tab"
                     >
-                        <span class="project-name">Concert Countdown</span>
 
-                        <span class="project-description">
-                            Counting down to Motionless in White on October 30.
+                        <span
+                            class="project-number"
+                            aria-hidden="true"
+                        >
+                            01
                         </span>
 
-                        <span class="project-arrow" aria-hidden="true">↗</span>
+                        <span class="project-name">
+                            Concert Countdown
+                        </span>
+
+                        <span class="project-description">
+                            Counting down to Motionless in White
+                            on October 30.
+                        </span>
+
+                        <span
+                            class="project-arrow"
+                            aria-hidden="true"
+                        >
+                            ↗
+                        </span>
+
                     </a>
+
                 </li>
 
 
+                <!-- =================================================
+                     PROJECT 2
+                     Nutter Butter & Cosmic Brownie
+                     ================================================= -->
                 <li class="project-item">
-                    <a
-                        class="project-link"
-                        href="hello/index.html"
-                        target="_blank"
-                        rel="noopener"
-                        aria-label="Open Hello project in a new tab"
-                    >
-                        <span class="project-name">Hello</span>
 
-                        <span class="project-description">
-                            A simple page with a little message.
-                        </span>
-
-                        <span class="project-arrow" aria-hidden="true">↗</span>
-                    </a>
-                </li>
-
-
-                <li class="project-item">
                     <a
                         class="project-link"
                         href="my-page/index.html"
                         target="_blank"
                         rel="noopener"
-                        aria-label="Open Nutter Butter and Cosmic Brownie project in a new tab"
+                        aria-label="Open Nutter Butter and Cosmic Brownie page in a new tab"
                     >
+
+                        <span
+                            class="project-number"
+                            aria-hidden="true"
+                        >
+                            02
+                        </span>
+
                         <span class="project-name">
-                            Nutter Butter &amp; Cosmic Brownie
+                            Nutter Butter &amp;
+                            Cosmic Brownie
                         </span>
 
                         <span class="project-description">
-                            Meet my two cats and learn about their personalities.
+                            Meet my cats, their personalities,
+                            and their questionable life choices.
                         </span>
 
-                        <span class="project-arrow" aria-hidden="true">↗</span>
+                        <span
+                            class="project-arrow"
+                            aria-hidden="true"
+                        >
+                            ↗
+                        </span>
+
                     </a>
+
                 </li>
 
 
+                <!-- =================================================
+                     PROJECT 3
+                     Picture Carousel
+                     ================================================= -->
                 <li class="project-item">
+
                     <a
                         class="project-link"
                         href="pictures/index.html"
                         target="_blank"
                         rel="noopener"
-                        aria-label="Open Picture Carousel project in a new tab"
+                        aria-label="Open Picture Carousel in a new tab"
                     >
-                        <span class="project-name">Picture Carousel</span>
 
-                        <span class="project-description">
-                            An interactive carousel featuring five pictures.
+                        <span
+                            class="project-number"
+                            aria-hidden="true"
+                        >
+                            03
                         </span>
 
-                        <span class="project-arrow" aria-hidden="true">↗</span>
+                        <span class="project-name">
+                            Picture Carousel
+                        </span>
+
+                        <span class="project-description">
+                            An interactive five-picture carousel.
+                        </span>
+
+                        <span
+                            class="project-arrow"
+                            aria-hidden="true"
+                        >
+                            ↗
+                        </span>
+
                     </a>
+
                 </li>
 
 
+                <!-- =================================================
+                     PROJECT 4
+                     Pomodoro Timer
+                     ================================================= -->
                 <li class="project-item">
+
                     <a
                         class="project-link"
                         href="pomodoro/index.html"
                         target="_blank"
                         rel="noopener"
-                        aria-label="Open Pomodoro Timer project in a new tab"
+                        aria-label="Open Pomodoro Timer in a new tab"
                     >
-                        <span class="project-name">Pomodoro Timer</span>
 
-                        <span class="project-description">
-                            A focus timer based on the Pomodoro method.
+                        <span
+                            class="project-number"
+                            aria-hidden="true"
+                        >
+                            04
                         </span>
 
-                        <span class="project-arrow" aria-hidden="true">↗</span>
+                        <span class="project-name">
+                            Pomodoro Timer
+                        </span>
+
+                        <span class="project-description">
+                            A simple timer for focused work
+                            and study sessions.
+                        </span>
+
+                        <span
+                            class="project-arrow"
+                            aria-hidden="true"
+                        >
+                            ↗
+                        </span>
+
                     </a>
+
                 </li>
 
 
+                <!-- =================================================
+                     PROJECT 5
+                     QR Code Generator
+                     ================================================= -->
                 <li class="project-item">
+
                     <a
                         class="project-link"
                         href="qr-code/index.html"
                         target="_blank"
                         rel="noopener"
-                        aria-label="Open QR Code Generator project in a new tab"
+                        aria-label="Open QR Code Generator in a new tab"
                     >
-                        <span class="project-name">QR Code Generator</span>
 
-                        <span class="project-description">
-                            Turn a link into a QR code and choose its color.
+                        <span
+                            class="project-number"
+                            aria-hidden="true"
+                        >
+                            05
                         </span>
 
-                        <span class="project-arrow" aria-hidden="true">↗</span>
+                        <span class="project-name">
+                            QR Code Generator
+                        </span>
+
+                        <span class="project-description">
+                            Enter a link, pick a color,
+                            and generate a QR code.
+                        </span>
+
+                        <span
+                            class="project-arrow"
+                            aria-hidden="true"
+                        >
+                            ↗
+                        </span>
+
                     </a>
+
                 </li>
 
 
+                <!-- =================================================
+                     PROJECT 6
+                     Latte Recipe
+                     ================================================= -->
                 <li class="project-item">
+
                     <a
                         class="project-link"
                         href="recipe/index.html"
                         target="_blank"
                         rel="noopener"
-                        aria-label="Open Latte Recipe project in a new tab"
+                        aria-label="Open Latte Recipe in a new tab"
                     >
-                        <span class="project-name">Latte Recipe</span>
 
-                        <span class="project-description">
-                            A latte recipe with photos and an additional information page.
+                        <span
+                            class="project-number"
+                            aria-hidden="true"
+                        >
+                            06
                         </span>
 
-                        <span class="project-arrow" aria-hidden="true">↗</span>
+                        <span class="project-name">
+                            Latte Recipe
+                        </span>
+
+                        <span class="project-description">
+                            A latte recipe with photos
+                            and a separate notes page.
+                        </span>
+
+                        <span
+                            class="project-arrow"
+                            aria-hidden="true"
+                        >
+                            ↗
+                        </span>
+
                     </a>
+
                 </li>
 
             </ul>
 
+
+            <!-- =================================================
+                 DECORATIVE TECH TERMINAL
+
+                 This reinforces the networking/cybersecurity theme.
+
+                 It looks like a terminal window but does not send
+                 information anywhere and does not actually execute
+                 any commands.
+                 ================================================= -->
+            <div
+                class="terminal"
+                aria-label="Project status"
+            >
+
+                <div
+                    class="terminal-top"
+                    aria-hidden="true"
+                >
+                    <span class="terminal-circle"></span>
+                    <span class="terminal-circle"></span>
+                    <span class="terminal-circle"></span>
+                </div>
+
+
+                <p class="terminal-line">
+                    <span class="terminal-command">
+                        elizabeth@portfolio:~$
+                    </span>
+
+                    load projects
+                </p>
+
+
+                <p class="terminal-line">
+                    &gt; 6 projects detected
+                </p>
+
+
+                <p class="terminal-line">
+                    &gt; status:
+                    <span class="terminal-command">
+                        ready to explore_
+                    </span>
+                </p>
+
+            </div>
+
         </div>
+
     </main>
 
 
@@ -632,70 +1315,87 @@
          FOOTER
          ========================================================= -->
     <footer>
+
         <div class="page-wrapper">
-            <span id="footer-text">Elizabeth Mautz • Personal Projects</span>
+
+            <span id="footer-text">
+                Elizabeth Mautz • Personal Projects
+            </span>
+
         </div>
+
     </footer>
 
 
     <script>
         // =========================================================
-        // v1.0 - Initial JavaScript
+        // v2.1 - Homepage JavaScript
         //
-        // This homepage does not need much JavaScript because the
-        // project links work using normal HTML links. Keeping the
-        // page simple also makes it faster and more accessible.
+        // The page intentionally uses very little JavaScript.
         //
-        // The small amount of JavaScript below adds the current year
-        // to the footer automatically.
+        // Most of the design, hover effects, responsive behavior,
+        // and animations are handled by CSS.
+        //
+        // This keeps the JavaScript easy to understand and helps
+        // the page remain fast and accessible.
         // =========================================================
 
 
         // ---------------------------------------------------------
-        // STEP 1: Find the footer text element.
+        // STEP 1: FIND THE FOOTER
         //
         // document.getElementById() searches the HTML for an element
-        // whose id matches the value inside the parentheses.
+        // with the matching id.
         //
-        // In this case, we are finding:
+        // The footer contains:
         //
         //     id="footer-text"
         //
-        // We save that element inside a variable called footerText
-        // so we can change its text later.
+        // We store that HTML element inside a variable named
+        // footerText so JavaScript can work with it.
         // ---------------------------------------------------------
-        const footerText = document.getElementById("footer-text");
+        const footerText =
+            document.getElementById("footer-text");
 
 
         // ---------------------------------------------------------
-        // STEP 2: Find the current year.
+        // STEP 2: GET THE CURRENT YEAR
         //
-        // new Date() creates a JavaScript Date object containing the
-        // current date and time from the visitor's device.
+        // new Date() creates a JavaScript Date object using the
+        // current date and time reported by the visitor's device.
         //
-        // getFullYear() takes only the four-digit year from that
-        // date, such as 2026.
+        // getFullYear() extracts only the four-digit year.
         //
-        // This means the year will update automatically instead of
-        // needing to be changed manually every January.
+        // For example:
+        //
+        //     2026
+        //
+        // This means the copyright year automatically stays current
+        // instead of needing to be manually edited every January.
         // ---------------------------------------------------------
-        const currentYear = new Date().getFullYear();
+        const currentYear =
+            new Date().getFullYear();
 
 
         // ---------------------------------------------------------
-        // STEP 3: Update the footer.
+        // STEP 3: UPDATE THE FOOTER
         //
-        // textContent changes the text displayed inside the footer
+        // textContent changes the text that appears inside an HTML
         // element.
         //
-        // The backticks (` `) create a JavaScript template literal.
-        // A template literal allows us to insert a variable directly
-        // into a string using ${variableName}.
+        // The backticks (` `) create what JavaScript calls a
+        // "template literal."
         //
-        // For example, if currentYear contains 2026, the visitor
-        // will see:
+        // Template literals allow us to insert a variable into text
+        // using this format:
         //
-        //     © 2026 Elizabeth Mautz • Personal Projects
+        //     ${variableName}
+        //
+        // Therefore, ${currentYear} is replaced by the actual year.
+        //
+        // If the year is 2026, the visitor will see:
+        //
+        // © 2026 Elizabeth Mautz • Personal Projects
         // ---------------------------------------------------------
         footerText.textContent =
             `© ${currentYear} Elizabeth Mautz • Personal Projects`;
