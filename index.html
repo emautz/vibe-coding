@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!--
+        Makes the page scale correctly on phones and tablets.
+        Without this, mobile browsers may display the page as though
+        it were designed only for a desktop screen.
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="description"
+        content="Personal project homepage for Elizabeth Mautz, an FLCC Networking and Cybersecurity student and middle school Spanish teacher."
+    >
+
+    <title>Elizabeth Mautz | Projects</title>
+
+    <style>
+        /* =========================================================
+           v1.0 - Initial build
+           Personal project homepage for Elizabeth Mautz
+           ========================================================= */
+
+        /* ---------------------------------------------------------
+           COLOR VARIABLES
+
+           These variables keep the main colors in one place.
+           If you want to change the look later, you can change these
+           colors instead of searching through the entire stylesheet.
+           --------------------------------------------------------- */
+        :root {
+            --background: #0d0f14;
+            --surface: #151821;
+            --surface-light: #1d2130;
+            --text: #f4f4f6;
+            --muted-text: #b5b8c4;
+            --accent: #9d7cff;
+            --accent-light: #c4b3ff;
+            --border: #2c3140;
+            --focus: #ffffff;
+        }
+
+
+        /* ---------------------------------------------------------
+           BASIC PAGE RESET
+
+           Browsers add their own default spacing to elements.
+           This makes sizing and spacing more predictable.
+           --------------------------------------------------------- */
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+
+            font-family:
+                Inter,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background:
+                radial-gradient(
+                    circle at top right,
+                    rgba(157, 124, 255, 0.12),
+                    transparent 35%
+                ),
+                var(--background);
+
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+
+        /* ---------------------------------------------------------
+           ACCESSIBILITY: SKIP LINK
+
+           Keyboard and screen-reader users can use this link to skip
+           directly to the main page content.
+           --------------------------------------------------------- */
+        .skip-link {
+            position: absolute;
+            top: -100px;
+            left: 1rem;
+
+            background: var(--text);
+            color: var(--background);
+
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+
+            z-index: 1000;
+        }
+
+        .skip-link:focus {
+            top: 1rem;
+        }
+
+
+        /* ---------------------------------------------------------
+           MAIN PAGE WRAPPER
+
+           Keeps the content from becoming too wide on large screens.
+           --------------------------------------------------------- */
+        .page-wrapper {
+            width: min(1100px, calc(100% - 2rem));
+            margin: 0 auto;
+        }
+
+
+        /* ---------------------------------------------------------
+           HEADER / INTRODUCTION
+           --------------------------------------------------------- */
+        header {
+            padding: 5rem 0 3.5rem;
+        }
+
+        .eyebrow {
+            margin: 0 0 0.75rem;
+
+            color: var(--accent-light);
+            font-size: 0.8rem;
+            font-weight: 700;
+
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+
+            font-size: clamp(2.6rem, 8vw, 5.5rem);
+            line-height: 0.95;
+            letter-spacing: -0.05em;
+        }
+
+        .intro {
+            max-width: 720px;
+            margin: 1.5rem 0 0;
+
+            color: var(--muted-text);
+            font-size: clamp(1rem, 2vw, 1.2rem);
+        }
+
+        .intro strong {
+            color: var(--text);
+        }
+
+
+        /* ---------------------------------------------------------
+           INTEREST TAGS
+
+           These visually show Elizabeth's interests without needing
+           photographs or outside images.
+           --------------------------------------------------------- */
+        .interests {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+
+            margin-top: 2rem;
+        }
+
+        .interest {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+
+            padding: 0.6rem 0.9rem;
+
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+
+            color: var(--text);
+            font-size: 0.9rem;
+
+            transition:
+                transform 180ms ease,
+                border-color 180ms ease,
+                background-color 180ms ease;
+        }
+
+        .interest:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+            background: var(--surface-light);
+        }
+
+
+        /* ---------------------------------------------------------
+           SECTION HEADINGS
+           --------------------------------------------------------- */
+        main {
+            padding-bottom: 5rem;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 1rem;
+
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h2 {
+            margin: 0;
+            font-size: clamp(1.6rem, 4vw, 2.2rem);
+        }
+
+        .section-heading p {
+            margin: 0;
+            color: var(--muted-text);
+            font-size: 0.9rem;
+        }
+
+
+        /* ---------------------------------------------------------
+           PROJECT LIST
+
+           The projects use a simple list rather than large cards.
+           Each row is still large enough to be an easy click/tap
+           target on desktop, tablet, and mobile.
+           --------------------------------------------------------- */
+        .project-list {
+            list-style: none;
+
+            margin: 0;
+            padding: 0;
+        }
+
+        .project-item {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .project-link {
+            display: grid;
+            grid-template-columns: minmax(180px, 0.8fr) 1.5fr auto;
+            align-items: center;
+            gap: 1.5rem;
+
+            padding: 1.4rem 0;
+
+            color: inherit;
+            text-decoration: none;
+
+            transition:
+                padding-left 180ms ease,
+                color 180ms ease;
+        }
+
+        .project-link:hover {
+            padding-left: 0.6rem;
+            color: var(--accent-light);
+        }
+
+        .project-link:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 5px;
+            border-radius: 0.25rem;
+        }
+
+        .project-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .project-description {
+            color: var(--muted-text);
+            font-size: 0.95rem;
+        }
+
+        .project-arrow {
+            font-size: 1.25rem;
+
+            transition: transform 180ms ease;
+        }
+
+        .project-link:hover .project-arrow {
+            transform: translate(4px, -4px);
+        }
+
+
+        /* ---------------------------------------------------------
+           SMALL TECH-STYLE DECORATION
+
+           This gives the page a subtle networking/cybersecurity feel
+           without making it look like an exaggerated "hacker" page.
+           --------------------------------------------------------- */
+        .status-line {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+
+            margin-top: 3rem;
+
+            color: var(--muted-text);
+            font-family: "Courier New", monospace;
+            font-size: 0.8rem;
+        }
+
+        .status-dot {
+            width: 0.55rem;
+            height: 0.55rem;
+
+            background: var(--accent);
+            border-radius: 50%;
+
+            box-shadow: 0 0 10px rgba(157, 124, 255, 0.8);
+
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 0.45;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+
+        /* ---------------------------------------------------------
+           FOOTER
+           --------------------------------------------------------- */
+        footer {
+            padding: 1.5rem 0 2.5rem;
+
+            border-top: 1px solid var(--border);
+
+            color: var(--muted-text);
+            font-size: 0.85rem;
+        }
+
+
+        /* ---------------------------------------------------------
+           RESPONSIVE DESIGN
+
+           On smaller screens, the project information changes from
+           three columns to a simpler two-column layout.
+           --------------------------------------------------------- */
+        @media (max-width: 700px) {
+            header {
+                padding-top: 3.5rem;
+            }
+
+            .section-heading {
+                display: block;
+            }
+
+            .section-heading p {
+                margin-top: 0.35rem;
+            }
+
+            .project-link {
+                grid-template-columns: 1fr auto;
+                gap: 0.35rem 1rem;
+            }
+
+            .project-description {
+                grid-column: 1;
+            }
+
+            .project-arrow {
+                grid-column: 2;
+                grid-row: 1 / span 2;
+            }
+        }
+
+
+        /* ---------------------------------------------------------
+           REDUCED MOTION ACCESSIBILITY
+
+           Some users choose a device setting that asks websites to
+           minimize animations. If that setting is enabled, this
+           disables the decorative animations and transitions.
+           --------------------------------------------------------- */
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Allows keyboard users to skip the introductory content. -->
+    <a class="skip-link" href="#projects">Skip to projects</a>
+
+
+    <!-- =========================================================
+         INTRODUCTION
+         ========================================================= -->
+    <header>
+        <div class="page-wrapper">
+
+            <p class="eyebrow">Networking • Cybersecurity • Web Projects</p>
+
+            <h1>Elizabeth<br>Mautz</h1>
+
+            <p class="intro">
+                I'm an <strong>FLCC Networking and Cybersecurity student</strong>
+                and currently a <strong>middle school Spanish teacher</strong>.
+                This site is home to some of the small web projects I've created
+                while learning, experimenting, and building new skills.
+            </p>
+
+
+            <!--
+                These tags visually represent personal interests.
+                The symbols are decorative, so aria-hidden prevents
+                screen readers from unnecessarily reading them aloud.
+            -->
+            <div class="interests" aria-label="Interests">
+
+                <span class="interest">
+                    <span aria-hidden="true">♫</span>
+                    Heavy Metal
+                </span>
+
+                <span class="interest">
+                    <span aria-hidden="true">✈</span>
+                    Travel
+                </span>
+
+                <span class="interest">
+                    <span aria-hidden="true">✦</span>
+                    Tattoos
+                </span>
+
+            </div>
+
+
+            <!-- Decorative cyber/network-inspired status indicator. -->
+            <div class="status-line" aria-hidden="true">
+                <span class="status-dot"></span>
+                projects_online
+            </div>
+
+        </div>
+    </header>
+
+
+    <!-- =========================================================
+         MAIN PROJECT AREA
+         ========================================================= -->
+    <main id="projects">
+        <div class="page-wrapper">
+
+            <div class="section-heading">
+                <h2>Projects</h2>
+
+                <p>Select a project to try it out.</p>
+            </div>
+
+
+            <!--
+                Each project opens in a new browser tab.
+
+                target="_blank" opens the new tab.
+
+                rel="noopener" is included as a security best practice
+                whenever a link opens another tab.
+            -->
+            <ul class="project-list">
+
+                <li class="project-item">
+                    <a
+                        class="project-link"
+                        href="countdown/index.html"
+                        target="_blank"
+                        rel="noopener"
+                        aria-label="Open Concert Countdown project in a new tab"
+                    >
+                        <span class="project-name">Concert Countdown</span>
+
+                        <span class="project-description">
+                            Counting down to Motionless in White on October 30.
+                        </span>
+
+                        <span class="project-arrow" aria-hidden="true">↗</span>
+                    </a>
+                </li>
+
+
+                <li class="project-item">
+                    <a
+                        class="project-link"
+                        href="hello/index.html"
+                        target="_blank"
+                        rel="noopener"
+                        aria-label="Open Hello project in a new tab"
+                    >
+                        <span class="project-name">Hello</span>
+
+                        <span class="project-description">
+                            A simple page with a little message.
+                        </span>
+
+                        <span class="project-arrow" aria-hidden="true">↗</span>
+                    </a>
+                </li>
+
+
+                <li class="project-item">
+                    <a
+                        class="project-link"
+                        href="my-page/index.html"
+                        target="_blank"
+                        rel="noopener"
+                        aria-label="Open Nutter Butter and Cosmic Brownie project in a new tab"
+                    >
+                        <span class="project-name">
+                            Nutter Butter &amp; Cosmic Brownie
+                        </span>
+
+                        <span class="project-description">
+                            Meet my two cats and learn about their personalities.
+                        </span>
+
+                        <span class="project-arrow" aria-hidden="true">↗</span>
+                    </a>
+                </li>
+
+
+                <li class="project-item">
+                    <a
+                        class="project-link"
+                        href="pictures/index.html"
+                        target="_blank"
+                        rel="noopener"
+                        aria-label="Open Picture Carousel project in a new tab"
+                    >
+                        <span class="project-name">Picture Carousel</span>
+
+                        <span class="project-description">
+                            An interactive carousel featuring five pictures.
+                        </span>
+
+                        <span class="project-arrow" aria-hidden="true">↗</span>
+                    </a>
+                </li>
+
+
+                <li class="project-item">
+                    <a
+                        class="project-link"
+                        href="pomodoro/index.html"
+                        target="_blank"
+                        rel="noopener"
+                        aria-label="Open Pomodoro Timer project in a new tab"
+                    >
+                        <span class="project-name">Pomodoro Timer</span>
+
+                        <span class="project-description">
+                            A focus timer based on the Pomodoro method.
+                        </span>
+
+                        <span class="project-arrow" aria-hidden="true">↗</span>
+                    </a>
+                </li>
+
+
+                <li class="project-item">
+                    <a
+                        class="project-link"
+                        href="qr-code/index.html"
+                        target="_blank"
+                        rel="noopener"
+                        aria-label="Open QR Code Generator project in a new tab"
+                    >
+                        <span class="project-name">QR Code Generator</span>
+
+                        <span class="project-description">
+                            Turn a link into a QR code and choose its color.
+                        </span>
+
+                        <span class="project-arrow" aria-hidden="true">↗</span>
+                    </a>
+                </li>
+
+
+                <li class="project-item">
+                    <a
+                        class="project-link"
+                        href="recipe/index.html"
+                        target="_blank"
+                        rel="noopener"
+                        aria-label="Open Latte Recipe project in a new tab"
+                    >
+                        <span class="project-name">Latte Recipe</span>
+
+                        <span class="project-description">
+                            A latte recipe with photos and an additional information page.
+                        </span>
+
+                        <span class="project-arrow" aria-hidden="true">↗</span>
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+    </main>
+
+
+    <!-- =========================================================
+         FOOTER
+         ========================================================= -->
+    <footer>
+        <div class="page-wrapper">
+            <span id="footer-text">Elizabeth Mautz • Personal Projects</span>
+        </div>
+    </footer>
+
+
+    <script>
+        // =========================================================
+        // v1.0 - Initial JavaScript
+        //
+        // This homepage does not need much JavaScript because the
+        // project links work using normal HTML links. Keeping the
+        // page simple also makes it faster and more accessible.
+        //
+        // The small amount of JavaScript below adds the current year
+        // to the footer automatically.
+        // =========================================================
+
+
+        // ---------------------------------------------------------
+        // STEP 1: Find the footer text element.
+        //
+        // document.getElementById() searches the HTML for an element
+        // whose id matches the value inside the parentheses.
+        //
+        // In this case, we are finding:
+        //
+        //     id="footer-text"
+        //
+        // We save that element inside a variable called footerText
+        // so we can change its text later.
+        // ---------------------------------------------------------
+        const footerText = document.getElementById("footer-text");
+
+
+        // ---------------------------------------------------------
+        // STEP 2: Find the current year.
+        //
+        // new Date() creates a JavaScript Date object containing the
+        // current date and time from the visitor's device.
+        //
+        // getFullYear() takes only the four-digit year from that
+        // date, such as 2026.
+        //
+        // This means the year will update automatically instead of
+        // needing to be changed manually every January.
+        // ---------------------------------------------------------
+        const currentYear = new Date().getFullYear();
+
+
+        // ---------------------------------------------------------
+        // STEP 3: Update the footer.
+        //
+        // textContent changes the text displayed inside the footer
+        // element.
+        //
+        // The backticks (` `) create a JavaScript template literal.
+        // A template literal allows us to insert a variable directly
+        // into a string using ${variableName}.
+        //
+        // For example, if currentYear contains 2026, the visitor
+        // will see:
+        //
+        //     © 2026 Elizabeth Mautz • Personal Projects
+        // ---------------------------------------------------------
+        footerText.textContent =
+            `© ${currentYear} Elizabeth Mautz • Personal Projects`;
+    </script>
+
+</body>
+</html>
