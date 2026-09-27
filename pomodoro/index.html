@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<!-- v1.0 - initial build: 25-minute countdown timer, single-file, accessible, responsive -->
+<!-- v1.1 - made the page title visible on-screen (was screen-reader-only before) -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25 Minute Countdown Timer</title>
+
+<style>
+  /* v1.0 - Reset basic spacing and make the layout fill the whole screen */
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: #111111;
+    color: #ffffff;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  /* Main wrapper centers everything both vertically and horizontally,
+     and works on any screen size because it uses flexible units. */
+  .timer-app {
+    height: 100%;
+    min-height: 100svh; /* svh = "small viewport height", accounts for mobile browser bars */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4vh 4vw;
+    text-align: center;
+    gap: 4vh;
+  }
+
+  /* Visually hidden label for screen reader users only.
+     It gives context ("Time remaining") without showing extra text on screen. */
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* The big countdown number. Uses "vw" (viewport width) units so it scales
+     automatically to fill most of the screen on phones, tablets, and desktops.
+     clamp() sets a minimum and maximum size so it never gets unreadably small
+     or ridiculously huge on very tiny or very wide screens. */
+  #display {
+    font-size: clamp(4rem, 28vw, 20rem);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums; /* keeps digit widths consistent so numbers don't jitter */
+    letter-spacing: 0.02em;
+    user-select: none;
+  }
+
+  /* The visible page title. Kept small and understated so it doesn't
+     compete with the giant countdown number for attention. */
+  #page-title {
+    margin: 0;
+    font-size: clamp(1rem, 3vw, 1.75rem);
+    font-weight: 500;
+    color: #ffffff;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  /* Container for the three control buttons.
+     flex-wrap lets buttons drop to a new line on very narrow screens instead of overflowing. */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: clamp(0.75rem, 2vw, 1.5rem);
+  }
+
+  /* Buttons are large and easy to tap (good for touchscreens),
+     with clear focus styles for keyboard users. */
+  button {
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    padding: 0.75em 1.75em;
+    border: 2px solid #444444;
+    border-radius: 0.75em;
+    background-color: #2a2a2a;
+    color: #ffffff;
+    cursor: pointer;
+    min-width: 96px;
+    transition: background-color 0.15s ease, transform 0.05s ease;
+  }
+
+  button:hover {
+    background-color: #3d3d3d;
+  }
+
+  button:active {
+    background-color: #1c1c1c;
+    transform: scale(0.97);
+  }
+
+  /* Visible, high-contrast focus outline so keyboard users can always
+     tell which button is currently focused (important for accessibility). */
+  button:focus-visible {
+    outline: 3px solid #4da3ff;
+    outline-offset: 3px;
+  }
+
+  /* Disabled buttons look visibly "off" so users understand why nothing happens when clicked. */
+  button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* When the timer reaches 0:00, the display changes color to draw attention,
+     without relying on sound (per the "no extras" requirement, this is a subtle visual-only cue). */
+  #display.time-up {
+    color: #ff6b6b;
+  }
+</style>
+</head>
+<body>
+
+  <!--
+    Semantic structure:
+    - <main> holds the one primary piece of content on this page (the timer).
+    - role="timer" combined with aria-live tells screen readers this region's
+      text will update over time, and "polite" means announcements won't
+      interrupt other speech abruptly.
+  -->
+  <main class="timer-app">
+
+    <h1 id="page-title">The Elizabeth Focus Timer</h1>
+
+    <!-- Hidden label read by screen readers right before the time value -->
+    <span id="display-label" class="visually-hidden">Time remaining</span>
+
+    <!--
+      aria-live="polite" + aria-atomic="true" means every time the text inside
+      changes (every second), assistive tech will read the *whole* new value
+      calmly, rather than trying to read partial diffs.
+    -->
+    <div
+      id="display"
+      role="timer"
+      aria-labelledby="display-label"
+      aria-live="polite"
+      aria-atomic="true"
+    >25:00</div>
+
+    <!-- Group of controls, labeled for screen readers as a distinct region -->
+    <div class="controls" role="group" aria-label="Timer controls">
+      <button id="startBtn" type="button">Start</button>
+      <button id="pauseBtn" type="button" disabled>Pause</button>
+      <button id="resetBtn" type="button">Reset</button>
+    </div>
+
+  </main>
+
+<script>
+  // v1.0 - Countdown timer logic
+  // All variables and functions are wrapped in this script block so nothing
+  // leaks into the global scope of the page.
+
+  // ---- CONFIGURATION ----
+  // The starting time for the countdown, expressed in whole seconds.
+  // 25 minutes * 60 seconds = 1500 seconds total.
+  const TOTAL_SECONDS = 25 * 60;
+
+  // ---- STATE ----
+  // "remaining" tracks how many seconds are left on the clock right now.
+  // "intervalId" stores the ID returned by setInterval so we can stop it later;
+  // it stays null whenever the timer is not currently running.
+  let remaining = TOTAL_SECONDS;
+  let intervalId = null;
+
+  // ---- GRAB REFERENCES TO THE HTML ELEMENTS WE NEED TO CONTROL ----
+  const display = document.getElementById('display');
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  // Converts a number of seconds into a "MM:SS" formatted string.
+  // Example: formatTime(65) -> "01:05"
+  function formatTime(totalSeconds) {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    // padStart(2, '0') ensures single digits show a leading zero (e.g. "5" -> "05")
+    return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+  }
+
+  // Updates the on-screen display to match the current "remaining" value,
+  // and updates the document title too, so the countdown is visible even
+  // if the user switches to a different browser tab.
+  function updateDisplay() {
+    const timeString = formatTime(remaining);
+    display.textContent = timeString;
+    document.title = timeString + ' - Timer';
+
+    // Add a visual "time's up" style once the countdown hits zero.
+    if (remaining <= 0) {
+      display.classList.add('time-up');
+    } else {
+      display.classList.remove('time-up');
+    }
+  }
+
+  // Enables/disables buttons based on the current state, so users (including
+  // keyboard and screen-reader users) always get clear, correct affordances.
+  // For example: you can't "pause" a timer that isn't running.
+  function updateButtonStates() {
+    const isRunning = intervalId !== null;
+    const isFinished = remaining <= 0;
+
+    startBtn.disabled = isRunning || isFinished;
+    pauseBtn.disabled = !isRunning;
+    resetBtn.disabled = false; // Reset is always available
+  }
+
+  // Runs once every second while the timer is active.
+  // Decreases the remaining time by 1 second and refreshes the display.
+  // If time runs out, it automatically stops the interval.
+  function tick() {
+    if (remaining > 0) {
+      remaining -= 1;
+      updateDisplay();
+    }
+
+    if (remaining <= 0) {
+      clearInterval(intervalId);
+      intervalId = null;
+      updateButtonStates();
+    }
+  }
+
+  // Starts the countdown. Guards against starting twice (if already running)
+  // or starting after time has already run out.
+  function startTimer() {
+    if (intervalId !== null || remaining <= 0) {
+      return;
+    }
+    // setInterval runs the "tick" function every 1000ms (1 second)
+    intervalId = setInterval(tick, 1000);
+    updateButtonStates();
+  }
+
+  // Pauses the countdown by stopping the repeating interval.
+  // The "remaining" value is left untouched, so the timer can resume
+  // later from exactly where it left off.
+  function pauseTimer() {
+    if (intervalId !== null) {
+      clearInterval(intervalId);
+      intervalId = null;
+      updateButtonStates();
+    }
+  }
+
+  // Resets everything back to the original 25:00 starting point,
+  // stopping any active countdown first.
+  function resetTimer() {
+    pauseTimer();
+    remaining = TOTAL_SECONDS;
+    updateDisplay();
+    updateButtonStates();
+  }
+
+  // ---- WIRE UP BUTTON CLICKS ----
+  // Each button's "click" event is connected to its matching function.
+  // Because these are real <button> elements, they are automatically
+  // reachable and operable via keyboard (Tab to focus, Enter/Space to activate)
+  // with no extra code needed for keyboard support.
+  startBtn.addEventListener('click', startTimer);
+  pauseBtn.addEventListener('click', pauseTimer);
+  resetBtn.addEventListener('click', resetTimer);
+
+  // ---- INITIAL RENDER ----
+  // Make sure the display and button states are correct as soon as the page loads,
+  // even before the user interacts with anything.
+  updateDisplay();
+  updateButtonStates();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Makes the page resize correctly on phones and tablets. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Nutter Butter & Cosmic Brownie | Two Cats, Zero Normal Thoughts</title>
+
+    <style>
+        /* =========================================================
+           v1.0 - Initial build
+           Nutter Butter & Cosmic Brownie's personal website
+           ========================================================= */
+
+        /* ---------- COLOR VARIABLES ----------
+           Keeping the main colors here makes the site's palette
+           easy to change later.
+        */
+        :root {
+            --cream: #fff7df;
+            --peanut: #d98b45;
+            --peanut-dark: #8b542b;
+            --brownie: #29252d;
+            --brownie-light: #514959;
+            --pink: #ff77a9;
+            --yellow: #ffd95a;
+            --blue: #75d7e8;
+            --purple: #a98cff;
+            --white: #ffffff;
+            --text: #29252d;
+            --shadow: 0 8px 0 rgba(41, 37, 45, 0.15);
+        }
+
+        /* Makes sizing elements more predictable. */
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background:
+                radial-gradient(circle at 10% 10%, #fff0b8 0 8%, transparent 9%),
+                radial-gradient(circle at 90% 25%, #ffd6e6 0 7%, transparent 8%),
+                var(--cream);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Allows keyboard users to jump directly to the page content. */
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: 10px;
+            background: var(--brownie);
+            color: white;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            z-index: 1000;
+        }
+
+        .skip-link:focus {
+            left: 10px;
+        }
+
+        /* ---------- HEADER ---------- */
+
+        header {
+            text-align: center;
+            padding: 5rem 1.5rem 4rem;
+            background: linear-gradient(
+                135deg,
+                var(--yellow),
+                var(--pink),
+                var(--purple),
+                var(--blue)
+            );
+            position: relative;
+            overflow: hidden;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: clamp(2.5rem, 8vw, 5.5rem);
+            line-height: 1;
+            text-shadow: 3px 3px 0 var(--white);
+        }
+
+        .tagline {
+            max-width: 700px;
+            margin: 1.5rem auto 0;
+            font-size: clamp(1.1rem, 3vw, 1.5rem);
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 1rem 1.4rem;
+            border-radius: 999px;
+        }
+
+        /* ---------- MAIN CONTENT ---------- */
+
+        main {
+            width: min(1100px, 92%);
+            margin: 0 auto;
+        }
+
+        .intro {
+            text-align: center;
+            padding: 4rem 1rem 2rem;
+        }
+
+        .intro h2 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Each cat gets a large card containing their information. */
+        .cat-card {
+            margin: 3rem 0;
+            background: var(--white);
+            border: 4px solid var(--brownie);
+            border-radius: 28px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .cat-heading {
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .nutter .cat-heading {
+            background: var(--yellow);
+        }
+
+        .cosmic .cat-heading {
+            background: var(--purple);
+        }
+
+        .cat-heading h2 {
+            margin: 0;
+            font-size: clamp(2.2rem, 6vw, 4rem);
+        }
+
+        .nickname {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 0.4rem 0 0;
+        }
+
+        /* ---------- CAT INFORMATION ---------- */
+
+        .cat-content {
+            padding: 2rem;
+        }
+
+        .cat-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .cat-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .cat-photo {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            border-radius: 22px;
+            border: 4px solid var(--brownie);
+            box-shadow: var(--shadow);
+        }
+
+        .photo-tilt-left {
+            transform: rotate(-2deg);
+        }
+
+        .photo-tilt-right {
+            transform: rotate(2deg);
+        }
+
+        .info-box {
+            background: var(--cream);
+            border: 3px dashed var(--brownie);
+            border-radius: 22px;
+            padding: 1.5rem;
+        }
+
+        .info-box h3 {
+            font-size: 1.8rem;
+            margin-top: 0;
+        }
+
+        .stats {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+
+        .stats li {
+            margin: 0.7rem 0;
+        }
+
+        .story {
+            background: var(--brownie);
+            color: var(--white);
+            border-radius: 22px;
+            padding: 1.7rem;
+        }
+
+        .story h3 {
+            color: var(--yellow);
+            margin-top: 0;
+        }
+
+        .meme-label {
+            display: inline-block;
+            background: var(--pink);
+            color: var(--brownie);
+            padding: 0.3rem 0.8rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transform: rotate(-2deg);
+            margin-bottom: 0.5rem;
+        }
+
+        /* ---------- FINAL SECTION ---------- */
+
+        .final-message {
+            text-align: center;
+            margin: 4rem 0;
+            padding: 3rem 1.5rem;
+            border-radius: 30px;
+            background: linear-gradient(
+                135deg,
+                var(--blue),
+                var(--yellow),
+                var(--pink)
+            );
+            border: 4px solid var(--brownie);
+        }
+
+        .final-message h2 {
+            font-size: clamp(2rem, 6vw, 4rem);
+            margin: 0 0 1rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 1rem 3rem;
+            font-weight: bold;
+        }
+
+        /* ---------- MOVING PAW PRINTS ----------
+
+           JavaScript creates these paw prints and gives each one
+           slightly different timing and placement.
+        */
+
+        .paw {
+            position: fixed;
+            bottom: -100px;
+            font-size: 2rem;
+            pointer-events: none;
+            z-index: 20;
+            opacity: 0.55;
+            animation: pawTravel linear forwards;
+        }
+
+        @keyframes pawTravel {
+            from {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0;
+            }
+
+            15% {
+                opacity: 0.55;
+            }
+
+            85% {
+                opacity: 0.55;
+            }
+
+            to {
+                transform: translateY(-120vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* ---------- ORIGINAL PIXEL FLYING CAT ----------
+
+           This is made entirely with HTML/CSS. There is no image
+           or GIF being loaded from another website.
+        */
+
+        .flying-cat {
+            position: fixed;
+            left: -180px;
+            top: 20%;
+            width: 130px;
+            height: 70px;
+            z-index: 30;
+            pointer-events: none;
+            animation: flyAcross 16s linear infinite;
+        }
+
+        .pixel-rainbow {
+            position: absolute;
+            right: 80px;
+            top: 22px;
+            width: 85px;
+            height: 32px;
+            background: linear-gradient(
+                to bottom,
+                #ff595e 0 16.6%,
+                #ffca3a 16.6% 33.2%,
+                #8ac926 33.2% 49.8%,
+                #42bde8 49.8% 66.4%,
+                #6a4cdb 66.4% 83%,
+                #ff77a9 83% 100%
+            );
+        }
+
+        .pixel-cat-body {
+            position: absolute;
+            right: 0;
+            top: 15px;
+            width: 75px;
+            height: 48px;
+            background: #a87850;
+            border: 4px solid #29252d;
+            border-radius: 10px;
+        }
+
+        .pixel-cat-head {
+            position: absolute;
+            right: -18px;
+            top: 3px;
+            width: 42px;
+            height: 42px;
+            background: #b98a62;
+            border: 4px solid #29252d;
+        }
+
+        .pixel-cat-head::before,
+        .pixel-cat-head::after {
+            content: "";
+            position: absolute;
+            top: -13px;
+            width: 14px;
+            height: 14px;
+            background: #b98a62;
+            border: 4px solid #29252d;
+            transform: rotate(45deg);
+            z-index: -1;
+        }
+
+        .pixel-cat-head::before {
+            left: -2px;
+        }
+
+        .pixel-cat-head::after {
+            right: -2px;
+        }
+
+        .pixel-eyes {
+            position: absolute;
+            top: 13px;
+            left: 7px;
+            width: 5px;
+            height: 5px;
+            background: #29252d;
+            box-shadow: 18px 0 #29252d;
+        }
+
+        @keyframes flyAcross {
+            0% {
+                left: -180px;
+                top: 15%;
+                transform: rotate(-4deg);
+            }
+
+            25% {
+                top: 35%;
+                transform: rotate(4deg);
+            }
+
+            50% {
+                top: 65%;
+                transform: rotate(-4deg);
+            }
+
+            75% {
+                top: 30%;
+                transform: rotate(4deg);
+            }
+
+            100% {
+                left: calc(100vw + 180px);
+                top: 50%;
+                transform: rotate(-4deg);
+            }
+        }
+
+        /* ---------- RESPONSIVE DESIGN ----------
+
+           On smaller screens, the two-column layouts become one
+           column so everything remains easy to read.
+        */
+
+        @media (max-width: 750px) {
+            header {
+                padding-top: 4rem;
+            }
+
+            .cat-section {
+                grid-template-columns: 1fr;
+            }
+
+            .reverse-mobile .text-area {
+                order: 2;
+            }
+
+            .reverse-mobile .photo-area {
+                order: 1;
+            }
+
+            .cat-content {
+                padding: 1.3rem;
+            }
+
+            .flying-cat {
+                transform: scale(0.8);
+            }
+        }
+
+        /* ---------- ACCESSIBILITY ----------
+           
+           If a visitor has told their device that animations make
+           them uncomfortable, all decorative motion is stopped.
+        */
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            .paw,
+            .flying-cat {
+                display: none;
+            }
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Keyboard users can skip directly past the header. -->
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <!-- Decorative flying pixel cat.
+         aria-hidden prevents screen readers from announcing it. -->
+    <div class="flying-cat" aria-hidden="true">
+        <div class="pixel-rainbow"></div>
+        <div class="pixel-cat-body"></div>
+        <div class="pixel-cat-head">
+            <div class="pixel-eyes"></div>
+        </div>
+    </div>
+
+    <header>
+        <h1>Nutter Butter &amp;<br>Cosmic Brownie</h1>
+
+        <p class="tagline">
+            Two snack-themed cats. Zero survival instincts.
+            Unlimited audacity.
+        </p>
+    </header>
+
+    <main id="main-content">
+
+        <section class="intro" aria-labelledby="intro-heading">
+            <h2 id="intro-heading">Meet the Chaos</h2>
+
+            <p>
+                One fears an empty food bowl. The other fears... sneezing.
+                Together, they form an unstoppable team of adorable nonsense.
+            </p>
+        </section>
+
+        <!-- =====================================================
+             NUTTER BUTTER
+             ===================================================== -->
+
+        <article class="cat-card nutter">
+
+            <div class="cat-heading">
+                <h2>Nutter Butter</h2>
+                <p class="nickname">AKA: Nutty Boy</p>
+            </div>
+
+            <div class="cat-content">
+
+                <section class="cat-section">
+
+                    <div class="photo-area">
+                        <img
+                            class="cat-photo photo-tilt-left"
+                            src="images/nutter-butter-1.jpg"
+                            alt="Nutter Butter, a tabby cat."
+                        >
+                    </div>
+
+                    <div class="text-area info-box">
+                        <span class="meme-label">Professional Napper</span>
+
+                        <h3>The Nutty Boy Files</h3>
+
+                        <ul class="stats">
+                            <li>
+                                🎂 <strong>Birthday:</strong>
+                                January 28, 2021
+                            </li>
+
+                            <li>
+                                🧮 <strong>Age:</strong>
+                                <span id="nutter-age">Calculating...</span>
+                            </li>
+
+                            <li>
+                                😴 <strong>Occupation:</strong>
+                                Sleeping
+                            </li>
+
+                            <li>
+                                😱 <strong>Biggest fear:</strong>
+                                Seeing the bottom of his food bowl
+                            </li>
+
+                            <li>
+                                ❤️ <strong>Allegiance:</strong>
+                                Momma
+                            </li>
+                        </ul>
+
+                        <p>
+                            Nutter Butter is a big, lazy boy who considers
+                            sleeping a full-time career. Most of the time,
+                            he's perfectly content relaxing and making sure
+                            nobody forgets to refill his food.
+                        </p>
+
+                        <p>
+                            But sometimes...
+                            <strong>the zoomies activate.</strong>
+                        </p>
+                    </div>
+
+                </section>
+
+                <section class="cat-section reverse-mobile">
+
+                    <div class="text-area story">
+                        <span class="meme-label">INCIDENT REPORT</span>
+
+                        <h3>The Shower Curtain Situation</h3>
+
+                        <p>
+                            One day, Nutter Butter decided the bathroom sink
+                            was apparently not exciting enough.
+                        </p>
+
+                        <p>
+                            He launched himself from the sink directly onto
+                            the shower curtain.
+                        </p>
+
+                        <p>
+                            Moments later, he was hanging from the shower rod
+                            <strong>by his two front paws</strong> while his
+                            back paws kicked through the shower curtain.
+                        </p>
+
+                        <p>
+                            After looking up to figure out what was happening,
+                            there he was:
+                        </p>
+
+                        <p>
+                            <strong>
+                                Nutter Butter. Suspended in the air.
+                                Holding on for dear life.
+                            </strong>
+                        </p>
+
+                        <p>
+                            ⭐ Athletic ability: questionable.<br>
+                            ⭐ Commitment: 10/10.
+                        </p>
+                    </div>
+
+                    <div class="photo-area">
+                        <img
+                            class="cat-photo photo-tilt-right"
+                            src="images/nutter-butter-2.jpg"
+                            alt="Nutter Butter, the tabby cat, in another cute or funny moment."
+                        >
+                    </div>
+
+                </section>
+
+            </div>
+        </article>
+
+        <!-- =====================================================
+             COSMIC BROWNIE
+             ===================================================== -->
+
+        <article class="cat-card cosmic">
+
+            <div class="cat-heading">
+                <h2>Cosmic Brownie</h2>
+                <p class="nickname">AKA: Mr. Mick</p>
+            </div>
+
+            <div class="cat-content">
+
+                <section class="cat-section">
+
+                    <div class="photo-area">
+                        <img
+                            class="cat-photo photo-tilt-right"
+                            src="images/cosmic-brownie-1.jpg"
+                            alt="Cosmic Brownie, a black cat."
+                        >
+                    </div>
+
+                    <div class="text-area info-box">
+                        <span class="meme-label">Attention Required</span>
+
+                        <h3>The Mr. Mick Files</h3>
+
+                        <ul class="stats">
+                            <li>
+                                🎂 <strong>Birthday:</strong>
+                                March 5, 2023
+                            </li>
+
+                            <li>
+                                🧮 <strong>Age:</strong>
+                                <span id="cosmic-age">Calculating...</span>
+                            </li>
+
+                            <li>
+                                😨 <strong>Specialty:</strong>
+                                Being suspicious of everything
+                            </li>
+
+                            <li>
+                                📢 <strong>Communication style:</strong>
+                                YELLING
+                            </li>
+
+                            <li>
+                                ❤️ <strong>Favorite activity:</strong>
+                                Receiving attention
+                            </li>
+                        </ul>
+
+                        <p>
+                            Cosmic Brownie is a certified scaredy cat with
+                            one very important demand:
+                            <strong>pay attention to him.</strong>
+                        </p>
+
+                        <p>
+                            Failure to provide sufficient attention may
+                            result in immediate and very vocal complaints.
+                        </p>
+                    </div>
+
+                </section>
+
+                <section class="cat-section reverse-mobile">
+
+                    <div class="text-area story">
+                        <span class="meme-label">STARTLE RESPONSE: 100%</span>
+
+                        <h3>The Sneeze Incident</h3>
+
+                        <p>
+                            It started with one completely ordinary sneeze.
+                        </p>
+
+                        <p>
+                            Cosmic Brownie disagreed with the
+                            <em>"ordinary"</em> part.
+                        </p>
+
+                        <p>
+                            The sound scared him so badly that he launched
+                            himself <strong>backward and high into the air</strong>.
+                        </p>
+
+                        <p>
+                            Apparently, when faced with the terrifying sound
+                            of a human sneezing, Cosmic's emergency plan is:
+                        </p>
+
+                        <p>
+                            <strong>ABANDON EARTH.</strong>
+                        </p>
+
+                        <p>
+                            ⭐ Threat level: sneeze.<br>
+                            ⭐ Response level: evacuation.
+                        </p>
+                    </div>
+
+                    <div class="photo-area">
+                        <img
+                            class="cat-photo photo-tilt-left"
+                            src="images/cosmic-brownie-2.jpg"
+                            alt="Cosmic Brownie, the black cat, in another cute or funny moment."
+                        >
+                    </div>
+
+                </section>
+
+            </div>
+        </article>
+
+        <section class="final-message" aria-labelledby="verdict-heading">
+
+            <h2 id="verdict-heading">
+                The Verdict
+            </h2>
+
+            <p>
+                Are their names ridiculous?
+                <strong>Yes.</strong>
+            </p>
+
+            <p>
+                Are they adorable?
+                <strong>Obviously.</strong>
+            </p>
+
+            <p>
+                Should they ever be trusted to make their own decisions?
+                <strong>Absolutely not.</strong>
+            </p>
+
+        </section>
+
+    </main>
+
+    <footer>
+        <p>
+            🐾 Nutter Butter &amp; Cosmic Brownie 🐾<br>
+            Snack names. Cat brains. Maximum chaos.
+        </p>
+    </footer>
+
+    <script>
+        // =========================================================
+        // v1.0 - Initial JavaScript
+        // =========================================================
+
+
+        // ---------------------------------------------------------
+        // AUTOMATIC AGE CALCULATOR
+        // ---------------------------------------------------------
+        // This function takes a birthday and calculates the cat's
+        // age using the visitor's current date.
+        //
+        // This means you never have to manually update their ages
+        // when they have another birthday.
+        // ---------------------------------------------------------
+
+        function calculateAge(birthDateString) {
+
+            // Turn the birthday text into an actual JavaScript date.
+            const birthday = new Date(birthDateString);
+
+            // Get today's date from the visitor's computer.
+            const today = new Date();
+
+            // Start by subtracting the birth year from the current year.
+            let age = today.getFullYear() - birthday.getFullYear();
+
+            // Calculate whether the birthday has happened yet this year.
+            const monthDifference =
+                today.getMonth() - birthday.getMonth();
+
+            // If the birthday hasn't happened yet this year,
+            // subtract one from the age.
+            if (
+                monthDifference < 0 ||
+                (
+                    monthDifference === 0 &&
+                    today.getDate() < birthday.getDate()
+                )
+            ) {
+                age--;
+            }
+
+            // Return the finished age.
+            return age;
+        }
+
+
+        // ---------------------------------------------------------
+        // DISPLAY EACH CAT'S AGE
+        // ---------------------------------------------------------
+        // The birthday dates use YYYY-MM-DD format because this is
+        // easy for JavaScript to understand.
+        // ---------------------------------------------------------
+
+        const nutterAge = calculateAge("2021-01-28");
+        const cosmicAge = calculateAge("2023-03-05");
+
+        // Put the calculated ages into their matching spots
+        // on the webpage.
+        document.getElementById("nutter-age").textContent =
+            nutterAge + (nutterAge === 1 ? " year old" : " years old");
+
+        document.getElementById("cosmic-age").textContent =
+            cosmicAge + (cosmicAge === 1 ? " year old" : " years old");
+
+
+        // ---------------------------------------------------------
+        // MOVING PAW PRINTS
+        // ---------------------------------------------------------
+        // Every few seconds, this function creates a paw print near
+        // the bottom of the screen.
+        //
+        // CSS then animates the paw upward until it disappears.
+        //
+        // Each paw gets a random horizontal position, size, rotation,
+        // and animation speed so the pattern doesn't look repetitive.
+        // ---------------------------------------------------------
+
+        function createPawPrint() {
+
+            // Check whether the visitor has asked their device to
+            // reduce animations. If so, don't create moving paws.
+            const reducedMotion =
+                window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+            if (reducedMotion) {
+                return;
+            }
+
+            // Create a new decorative span element.
+            const paw = document.createElement("span");
+
+            // Give it the CSS class that controls its animation.
+            paw.className = "paw";
+
+            // Add the paw-print symbol.
+            paw.textContent = "🐾";
+
+            // Screen readers don't need to announce decorative paws.
+            paw.setAttribute("aria-hidden", "true");
+
+            // Pick a random horizontal position.
+            paw.style.left = Math.random() * 95 + "vw";
+
+            // Give each paw a slightly different size.
+            paw.style.fontSize =
+                (1.5 + Math.random() * 1.5) + "rem";
+
+            // Give each paw a slightly different animation duration.
+            paw.style.animationDuration =
+                (6 + Math.random() * 5) + "s";
+
+            // Add the paw to the webpage.
+            document.body.appendChild(paw);
+
+            // Remove the paw after its animation has had enough time
+            // to finish. This prevents old invisible paw elements
+            // from piling up in the page.
+            setTimeout(function () {
+                paw.remove();
+            }, 12000);
+        }
+
+
+        // ---------------------------------------------------------
+        // START THE PAW ANIMATION
+        // ---------------------------------------------------------
+        // A new paw is created approximately every 1.8 seconds.
+        // ---------------------------------------------------------
+
+        const pawInterval = setInterval(createPawPrint, 1800);
+
+
+        // ---------------------------------------------------------
+        // CREATE A FEW PAWS RIGHT AWAY
+        // ---------------------------------------------------------
+        // Without this, visitors would have to wait almost two
+        // seconds before seeing the first paw.
+        // ---------------------------------------------------------
+
+        createPawPrint();
+
+        setTimeout(createPawPrint, 500);
+        setTimeout(createPawPrint, 1000);
+
+
+        // ---------------------------------------------------------
+        // PAUSE DECORATIVE JAVASCRIPT WHEN THE TAB IS HIDDEN
+        // ---------------------------------------------------------
+        // Browsers already reduce background activity, but this
+        // explicitly avoids creating unnecessary paw-print elements
+        // while someone is looking at another browser tab.
+        // ---------------------------------------------------------
+
+        document.addEventListener("visibilitychange", function () {
+
+            if (document.hidden) {
+
+                // Existing paw prints will simply finish their
+                // animations. No special action is needed.
+
+                return;
+            }
+        });
+
+    </script>
+
+</body>
+</html>

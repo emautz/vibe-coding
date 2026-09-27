@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  MOTIONLESS IN WHITE - "BLOOD AND SWEAT" TOUR COUNTDOWN
+  ============================================================================
+  v1.0 - initial build
+  What this file does, in plain language:
+    - Shows a big countdown (days / hours / minutes / seconds) that ticks
+      down toward 7:00 PM on Friday, October 30th, 2026.
+    - The background looks like dripping blood, but the countdown card
+      itself sits on a solid dark panel so the text stays easy to read.
+    - Everything (markup, styling, and logic) lives in this one file.
+    - No external frameworks, no build step, no network calls - just
+      plain HTML, CSS, and vanilla JavaScript.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Countdown to Motionless in White: Blood and Sweat Tour</title>
+
+<style>
+  /* ==========================================================================
+     BASIC RESET
+     Removes default browser spacing so our layout math is predictable.
+  ========================================================================== */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    /* A very dark, near-black red base so the blood drips have something
+       moody to sit on top of. */
+    background-color: #0a0303;
+    font-family: 'Trebuchet MS', 'Segoe UI', Arial, sans-serif;
+    color: #f5f0f0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ==========================================================================
+     BACKGROUND LAYER - "DRIPPY BLOOD"
+     We build this purely with CSS. A dark red gradient sets the base color,
+     and a row of drip "blobs" hangs from the top of the screen, each one
+     slowly stretching and shrinking like blood dripping down a wall.
+     This whole layer sits BEHIND everything else (z-index: 0) and is
+     marked aria-hidden because it's decorative, not content.
+  ========================================================================== */
+  .blood-background {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: radial-gradient(ellipse at top, #4a0404 0%, #1a0202 55%, #0a0303 100%);
+    overflow: hidden;
+  }
+
+  /* Each drip is an absolutely positioned shape hanging from the top edge.
+     The lumpy border-radius values make it look organic rather than a
+     perfect teardrop, and the animation makes it stretch downward and
+     back up on a loop, like it's slowly oozing. */
+  .drip {
+    position: absolute;
+    top: -40px;
+    width: 46px;
+    background: linear-gradient(180deg, #8a0303 0%, #5c0202 55%, #3a0101 100%);
+    border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+    box-shadow: inset -6px -6px 10px rgba(0,0,0,0.5), inset 4px 4px 8px rgba(255,60,60,0.15);
+    animation-name: drip-fall;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    opacity: 0.9;
+  }
+
+  /* A pool of "blood" along the very top of the screen so the drips look
+     like they're falling from a continuous source rather than floating
+     shapes. */
+  .blood-background::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 26px;
+    background: linear-gradient(180deg, #6b0202 0%, rgba(107,2,2,0) 100%);
+  }
+
+  @keyframes drip-fall {
+    0%   { height: 90px;  transform: translateY(0) scaleX(1); }
+    45%  { height: 340px; transform: translateY(10px) scaleX(0.94); }
+    70%  { height: 300px; transform: translateY(4px) scaleX(1.03); }
+    100% { height: 90px;  transform: translateY(0) scaleX(1); }
+  }
+
+  /* A subtle dark vignette/overlay above the drips but below the content,
+     so no matter how the drips move, the middle of the screen stays dark
+     enough for readable, high-contrast text. */
+  .readability-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0.05) 75%);
+    pointer-events: none;
+  }
+
+  /* ==========================================================================
+     MAIN CONTENT WRAPPER
+     Sits above the background layers (z-index higher than the blood/overlay)
+     and has its own solid, semi-opaque dark panel behind the text so the
+     title and numbers are always legible regardless of what's happening
+     in the background.
+  ========================================================================== */
+  main {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 900px;
+    margin: 24px;
+    padding: clamp(20px, 5vw, 56px);
+    background: rgba(6, 2, 2, 0.72);
+    border: 2px solid #7a0f0f;
+    border-radius: 18px;
+    box-shadow: 0 0 40px rgba(120, 0, 0, 0.55), 0 0 0 1px rgba(255,255,255,0.03) inset;
+    text-align: center;
+    backdrop-filter: blur(2px);
+  }
+
+  /* ==========================================================================
+     TITLE / HEADER TEXT
+  ========================================================================== */
+  .band-name {
+    font-family: 'Impact', 'Arial Narrow', sans-serif;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-size: clamp(1.6rem, 5vw, 3rem);
+    color: #ffffff;
+    text-shadow: 0 0 12px rgba(255,0,0,0.8), 0 0 2px #000;
+  }
+
+  .tour-name {
+    margin-top: 6px;
+    font-size: clamp(1rem, 3vw, 1.6rem);
+    color: #ff3b3b;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(0,0,0,0.9);
+  }
+
+  .event-subtitle {
+    margin-top: 14px;
+    font-size: clamp(0.85rem, 2.2vw, 1.1rem);
+    color: #e8d6d6;
+  }
+
+  /* ==========================================================================
+     COUNTDOWN GRID
+     Four matching boxes (days, hours, minutes, seconds) laid out with CSS
+     grid so they reflow nicely from a single row on desktop down to a
+     2x2 grid on narrow phone screens.
+  ========================================================================== */
+  .countdown-grid {
+    margin-top: 32px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(8px, 2vw, 20px);
+    justify-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 480px) {
+    .countdown-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .time-block {
+    width: 100%;
+    background: rgba(20, 2, 2, 0.85);
+    border: 1px solid #5c0f0f;
+    border-radius: 12px;
+    padding: clamp(10px, 3vw, 20px) 6px;
+    text-align: center;
+  }
+
+  .time-value {
+    display: block;
+    font-family: 'Courier New', monospace;
+    font-weight: 900;
+    font-size: clamp(2.2rem, 8vw, 4.5rem);
+    line-height: 1;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 20, 20, 0.9);
+    font-variant-numeric: tabular-nums; /* keeps digits from jittering width */
+  }
+
+  .time-label {
+    display: block;
+    margin-top: 8px;
+    font-size: clamp(0.65rem, 2vw, 0.95rem);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #d9a3a3;
+  }
+
+  /* ==========================================================================
+     "EVENT HAS ARRIVED" MESSAGE
+     Hidden by default; JavaScript reveals this once the countdown reaches
+     zero, and hides the numeric grid at the same time.
+  ========================================================================== */
+  .arrived-message {
+    display: none;
+    margin-top: 32px;
+    font-size: clamp(1.3rem, 4vw, 2.2rem);
+    color: #ff2b2b;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 14px rgba(255,0,0,0.9);
+  }
+
+  /* ==========================================================================
+     ACCESSIBILITY HELPER
+     Visually hides text while keeping it available to screen readers.
+     Used for extra descriptive context that sighted users don't need
+     cluttering the visual design.
+  ========================================================================== */
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Respect users who have asked their system to reduce motion:
+     freeze the dripping animation so it doesn't move at all for them. */
+  @media (prefers-reduced-motion: reduce) {
+    .drip {
+      animation: none;
+      height: 160px;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Decorative dripping-blood background. aria-hidden because it conveys
+       no information a screen reader user needs - it's purely visual mood. -->
+  <div class="blood-background" aria-hidden="true" id="bloodBackground"></div>
+  <div class="readability-overlay" aria-hidden="true"></div>
+
+  <!-- Main countdown content. Using <main> and a heading hierarchy so the
+       page structure makes sense to screen readers and keyboard users. -->
+  <main>
+    <header>
+      <h1 class="band-name">Motionless in White</h1>
+      <p class="tour-name">Blood and Sweat Tour</p>
+      <p class="event-subtitle">
+        Counting down to showtime:
+        <strong>7:00 PM, Friday, October 30th, 2026</strong>
+      </p>
+    </header>
+
+    <!--
+      The countdown numbers themselves.
+      role="timer" plus aria-live="polite" tells assistive technology that
+      this region updates periodically and should be announced without
+      interrupting whatever the user is currently doing.
+      aria-atomic="true" means when it announces an update, it reads the
+      whole block together (not just whichever single number changed),
+      so the announcement always makes sense in context.
+    -->
+    <div
+      class="countdown-grid"
+      id="countdownGrid"
+      role="timer"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-label="Time remaining until Motionless in White Blood and Sweat Tour"
+    >
+      <div class="time-block">
+        <span class="time-value" id="daysValue">00</span>
+        <span class="time-label">Days</span>
+      </div>
+      <div class="time-block">
+        <span class="time-value" id="hoursValue">00</span>
+        <span class="time-label">Hours</span>
+      </div>
+      <div class="time-block">
+        <span class="time-value" id="minutesValue">00</span>
+        <span class="time-label">Minutes</span>
+      </div>
+      <div class="time-block">
+        <span class="time-value" id="secondsValue">00</span>
+        <span class="time-label">Seconds</span>
+      </div>
+    </div>
+
+    <!-- Extra plain-language sentence for screen reader users, updated
+         alongside the visual numbers, so the countdown reads naturally
+         instead of as four disconnected digits. -->
+    <p class="visually-hidden" id="countdownSentence" aria-live="off"></p>
+
+    <!-- Shown only once the target date/time has passed. -->
+    <p class="arrived-message" id="arrivedMessage" role="status">
+      It's showtime! Motionless in White is live right now.
+    </p>
+  </main>
+
+<script>
+  // ==========================================================================
+  // COUNTDOWN LOGIC
+  // ==========================================================================
+  // Step 1: Define the exact moment we are counting down to.
+  // JavaScript's Date constructor here uses: year, monthIndex (0 = January,
+  // so October is 9), day, hour (24-hour clock, so 19 = 7 PM), minute, second.
+  // This creates the date in the visitor's LOCAL timezone.
+  var targetDate = new Date(2026, 9, 30, 19, 0, 0);
+
+  // Step 2: Grab references to every element we'll need to update, once,
+  // up front, instead of re-searching the page every single second.
+  var daysEl = document.getElementById('daysValue');
+  var hoursEl = document.getElementById('hoursValue');
+  var minutesEl = document.getElementById('minutesValue');
+  var secondsEl = document.getElementById('secondsValue');
+  var sentenceEl = document.getElementById('countdownSentence');
+  var gridEl = document.getElementById('countdownGrid');
+  var arrivedEl = document.getElementById('arrivedMessage');
+
+  // Small helper: turns a number like "5" into the text "05" so every
+  // value always shows two digits, keeping the layout from jumping
+  // around as digits change.
+  function padTwoDigits(number) {
+    return String(number).padStart(2, '0');
+  }
+
+  // This function does the actual math and updates the page. It runs
+  // once immediately on page load, and then again every second.
+  function updateCountdown() {
+    var now = new Date();
+    var millisecondsRemaining = targetDate.getTime() - now.getTime();
+
+    // If the countdown has reached (or passed) zero, stop ticking,
+    // swap the numeric grid out for the "it's happening" message,
+    // and exit early so we don't try to display negative numbers.
+    if (millisecondsRemaining <= 0) {
+      clearInterval(tickInterval);
+      gridEl.style.display = 'none';
+      arrivedEl.style.display = 'block';
+      sentenceEl.textContent = 'The Motionless in White Blood and Sweat Tour show has begun.';
+      return;
+    }
+
+    // Convert the raw millisecond difference into whole days, hours,
+    // minutes, and seconds. Each step divides out the unit above it
+    // and keeps only the leftover remainder for the next calculation.
+    var totalSeconds = Math.floor(millisecondsRemaining / 1000);
+    var days = Math.floor(totalSeconds / 86400); // 86400 seconds in a day
+    var hours = Math.floor((totalSeconds % 86400) / 3600); // 3600 seconds in an hour
+    var minutes = Math.floor((totalSeconds % 3600) / 60);
+    var seconds = totalSeconds % 60;
+
+    // Push the freshly calculated numbers into the visible page.
+    daysEl.textContent = padTwoDigits(days);
+    hoursEl.textContent = padTwoDigits(hours);
+    minutesEl.textContent = padTwoDigits(minutes);
+    secondsEl.textContent = padTwoDigits(seconds);
+
+    // Update the hidden screen-reader-only sentence so assistive tech
+    // announces something readable like "12 days, 4 hours, 9 minutes,
+    // 30 seconds remaining" instead of four separate raw numbers.
+    sentenceEl.textContent =
+      days + ' days, ' + hours + ' hours, ' + minutes + ' minutes, and ' +
+      seconds + ' seconds remaining until Motionless in White: Blood and Sweat Tour.';
+  }
+
+  // Run once right away so the page shows correct numbers instantly,
+  // rather than a blank/zero state for the first second.
+  updateCountdown();
+
+  // Then keep running every 1000 milliseconds (one second) forever,
+  // until the clearInterval() call above stops it once time runs out.
+  var tickInterval = setInterval(updateCountdown, 1000);
+
+  // ==========================================================================
+  // DECORATIVE BACKGROUND SETUP
+  // ==========================================================================
+  // Builds a row of "drip" elements across the top of the screen. Doing
+  // this in JavaScript (rather than hand-writing a dozen near-identical
+  // CSS rules) lets us randomize each drip's position, width, delay, and
+  // speed so the effect looks organic instead of perfectly repeating.
+  (function buildBloodDrips() {
+    var container = document.getElementById('bloodBackground');
+    var dripCount = 18; // how many individual drips to create
+
+    for (var i = 0; i < dripCount; i++) {
+      var drip = document.createElement('div');
+      drip.className = 'drip';
+
+      // Spread drips evenly across the width, then nudge each one by a
+      // small random amount so they don't look like a perfect grid.
+      var basePosition = (i / dripCount) * 100;
+      var jitter = (Math.random() * 4) - 2; // -2% to +2%
+      drip.style.left = (basePosition + jitter) + '%';
+
+      // Randomize width slightly for variety between drips.
+      var width = 26 + Math.random() * 34; // between 26px and 60px
+      drip.style.width = width + 'px';
+
+      // Randomize how long each drip's stretch-and-shrink cycle takes,
+      // and stagger their start times, so they don't all move in sync.
+      var duration = 4 + Math.random() * 5; // 4 to 9 seconds
+      var delay = Math.random() * 6; // 0 to 6 seconds
+      drip.style.animationDuration = duration + 's';
+      drip.style.animationDelay = '-' + delay + 's';
+
+      container.appendChild(drip);
+    }
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Photo Slider</title>
+
+    <style>
+        /* v1.3 - Clearly labeled photo descriptions in the photo list */
+
+        /* Makes sizing more predictable for all elements */
+        * {
+            box-sizing: border-box;
+        }
+
+        /* Centers the slider on the page */
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        /* Main slider container */
+        .slider {
+            width: 100%;
+            max-width: 700px;
+        }
+
+        /* Holds the photo and its caption */
+        .slider-card {
+            width: 100%;
+            margin: 0;
+            overflow: hidden;
+            border-radius: 12px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /*
+            Gives every image the exact same display area.
+            object-fit: cover makes differently sized images fill
+            the space without becoming stretched or distorted.
+        */
+        .slider-card img {
+            display: block;
+            width: 100%;
+            height: 450px;
+            object-fit: cover;
+        }
+
+        /* Displays the caption directly underneath the picture */
+        .slider-caption {
+            margin: 0;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        /* Places the Previous and Next buttons below the card */
+        .slider-controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        /* Styles both slider buttons */
+        .slider-controls button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #222222;
+            color: #ffffff;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        /* Gives mouse users feedback when hovering over a button */
+        .slider-controls button:hover {
+            background-color: #444444;
+        }
+
+        /*
+            Provides a visible keyboard focus indicator.
+            This makes the controls easier to use without a mouse.
+        */
+        .slider-controls button:focus-visible {
+            outline: 3px solid #0066cc;
+            outline-offset: 3px;
+        }
+
+        /*
+            On smaller screens, reduce the image height so
+            the slider fits more comfortably on phones.
+        */
+        @media (max-width: 600px) {
+            .slider-card img {
+                height: 300px;
+            }
+
+            .slider-controls {
+                gap: 10px;
+            }
+
+            .slider-controls button {
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- v1.3 - Photo information is controlled by one JavaScript list -->
+
+    <main>
+        <section
+            class="slider"
+            aria-label="Photo slideshow"
+        >
+
+            <!--
+                JavaScript fills in the picture, its accessibility
+                description, and its visible caption.
+            -->
+            <figure
+                class="slider-card"
+                aria-live="polite"
+                aria-atomic="true"
+            >
+                <img
+                    id="slider-image"
+                    src=""
+                    alt=""
+                >
+
+                <figcaption
+                    id="slider-caption"
+                    class="slider-caption"
+                ></figcaption>
+            </figure>
+
+            <!-- Navigation controls -->
+            <div class="slider-controls">
+                <button
+                    type="button"
+                    id="previous-button"
+                    aria-label="Show previous photo"
+                >
+                    Previous
+                </button>
+
+                <button
+                    type="button"
+                    id="next-button"
+                    aria-label="Show next photo"
+                >
+                    Next
+                </button>
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+        // v1.3 - Filename, caption, and description are all stored here
+
+        /*
+            ============================================================
+            PHOTO LIST
+            ============================================================
+
+            THIS IS THE ONLY PART YOU NEED TO EDIT FOR YOUR PICTURES.
+
+            Every picture has ONE entry containing:
+
+            file        = the picture's filename
+            caption     = the text displayed underneath the picture
+            description = a description for people who cannot see
+                          the picture
+
+            The description becomes the image's alt text and can be
+            read by screen-reader software.
+
+            To add a new picture:
+            1. Put the picture file in the same folder as this HTML file.
+            2. Add ONE new entry to this list.
+
+            Nothing else in the code needs to be changed.
+        */
+
+        const photos = [
+            {
+                file: "photo-1.jpg",
+                caption: "Me and Nutter Butter!",
+                description: "A girl sitting in a chair with a tabby cat on her lap."
+            },
+
+            {
+                file: "photo-2.jpg",
+                caption: "The Mautz Family",
+                description: "A funny picture of 14 family members getting a picture together."
+            },
+
+            {
+                file: "photo-3.jpg",
+                caption: "Alambra Granada, Spain",
+                description: "The Alahmbra in Granada, Spain with the snow covered mountains in the background."
+            },
+
+            {
+                file: "photo-4.jpg",
+                caption: "Me Ziplining over the Toledo River in Spain",
+                description: "A girl ziplining over a river in Spain."
+            },
+
+            {
+                file: "photo-5.jpg",
+                caption: "Double Chocolate Waffloe at Funk N' Waffles Syracuse",
+                description: "A picture of a double chocolate chip waffle with whipped cream."
+            }
+        ];
+
+
+        /*
+            Keep track of which picture is currently being displayed.
+
+            JavaScript arrays start counting at 0, so 0 represents
+            the first picture in the photos list.
+        */
+        let currentPhoto = 0;
+
+
+        /*
+            Find the HTML elements that JavaScript needs to update.
+
+            These elements do not contain any specific photo information.
+            Their content will come entirely from the photos list above.
+        */
+        const sliderImage = document.getElementById("slider-image");
+        const sliderCaption = document.getElementById("slider-caption");
+        const previousButton = document.getElementById("previous-button");
+        const nextButton = document.getElementById("next-button");
+
+
+        /*
+            Update the visible card.
+
+            First, this gets the current picture's information
+            from the photos list.
+
+            Then:
+
+            photo.file
+            becomes the image filename.
+
+            photo.caption
+            becomes the visible caption underneath the image.
+
+            photo.description
+            becomes the image's alt text for people using
+            screen readers.
+        */
+        function updateSlider() {
+            const photo = photos[currentPhoto];
+
+            sliderImage.src = photo.file;
+            sliderCaption.textContent = photo.caption;
+            sliderImage.alt = photo.description;
+        }
+
+
+        /*
+            Move forward by one picture when the Next button is clicked.
+
+            photos.length automatically checks how many pictures are
+            in the photo list.
+
+            The % operator makes the slider wrap around. When the user
+            reaches the final picture and clicks Next, the slider returns
+            to the first picture.
+        */
+        nextButton.addEventListener("click", function () {
+            currentPhoto = (currentPhoto + 1) % photos.length;
+
+            updateSlider();
+        });
+
+
+        /*
+            Move backward by one picture when Previous is clicked.
+
+            If the user is currently on the first picture, this
+            automatically wraps around to the final picture.
+
+            Because this uses photos.length, it continues to work
+            automatically when pictures are added or removed.
+        */
+        previousButton.addEventListener("click", function () {
+            currentPhoto =
+                (currentPhoto - 1 + photos.length) % photos.length;
+
+            updateSlider();
+        });
+
+
+        /*
+            Add keyboard navigation.
+
+            The buttons already support:
+            Tab
+            Enter
+            Space
+
+            These additional controls allow:
+
+            Right Arrow = next picture
+            Left Arrow  = previous picture
+        */
+        document.addEventListener("keydown", function (event) {
+
+            // Right Arrow moves to the next picture.
+            if (event.key === "ArrowRight") {
+                currentPhoto = (currentPhoto + 1) % photos.length;
+
+                updateSlider();
+            }
+
+            // Left Arrow moves to the previous picture.
+            if (event.key === "ArrowLeft") {
+                currentPhoto =
+                    (currentPhoto - 1 + photos.length) % photos.length;
+
+                updateSlider();
+            }
+        });
+
+
+        /*
+            Load the first picture when the page opens.
+
+            The filename, caption, and description all come from
+            the first entry in the photos list.
+        */
+        updateSlider();
+    </script>
+
+</body>
+</html>

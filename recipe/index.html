@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Iced Salted Maple Latte Recipe</title>
+
+    <style>
+        /* v1.3 - Added link to recipe notes page */
+
+        /* Makes sizing more predictable for all elements. */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        /* Centers the recipe card in the middle of the page. */
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 20px;
+
+            font-family: Georgia, "Times New Roman", serif;
+            line-height: 1.6;
+
+            background: #eee8df;
+            color: #352b25;
+        }
+
+        /* Main recipe card. */
+        .recipe-card {
+            width: 100%;
+            max-width: 650px;
+            background: #fffaf3;
+            border: 1px solid #d8c9b6;
+            border-radius: 18px;
+            padding: 35px;
+            box-shadow: 0 10px 30px rgba(65, 45, 30, 0.12);
+        }
+
+        /* Recipe title. */
+        .recipe-title {
+            margin: 0 0 25px;
+            text-align: center;
+            font-size: clamp(2rem, 5vw, 2.8rem);
+            line-height: 1.15;
+            color: #69482e;
+        }
+
+        /* Section headings for Ingredients and Instructions. */
+        .recipe-card h2 {
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-size: 1.35rem;
+            color: #805b3b;
+            border-bottom: 1px solid #d8c9b6;
+            padding-bottom: 5px;
+        }
+
+        /* Adds comfortable spacing to both lists. */
+        .recipe-card ul,
+        .recipe-card ol {
+            padding-left: 25px;
+            margin-bottom: 0;
+        }
+
+        /* Separates individual ingredients and instructions slightly. */
+        .recipe-card li {
+            margin-bottom: 6px;
+        }
+
+        /* Container keeps the latte images centered and reasonably sized. */
+        .recipe-photo-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 28px;
+        }
+
+        /* Keeps the latte photos from becoming excessively large. */
+        .recipe-photo {
+            display: block;
+            width: 100%;
+            max-width: 360px;
+            height: auto;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid #d8c9b6;
+        }
+
+        /* Adjusts spacing for smaller phone screens. */
+        @media (max-width: 600px) {
+            body {
+                padding: 18px 12px;
+                align-items: flex-start;
+            }
+
+            .recipe-card {
+                padding: 25px 20px;
+                border-radius: 14px;
+            }
+
+            .recipe-title {
+                margin-bottom: 20px;
+            }
+
+            .recipe-photo {
+                max-width: 100%;
+            }
+        }
+
+        /* Respects users who prefer reduced animation/motion.
+           No animations are currently used, but this provides a safe
+           foundation if interactive effects are added in the future. */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!--
+        v1.3 - Added link to recipe notes page
+
+        The recipe is placed inside one semantic article element.
+        This helps screen readers recognize the card as a self-contained
+        piece of content.
+    -->
+    <article class="recipe-card" aria-labelledby="recipe-title">
+
+        <header>
+            <h1 class="recipe-title" id="recipe-title">
+                Iced Salted Maple Latte
+            </h1>
+
+            <p style="text-align: center; margin-top: -15px;">
+                Serves 1 &bull; 5 minutes
+            </p>
+        </header>
+
+        <!-- Ingredient section uses an unordered list because
+             the ingredients do not need to be followed in order. -->
+        <section aria-labelledby="ingredients-heading">
+            <h2 id="ingredients-heading">Ingredients</h2>
+
+            <ul>
+                <li>Espresso</li>
+                <li>Maple syrup</li>
+                <li>Salt</li>
+                <li>Milk</li>
+                <li>Ice</li>
+                <li>Water</li>
+            </ul>
+        </section>
+
+        <!-- Instructions use an ordered list because the preparation
+             steps should be completed in sequence. -->
+        <section aria-labelledby="instructions-heading">
+            <h2 id="instructions-heading">Instructions</h2>
+
+            <ol>
+                <li>Brew a double shot of espresso.</li>
+                <li>In a cup, fill to the brim with ice.</li>
+                <li>Pour in 215 ml of milk.</li>
+                <li>Pour in 15 ml of maple syrup.</li>
+                <li>Pour the double shot of espresso over the top.</li>
+                <li>Add salt to taste.</li>
+                <li>Stir vigorously and enjoy!</li>
+            </ol>
+        </section>
+
+        <!--
+            photo.jpg should be stored in the exact same folder as this
+            HTML file.
+        -->
+        <figure class="recipe-photo-container">
+            <img
+                class="recipe-photo"
+                src="photo.jpg"
+                alt="Iced salted maple latte"
+                loading="lazy"
+            >
+        </figure>
+
+        <!--
+            finished-latte.jpg is the second photo showing the finished
+            drink. It should be stored in the same folder as the HTML
+            file and photo.jpg.
+        -->
+        <figure class="recipe-photo-container">
+            <img
+                class="recipe-photo"
+                src="finished-latte.jpg"
+                alt="Finished iced salted maple latte"
+                loading="lazy"
+            >
+        </figure>
+
+        <!--
+            This link opens the separate notes page.
+            notes.html should be stored in the same folder as index.html.
+        -->
+        <p style="text-align: center; margin-top: 28px;">
+            <a href="notes.html">Read More About The Recipe Here</a>
+        </p>
+
+    </article>
+
+    <script>
+        // v1.3 - Added link to recipe notes page
+
+        /*
+         * This recipe card does not require interactive controls,
+         * calculations, external requests, or stored user data.
+         *
+         * JavaScript is included here to satisfy the single-file
+         * HTML/CSS/JavaScript structure and to provide a clear location
+         * for future browser-only features.
+         *
+         * Everything on this page runs locally in the user's browser.
+         * No information is collected or sent to a server.
+         */
+
+        /*
+         * Wait until the browser has completely parsed the HTML before
+         * running any JavaScript that may interact with page elements.
+         */
+        document.addEventListener("DOMContentLoaded", function () {
+
+            /*
+             * Find the recipe card in the document. This demonstrates
+             * how future features could safely access the card without
+             * relying on global variables.
+             */
+            const recipeCard = document.querySelector(".recipe-card");
+
+            /*
+             * If the recipe card exists, add a small data attribute
+             * indicating that the page has finished initializing.
+             * This does not visually change the recipe and does not
+             * transmit or store any information.
+             */
+            if (recipeCard) {
+                recipeCard.dataset.initialized = "true";
+            }
+        });
+    </script>
+
+</body>
+</html>

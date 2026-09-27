@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Iced Salted Maple Latte Notes</title>
+
+    <style>
+        /* v1.0 - Initial recipe notes page */
+
+        /* Makes sizing more predictable for all elements. */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        /* Centers the notes card in the middle of the page. */
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 20px;
+
+            font-family: Georgia, "Times New Roman", serif;
+            line-height: 1.6;
+
+            background: #eee8df;
+            color: #352b25;
+        }
+
+        /* Main notes card uses the same appearance as the recipe card. */
+        .recipe-card {
+            width: 100%;
+            max-width: 650px;
+            background: #fffaf3;
+            border: 1px solid #d8c9b6;
+            border-radius: 18px;
+            padding: 35px;
+            box-shadow: 0 10px 30px rgba(65, 45, 30, 0.12);
+        }
+
+        /* Main page title. */
+        .recipe-title {
+            margin: 0 0 25px;
+            text-align: center;
+            font-size: clamp(2rem, 5vw, 2.8rem);
+            line-height: 1.15;
+            color: #69482e;
+        }
+
+        /* Notes section heading matches the recipe page headings. */
+        .recipe-card h2 {
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-size: 1.35rem;
+            color: #805b3b;
+            border-bottom: 1px solid #d8c9b6;
+            padding-bottom: 5px;
+        }
+
+        /* Provides comfortable spacing between note paragraphs. */
+        .recipe-card p {
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* Centers the navigation link at the bottom of the card. */
+        .back-link {
+            text-align: center;
+            margin-top: 28px;
+        }
+
+        /* Adjusts spacing for smaller phone screens. */
+        @media (max-width: 600px) {
+            body {
+                padding: 18px 12px;
+                align-items: flex-start;
+            }
+
+            .recipe-card {
+                padding: 25px 20px;
+                border-radius: 14px;
+            }
+
+            .recipe-title {
+                margin-bottom: 20px;
+            }
+        }
+
+        /* Respects users who prefer reduced animation or motion. */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!--
+        v1.0 - Initial recipe notes page
+
+        The notes are contained inside a semantic article so screen
+        readers can identify the content as a self-contained page.
+    -->
+    <article class="recipe-card" aria-labelledby="notes-title">
+
+        <header>
+            <h1 class="recipe-title" id="notes-title">
+                Iced Salted Maple Latte Notes
+            </h1>
+        </header>
+
+        <!--
+            This section provides room for several paragraphs about
+            the recipe. Replace the placeholder text below with your
+            own notes whenever you are ready.
+        -->
+        <section aria-labelledby="about-heading">
+            <h2 id="about-heading">About This Recipe</h2>
+
+            <p>
+                Add your first paragraph about the recipe here. You could
+                describe what inspired the recipe, why you enjoy it, or
+                when you like to make it.
+            </p>
+
+            <p>
+                Add your second paragraph here. This could include notes
+                about the espresso, maple syrup, milk, or other ingredients
+                used to make the latte.
+            </p>
+
+            <p>
+                Add another paragraph here for any additional tips,
+                variations, substitutions, or other information you want
+                to remember about the recipe.
+            </p>
+        </section>
+
+        <!--
+            This link returns the user to the main recipe page.
+            index.html should be stored in the same folder as notes.html.
+        -->
+        <p class="back-link">
+            <a href="index.html">Back to Recipe</a>
+        </p>
+
+    </article>
+
+    <script>
+        // v1.0 - Initial recipe notes page
+
+        /*
+         * The notes page does not need interactive features, external
+         * requests, or stored user information.
+         *
+         * This JavaScript runs entirely inside the browser and provides
+         * a simple initialization point if functionality is added later.
+         */
+
+        /*
+         * Wait until the HTML document has been completely parsed before
+         * trying to access elements on the page.
+         */
+        document.addEventListener("DOMContentLoaded", function () {
+
+            /*
+             * Find the notes card using its CSS class.
+             */
+            const recipeCard = document.querySelector(".recipe-card");
+
+            /*
+             * If the card was successfully found, mark it as initialized.
+             * This does not visually alter the page or send any data.
+             */
+            if (recipeCard) {
+                recipeCard.dataset.initialized = "true";
+            }
+        });
+    </script>
+
+</body>
+</html>

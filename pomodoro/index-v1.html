@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<!-- v1.0 - initial build: 25-minute countdown timer, single-file, accessible, responsive -->
+<!-- v1.1 - made the page title visible on-screen (was screen-reader-only before) -->
+<!-- v1.2 - added automatic work/break cycle (25 min work -> 5 min break -> repeat),
+             a mode label, and a background color change so work vs. break is
+             obvious at a glance -->
+<!-- v1.3 - added on-page number inputs to customize the work and break
+             lengths (in minutes), defaulting to 25 and 5, instead of
+             requiring a code edit -->
+<!-- v1.4 - added a short, code-generated beep (Web Audio API, no audio file)
+             that plays whenever a session reaches zero, plus a Mute button
+             to turn that sound on/off -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25 Minute Countdown Timer</title>
+
+<style>
+  /* v1.0 - Reset basic spacing and make the layout fill the whole screen */
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    color: #ffffff;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  /* v1.2 - The background color is what tells the user, at a glance, whether
+     they're in a work session or a break. Applied to <body> so it fills the
+     entire screen. A CSS transition makes the color change feel smooth
+     instead of an abrupt jump. The default (before any color is applied)
+     matches the original "work" color. */
+  body {
+    background-color: #111111; /* work color (default / fallback) */
+    transition: background-color 0.6s ease;
+  }
+
+  body.mode-work {
+    background-color: #111111; /* dark neutral = focus / work time */
+  }
+
+  body.mode-break {
+    background-color: #123524; /* deep green = break time */
+  }
+
+  /* Main wrapper centers everything both vertically and horizontally,
+     and works on any screen size because it uses flexible units. */
+  .timer-app {
+    height: 100%;
+    min-height: 100svh; /* svh = "small viewport height", accounts for mobile browser bars */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4vh 4vw;
+    text-align: center;
+    gap: 3vh;
+  }
+
+  /* Visually hidden label for screen reader users only.
+     It gives context ("Time remaining") without showing extra text on screen. */
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* The big countdown number. Uses "vw" (viewport width) units so it scales
+     automatically to fill most of the screen on phones, tablets, and desktops.
+     clamp() sets a minimum and maximum size so it never gets unreadably small
+     or ridiculously huge on very tiny or very wide screens. */
+  #display {
+    font-size: clamp(4rem, 28vw, 20rem);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums; /* keeps digit widths consistent so numbers don't jitter */
+    letter-spacing: 0.02em;
+    user-select: none;
+  }
+
+  /* The visible page title. Kept small and understated so it doesn't
+     compete with the giant countdown number for attention. */
+  #page-title {
+    margin: 0;
+    font-size: clamp(1rem, 3vw, 1.75rem);
+    font-weight: 500;
+    color: #ffffff;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  /* v1.2 - Badge that names which mode is currently active ("Work" or "Break").
+     Sits right above the countdown number so it's the first thing read/seen
+     alongside the time. Color and label text swap based on the current mode. */
+  #mode-label {
+    font-size: clamp(1rem, 3.5vw, 2rem);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.35em 1em;
+    border-radius: 999px;
+    border: 2px solid currentColor;
+  }
+
+  #mode-label.mode-work {
+    color: #6bb7ff;
+  }
+
+  #mode-label.mode-break {
+    color: #6bffa0;
+  }
+
+  /* v1.3 - Row that holds the two "length in minutes" number inputs.
+     Wraps on narrow screens like the button row does. */
+  .settings {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: clamp(1rem, 4vw, 2.5rem);
+  }
+
+  /* Each setting is a small label+input pair stacked vertically. */
+  .setting {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35em;
+  }
+
+  .setting label {
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    color: #cccccc;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  /* Number inputs sized comfortably for touch, matching the button styling
+     used elsewhere on the page so everything feels like one cohesive UI. */
+  .setting input[type="number"] {
+    width: 5.5em;
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    padding: 0.4em 0.2em;
+    border: 2px solid #444444;
+    border-radius: 0.5em;
+    background-color: #2a2a2a;
+    color: #ffffff;
+  }
+
+  .setting input[type="number"]:focus-visible {
+    outline: 3px solid #4da3ff;
+    outline-offset: 2px;
+  }
+
+  /* Disabled while a session is running, so changing the plan mid-countdown
+     can't create confusing, inconsistent state. Dimmed to make that clear. */
+  .setting input[type="number"]:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* Container for the three control buttons.
+     flex-wrap lets buttons drop to a new line on very narrow screens instead of overflowing. */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: clamp(0.75rem, 2vw, 1.5rem);
+  }
+
+  /* Buttons are large and easy to tap (good for touchscreens),
+     with clear focus styles for keyboard users. */
+  button {
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    padding: 0.75em 1.75em;
+    border: 2px solid #444444;
+    border-radius: 0.75em;
+    background-color: #2a2a2a;
+    color: #ffffff;
+    cursor: pointer;
+    min-width: 96px;
+    transition: background-color 0.15s ease, transform 0.05s ease;
+  }
+
+  button:hover {
+    background-color: #3d3d3d;
+  }
+
+  button:active {
+    background-color: #1c1c1c;
+    transform: scale(0.97);
+  }
+
+  /* Visible, high-contrast focus outline so keyboard users can always
+     tell which button is currently focused (important for accessibility). */
+  button:focus-visible {
+    outline: 3px solid #4da3ff;
+    outline-offset: 3px;
+  }
+
+  /* Disabled buttons look visibly "off" so users understand why nothing happens when clicked. */
+  button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* v1.4 - The mute button gets a distinct, dimmer look while active
+     (aria-pressed="true") so it's visually obvious sound is turned off. */
+  button[aria-pressed="true"] {
+    background-color: #1a1a1a;
+    border-color: #666666;
+    color: #999999;
+  }
+
+  /* v1.2 - Briefly flashes the display when a session ends and the next one
+     begins automatically, as a subtle visual-only cue (no sound). */
+  #display.session-transition {
+    color: #ffe066;
+  }
+</style>
+</head>
+<body class="mode-work">
+
+  <!--
+    Semantic structure:
+    - <main> holds the one primary piece of content on this page (the timer).
+    - role="timer" combined with aria-live tells screen readers this region's
+      text will update over time, and "polite" means announcements won't
+      interrupt other speech abruptly.
+  -->
+  <main class="timer-app">
+
+    <h1 id="page-title">The Elizabeth Focus Timer</h1>
+
+    <!--
+      v1.2 - Mode badge showing "Work" or "Break". It is itself an aria-live
+      region so screen reader users are automatically told when the session
+      type changes (e.g. when work time ends and break time begins).
+    -->
+    <div id="mode-label" class="mode-work" aria-live="polite" aria-atomic="true">Work</div>
+
+    <!-- Hidden label read by screen readers right before the time value -->
+    <span id="display-label" class="visually-hidden">Time remaining</span>
+
+    <!--
+      aria-live="polite" + aria-atomic="true" means every time the text inside
+      changes (every second), assistive tech will read the *whole* new value
+      calmly, rather than trying to read partial diffs.
+    -->
+    <div
+      id="display"
+      role="timer"
+      aria-labelledby="display-label"
+      aria-live="polite"
+      aria-atomic="true"
+    >25:00</div>
+
+    <!--
+      v1.3 - Lets the user set how many minutes a work session and a break
+      session last, right on the page. Real <label for="..."> elements
+      connect each input to its text so screen readers announce them
+      correctly, and type="number" gives phones a numeric keypad automatically.
+    -->
+    <div class="settings">
+      <div class="setting">
+        <label for="workMinutesInput">Work minutes</label>
+        <input
+          id="workMinutesInput"
+          type="number"
+          inputmode="numeric"
+          min="1"
+          max="180"
+          step="1"
+          value="25"
+        >
+      </div>
+      <div class="setting">
+        <label for="breakMinutesInput">Break minutes</label>
+        <input
+          id="breakMinutesInput"
+          type="number"
+          inputmode="numeric"
+          min="1"
+          max="180"
+          step="1"
+          value="5"
+        >
+      </div>
+    </div>
+
+    <!-- Group of controls, labeled for screen readers as a distinct region -->
+    <div class="controls" role="group" aria-label="Timer controls">
+      <button id="startBtn" type="button">Start</button>
+      <button id="pauseBtn" type="button" disabled>Pause</button>
+      <button id="resetBtn" type="button">Reset</button>
+      <!--
+        v1.4 - aria-pressed communicates a two-state toggle button to screen
+        readers (true = currently muted), which is the correct ARIA pattern
+        for on/off buttons like this one.
+      -->
+      <button id="muteBtn" type="button" aria-pressed="false">Mute</button>
+    </div>
+
+  </main>
+
+<script>
+  // v1.0 - Countdown timer logic
+  // v1.2 - Extended into a work/break cycle (see comments below marked "v1.2")
+  // v1.3 - Work/break lengths now come from on-page inputs instead of fixed
+  //         constants (see comments below marked "v1.3")
+  // All variables and functions are wrapped in this script block so nothing
+  // leaks into the global scope of the page.
+
+  // ---- CONFIGURATION ----
+  // v1.3 - These are just the fallback/default values used to fill in the
+  // number inputs when the page first loads. Once the page is open, the
+  // *actual* durations always come from reading the inputs live (see
+  // durationFor() below), so the user's choices are the real source of truth.
+  const DEFAULT_WORK_MINUTES = 25;
+  const DEFAULT_BREAK_MINUTES = 5;
+
+  // ---- STATE ----
+  // "mode" tracks which kind of session is currently active: 'work' or 'break'.
+  // This drives the badge text, the background color, and which duration
+  // gets loaded whenever a session finishes or is reset.
+  let mode = 'work';
+
+  // "remaining" tracks how many seconds are left in the CURRENT session.
+  // "intervalId" stores the ID returned by setInterval so we can stop it later;
+  // it stays null whenever the timer is not currently running.
+  let remaining = DEFAULT_WORK_MINUTES * 60;
+  let intervalId = null;
+
+  // v1.4 - "isMuted" tracks whether the end-of-session beep should play.
+  // "audioCtx" holds the browser's Web Audio API context, which we create
+  // only once (the first time it's actually needed) rather than at page
+  // load, because browsers require audio to start from a real user action
+  // like a button click.
+  let isMuted = false;
+  let audioCtx = null;
+
+  // ---- GRAB REFERENCES TO THE HTML ELEMENTS WE NEED TO CONTROL ----
+  const bodyEl = document.body;
+  const modeLabel = document.getElementById('mode-label');
+  const display = document.getElementById('display');
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const workMinutesInput = document.getElementById('workMinutesInput');
+  const breakMinutesInput = document.getElementById('breakMinutesInput');
+  const muteBtn = document.getElementById('muteBtn');
+
+  // Converts a number of seconds into a "MM:SS" formatted string.
+  // Example: formatTime(65) -> "01:05"
+  function formatTime(totalSeconds) {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    // padStart(2, '0') ensures single digits show a leading zero (e.g. "5" -> "05")
+    return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+  }
+
+  // v1.3 - Safely reads one of the minute inputs and converts it to whole
+  // seconds. Falls back to the sensible default (and repairs the input box)
+  // if the user leaves it blank, types letters, or enters zero/negative -
+  // so the timer can never end up with a broken or missing duration.
+  function readMinutesInput(inputEl, fallbackMinutes) {
+    const parsed = parseInt(inputEl.value, 10);
+    if (Number.isNaN(parsed) || parsed < 1) {
+      inputEl.value = fallbackMinutes;
+      return fallbackMinutes * 60;
+    }
+    return parsed * 60;
+  }
+
+  // v1.3 - Looks up how many seconds a session of the given mode should last,
+  // reading directly from the on-page inputs so the user's current settings
+  // are always respected the moment a new session starts.
+  function durationFor(sessionMode) {
+    if (sessionMode === 'work') {
+      return readMinutesInput(workMinutesInput, DEFAULT_WORK_MINUTES);
+    }
+    return readMinutesInput(breakMinutesInput, DEFAULT_BREAK_MINUTES);
+  }
+
+  // v1.2 - Updates every piece of the page that depends on which mode
+  // (work or break) is currently active: the <body> background color class,
+  // the badge's color class, and the badge's visible text.
+  function applyModeStyling() {
+    bodyEl.classList.remove('mode-work', 'mode-break');
+    bodyEl.classList.add(mode === 'work' ? 'mode-work' : 'mode-break');
+
+    modeLabel.classList.remove('mode-work', 'mode-break');
+    modeLabel.classList.add(mode === 'work' ? 'mode-work' : 'mode-break');
+    modeLabel.textContent = mode === 'work' ? 'Work' : 'Break';
+  }
+
+  // Updates the on-screen countdown to match the current "remaining" value,
+  // and updates the document title too, so the countdown (and which mode
+  // it's in) is visible even if the user switches to a different browser tab.
+  function updateDisplay() {
+    const timeString = formatTime(remaining);
+    display.textContent = timeString;
+    const modeText = mode === 'work' ? 'Work' : 'Break';
+    document.title = timeString + ' - ' + modeText;
+  }
+
+  // Enables/disables buttons AND the minute inputs based on the current
+  // state. Inputs are locked while a session is running so changing the
+  // plan mid-countdown can't create confusing, inconsistent state; they
+  // unlock again as soon as the timer is paused or reset.
+  function updateButtonStates() {
+    const isRunning = intervalId !== null;
+
+    startBtn.disabled = isRunning;
+    pauseBtn.disabled = !isRunning;
+    resetBtn.disabled = false; // Reset is always available
+
+    workMinutesInput.disabled = isRunning;
+    breakMinutesInput.disabled = isRunning;
+  }
+
+  // v1.4 - Creates the browser's audio context the first time it's needed
+  // (rather than at page load) and reuses that same one afterward. Some
+  // browsers create a context in a "suspended" state until a user has
+  // interacted with the page, so we also try to resume() it here just in
+  // case, which is safe to call even when it's already running.
+  function getAudioContext() {
+    if (audioCtx === null) {
+      // "webkitAudioContext" is the older Safari name for the same API.
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContextClass();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  }
+
+  // v1.4 - Generates and plays a short beep entirely in code, with no audio
+  // file involved. An "oscillator" node is a built-in tone generator; a
+  // "gain" node controls its volume over time. We fade the volume up and
+  // then quickly back down (an "envelope") so the beep has a soft click-free
+  // start and end instead of an abrupt, harsh on/off.
+  function playBeep() {
+    if (isMuted) {
+      return;
+    }
+
+    const ctx = getAudioContext();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+
+    oscillator.type = 'sine';         // a smooth, simple tone
+    oscillator.frequency.value = 880; // 880 Hz = the musical note A5
+
+    const now = ctx.currentTime;
+    const beepLengthSeconds = 0.35;
+
+    // Volume envelope: silent -> quick rise -> hold briefly -> fade to silent.
+    gainNode.gain.setValueAtTime(0, now);
+    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
+    gainNode.gain.linearRampToValueAtTime(0, now + beepLengthSeconds);
+
+    // Connect: oscillator -> gain (volume control) -> speakers.
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    oscillator.start(now);
+    oscillator.stop(now + beepLengthSeconds);
+  }
+
+  // v1.4 - Flips the mute setting on/off and keeps the button's label and
+  // aria-pressed state in sync, so both sighted users and screen reader
+  // users can tell whether sound is currently on or off.
+  function toggleMute() {
+    isMuted = !isMuted;
+    muteBtn.textContent = isMuted ? 'Unmute' : 'Mute';
+    muteBtn.setAttribute('aria-pressed', String(isMuted));
+  }
+
+  // v1.2 - Briefly flashes the countdown number a highlight color right when
+  // one session ends and the next begins, as a subtle visual-only cue that
+  // something just changed (per "no sounds or extras", this is purely CSS).
+  function flashTransition() {
+    display.classList.add('session-transition');
+    setTimeout(function () {
+      display.classList.remove('session-transition');
+    }, 600);
+  }
+
+  // v1.2 - Switches from the current mode to the other one (work <-> break),
+  // loads that mode's full duration (v1.3: read fresh from the inputs),
+  // updates all the visuals, and then automatically keeps the countdown
+  // running so breaks and work sessions flow into each other without any
+  // extra button presses.
+  function switchMode() {
+    mode = mode === 'work' ? 'break' : 'work';
+    remaining = durationFor(mode);
+    applyModeStyling();
+    updateDisplay();
+    flashTransition();
+    playBeep(); // v1.4 - signal the end of the session that just finished
+    // The interval that was ticking for the old session is still running
+    // (we never cleared it), so the new session continues automatically.
+  }
+
+  // Runs once every second while the timer is active.
+  // Decreases the remaining time by 1 second and refreshes the display.
+  // When a session hits zero, it automatically switches to the other mode
+  // (work -> break, or break -> work) instead of stopping.
+  function tick() {
+    if (remaining > 0) {
+      remaining -= 1;
+      updateDisplay();
+    }
+
+    if (remaining <= 0) {
+      switchMode();
+    }
+  }
+
+  // Starts (or resumes) the countdown. Guards against starting twice if
+  // it's already running.
+  function startTimer() {
+    if (intervalId !== null) {
+      return;
+    }
+    // setInterval runs the "tick" function every 1000ms (1 second)
+    intervalId = setInterval(tick, 1000);
+    updateButtonStates();
+  }
+
+  // Pauses the countdown by stopping the repeating interval.
+  // The "remaining" value and current "mode" are left untouched, so the
+  // timer can resume later from exactly where it left off.
+  function pauseTimer() {
+    if (intervalId !== null) {
+      clearInterval(intervalId);
+      intervalId = null;
+      updateButtonStates();
+    }
+  }
+
+  // Resets everything back to the very start of a fresh work session,
+  // stopping any active countdown first. Reads the work-length input so a
+  // reset always reflects whatever length the user has currently set.
+  function resetTimer() {
+    pauseTimer();
+    mode = 'work';
+    remaining = durationFor(mode);
+    applyModeStyling();
+    updateDisplay();
+    updateButtonStates();
+  }
+
+  // ---- WIRE UP BUTTON CLICKS ----
+  // Each button's "click" event is connected to its matching function.
+  // Because these are real <button> elements, they are automatically
+  // reachable and operable via keyboard (Tab to focus, Enter/Space to activate)
+  // with no extra code needed for keyboard support.
+  startBtn.addEventListener('click', startTimer);
+  pauseBtn.addEventListener('click', pauseTimer);
+  resetBtn.addEventListener('click', resetTimer);
+  muteBtn.addEventListener('click', toggleMute);
+
+  // v1.4 - Browsers only allow audio to start as a direct result of a user
+  // action (like a click), so we "warm up" the audio context here, the
+  // moment Start is first pressed. This makes sure the very first beep -
+  // even many minutes later when a session ends - is not blocked.
+  startBtn.addEventListener('click', function () {
+    getAudioContext();
+  });
+
+  // v1.3 - If the timer hasn't been started yet (still sitting at the
+  // default work time) and the user edits the work-minutes input, update the
+  // countdown display immediately so what's on screen always matches what
+  // they typed - without requiring them to press Reset first. This only
+  // applies before the first Start, since inputs are disabled once running.
+  workMinutesInput.addEventListener('input', function () {
+    if (intervalId === null && mode === 'work') {
+      remaining = durationFor('work');
+      updateDisplay();
+    }
+  });
+
+  // ---- INITIAL RENDER ----
+  // Make sure the mode styling, display, and button states are all correct
+  // as soon as the page loads, even before the user interacts with anything.
+  applyModeStyling();
+  updateDisplay();
+  updateButtonStates();
+</script>
+
+</body>
+</html>
