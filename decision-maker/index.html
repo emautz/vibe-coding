@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- v1.1 - Heavy Metal / Tattoo Flash redesign -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="description"
+        content="A dark heavy-metal and tattoo-inspired decision maker that randomly chooses between user-provided options."
+    >
+
+    <title>DECIDE // MAKE YOUR CHOICE</title>
+
+    <style>
+        /* =========================================================
+           DECISION MAKER
+           v1.1 - Heavy Metal / Tattoo Flash redesign
+
+           Everything is contained in this one HTML file.
+           No frameworks.
+           No build tools.
+           No external data.
+           ========================================================= */
+
+
+        /* =========================================================
+           RESET
+           Removes inconsistent browser defaults.
+           ========================================================= */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        /* =========================================================
+           COLOR VARIABLES
+           These colors create the black, charcoal, bone-white,
+           and blood-red tattoo/metal aesthetic.
+           ========================================================= */
+
+        :root {
+            --black: #050505;
+            --black-2: #0b0b0b;
+            --black-3: #111111;
+
+            --blood: #8e0d1d;
+            --blood-bright: #d31c36;
+            --blood-dark: #430610;
+
+            --bone: #e7e0d2;
+            --bone-dark: #aaa397;
+
+            --gray: #555;
+            --gray-dark: #292929;
+
+            --white: #f5f5f5;
+
+            --shadow: rgba(0, 0, 0, 0.85);
+        }
+
+
+        /* =========================================================
+           BODY
+           Creates a distressed, dark background.
+           ========================================================= */
+
+        body {
+            min-height: 100vh;
+
+            background:
+                radial-gradient(
+                    ellipse at center top,
+                    rgba(142, 13, 29, 0.20) 0%,
+                    transparent 40%
+                ),
+                radial-gradient(
+                    ellipse at 50% 100%,
+                    rgba(255, 255, 255, 0.03),
+                    transparent 45%
+                ),
+                #050505;
+
+            color: var(--bone);
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            line-height: 1.5;
+
+            overflow-x: hidden;
+        }
+
+
+        /* =========================================================
+           GRUNGE OVERLAY
+           Thin lines create a subtle distressed texture without
+           requiring an image or external asset.
+           ========================================================= */
+
+        body::before {
+            content: "";
+
+            position: fixed;
+            inset: 0;
+
+            pointer-events: none;
+
+            opacity: 0.08;
+
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0,
+                    transparent 3px,
+                    #fff 4px
+                );
+
+            z-index: 10;
+        }
+
+
+        /* =========================================================
+           DECORATIVE SIDE SCRATCHES
+           Gives the page the feeling of an old concert flyer.
+           ========================================================= */
+
+        body::after {
+            content: "";
+
+            position: fixed;
+            inset: 0;
+
+            pointer-events: none;
+
+            opacity: 0.12;
+
+            background:
+                linear-gradient(
+                    110deg,
+                    transparent 0%,
+                    transparent 48%,
+                    rgba(255,255,255,.08) 49%,
+                    transparent 50%
+                );
+
+            z-index: -1;
+        }
+
+
+        /* =========================================================
+           MAIN PAGE
+           Limits the maximum width while staying responsive.
+           ========================================================= */
+
+        .page {
+            width: min(100% - 28px, 960px);
+
+            margin: auto;
+
+            padding:
+                45px 0 60px;
+        }
+
+
+        /* =========================================================
+           HEADER
+           ========================================================= */
+
+        header {
+            text-align: center;
+
+            margin-bottom: 35px;
+        }
+
+
+        /* Small metal-show style header text */
+
+        .eyebrow {
+            display: inline-block;
+
+            color: var(--blood-bright);
+
+            font-size: 0.72rem;
+
+            font-weight: 900;
+
+            letter-spacing: 0.4em;
+
+            text-transform: uppercase;
+
+            margin-bottom: 8px;
+
+            transform: skew(-8deg);
+        }
+
+
+        /* =========================================================
+           MAIN TITLE
+           Large aggressive typography.
+           ========================================================= */
+
+        h1 {
+            font-family:
+                Impact,
+                "Arial Black",
+                sans-serif;
+
+            font-size:
+                clamp(4rem, 15vw, 9rem);
+
+            line-height: 0.78;
+
+            letter-spacing: -0.02em;
+
+            color: var(--bone);
+
+            text-transform: uppercase;
+
+            text-shadow:
+                5px 5px 0 #000,
+                8px 8px 0 var(--blood-dark),
+                0 0 35px rgba(211, 28, 54, 0.18);
+
+            transform: skew(-4deg);
+        }
+
+
+        /* Slash beneath title */
+
+        .title-slash {
+            width: 180px;
+
+            height: 5px;
+
+            margin: 18px auto 14px;
+
+            background: var(--blood);
+
+            transform:
+                rotate(-2deg)
+                skew(-20deg);
+
+            box-shadow:
+                0 5px 0 #220308;
+        }
+
+
+        .tagline {
+            color: #888;
+
+            font-size: 0.78rem;
+
+            font-weight: 700;
+
+            letter-spacing: 0.25em;
+
+            text-transform: uppercase;
+        }
+
+
+        /* =========================================================
+           MAIN CARD
+           Looks more like a metal poster/tattoo flash panel.
+           ========================================================= */
+
+        .card {
+            position: relative;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #181818,
+                    #080808 70%
+                );
+
+            border:
+                1px solid #3b3b3b;
+
+            border-top:
+                5px solid var(--blood);
+
+            padding:
+                clamp(22px, 5vw, 45px);
+
+            box-shadow:
+                0 30px 70px var(--shadow),
+                inset 0 0 60px rgba(0,0,0,.5);
+        }
+
+
+        /* =========================================================
+           TATTOO-STYLE CORNERS
+           Decorative cross/star shapes.
+           ========================================================= */
+
+        .card::before {
+            content: "✦";
+
+            position: absolute;
+
+            top: 12px;
+            left: 17px;
+
+            color: var(--blood-bright);
+
+            font-size: 1.2rem;
+        }
+
+
+        .card::after {
+            content: "✦";
+
+            position: absolute;
+
+            top: 12px;
+            right: 17px;
+
+            color: var(--blood-bright);
+
+            font-size: 1.2rem;
+        }
+
+
+        /* =========================================================
+           SECTION TITLE
+           ========================================================= */
+
+        .section-title {
+            color: var(--bone);
+
+            font-family:
+                Impact,
+                "Arial Black",
+                sans-serif;
+
+            font-size: 1.25rem;
+
+            letter-spacing: 0.12em;
+
+            text-transform: uppercase;
+
+            margin-bottom: 14px;
+        }
+
+
+        /* Decorative line */
+
+        .section-title::after {
+            content: "";
+
+            display: block;
+
+            width: 65px;
+
+            height: 3px;
+
+            background: var(--blood);
+
+            margin-top: 7px;
+
+            transform: skew(-25deg);
+        }
+
+
+        /* =========================================================
+           INPUT
+           ========================================================= */
+
+        .input-row {
+            display: flex;
+
+            gap: 10px;
+
+            margin-bottom: 28px;
+        }
+
+
+        input[type="text"] {
+            flex: 1;
+
+            min-width: 0;
+
+            background: #050505;
+
+            color: var(--bone);
+
+            border:
+                1px solid #454545;
+
+            border-left:
+                4px solid var(--blood);
+
+            padding:
+                16px 17px;
+
+            font-size: 1rem;
+
+            font-weight: 600;
+
+            outline: none;
+
+            transition:
+                border-color .2s ease,
+                box-shadow .2s ease;
+        }
+
+
+        input[type="text"]::placeholder {
+            color: #666;
+        }
+
+
+        input[type="text"]:focus {
+            border-color:
+                var(--blood-bright);
+
+            box-shadow:
+                0 0 0 3px rgba(211,28,54,.15),
+                inset 0 0 15px rgba(211,28,54,.04);
+        }
+
+
+        /* =========================================================
+           BUTTON BASE
+           ========================================================= */
+
+        button {
+            font: inherit;
+
+            cursor: pointer;
+        }
+
+
+        /* =========================================================
+           ADD BUTTON
+           ========================================================= */
+
+        .add-button {
+            background:
+                linear-gradient(
+                    145deg,
+                    var(--blood-bright),
+                    var(--blood-dark)
+                );
+
+            color: white;
+
+            border:
+                1px solid var(--blood-bright);
+
+            padding:
+                0 24px;
+
+            font-weight: 900;
+
+            letter-spacing: .12em;
+
+            text-transform: uppercase;
+
+            transition:
+                transform .15s ease,
+                filter .2s ease;
+        }
+
+
+        .add-button:hover {
+            filter: brightness(1.25);
+
+            transform:
+                translateY(-2px);
+        }
+
+
+        .add-button:active {
+            transform:
+                translateY(1px);
+        }
+
+
+        /* =========================================================
+           KEYBOARD FOCUS
+           Makes interactive controls highly visible to keyboard
+           users.
+           ========================================================= */
+
+        button:focus-visible,
+        input:focus-visible {
+            outline:
+                3px solid var(--bone);
+
+            outline-offset:
+                3px;
+        }
+
+
+        /* =========================================================
+           OPTIONS
+           ========================================================= */
+
+        .options-container {
+            margin-bottom: 32px;
+        }
+
+
+        #optionList {
+            list-style: none;
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 9px;
+        }
+
+
+        /* Individual option */
+
+        .option-item {
+            display: flex;
+
+            align-items: center;
+
+            gap: 14px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #111,
+                    #090909
+                );
+
+            border:
+                1px solid #303030;
+
+            border-left:
+                5px solid var(--blood);
+
+            padding:
+                14px 15px;
+
+            box-shadow:
+                inset 0 0 15px rgba(0,0,0,.5);
+
+            animation:
+                optionAppear .2s ease-out;
+        }
+
+
+        @keyframes optionAppear {
+            from {
+                opacity: 0;
+                transform: translateX(-12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+
+        /* Number beside each option */
+
+        .option-number {
+            color: var(--blood-bright);
+
+            font-family:
+                Impact,
+                "Arial Black",
+                sans-serif;
+
+            font-size: 1rem;
+
+            min-width: 30px;
+        }
+
+
+        /* Option itself */
+
+        .option-text {
+            flex: 1;
+
+            color: var(--bone);
+
+            font-weight: 600;
+
+            overflow-wrap: anywhere;
+        }
+
+
+        /* =========================================================
+           REMOVE BUTTON
+           ========================================================= */
+
+        .remove-button {
+            background: transparent;
+
+            color: #777;
+
+            border:
+                1px solid #444;
+
+            padding:
+                6px 10px;
+
+            font-size: .68rem;
+
+            font-weight: 900;
+
+            letter-spacing: .08em;
+
+            text-transform: uppercase;
+
+            transition:
+                color .2s ease,
+                border-color .2s ease,
+                background .2s ease;
+        }
+
+
+        .remove-button:hover {
+            color: white;
+
+            border-color:
+                var(--blood-bright);
+
+            background:
+                var(--blood-dark);
+        }
+
+
+        /* =========================================================
+           EMPTY STATE
+           ========================================================= */
+
+        .empty-state {
+            text-align: center;
+
+            color: #666;
+
+            font-style: italic;
+
+            padding: 28px 15px;
+
+            border:
+                1px dashed #393939;
+
+            background:
+                rgba(0,0,0,.25);
+        }
+
+
+        /* =========================================================
+           DECISION AREA
+           ========================================================= */
+
+        .decision-area {
+            text-align: center;
+
+            border-top:
+                1px solid #303030;
+
+            padding-top:
+                34px;
+        }
+
+
+        /* =========================================================
+           HUGE DECISION BUTTON
+           This is intentionally the visual centerpiece.
+           ========================================================= */
+
+        .decide-button {
+            position: relative;
+
+            width:
+                min(100%, 500px);
+
+            min-height:
+                105px;
+
+            color: white;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #b3132b,
+                    #690916 55%,
+                    #39050c
+                );
+
+            border:
+                3px solid #d32840;
+
+            font-family:
+                Impact,
+                "Arial Black",
+                sans-serif;
+
+            font-size:
+                clamp(2rem, 8vw, 4rem);
+
+            letter-spacing:
+                .1em;
+
+            text-transform:
+                uppercase;
+
+            text-shadow:
+                3px 3px 0 #35040a;
+
+            box-shadow:
+                0 9px 0 #260309,
+                0 20px 35px rgba(0,0,0,.7);
+
+            transition:
+                transform .15s ease,
+                box-shadow .15s ease,
+                filter .2s ease;
+        }
+
+
+        /* Decorative slash through button */
+
+        .decide-button::before {
+            content: "";
+
+            position: absolute;
+
+            left: 5%;
+
+            right: 5%;
+
+            top: 50%;
+
+            height: 2px;
+
+            background:
+                rgba(255,255,255,.14);
+
+            transform:
+                rotate(-3deg);
+        }
+
+
+        .decide-button:hover {
+            filter: brightness(1.2);
+
+            transform:
+                translateY(-3px);
+
+            box-shadow:
+                0 12px 0 #260309,
+                0 25px 40px rgba(142,13,29,.3);
+        }
+
+
+        .decide-button:active {
+            transform:
+                translateY(7px);
+
+            box-shadow:
+                0 2px 0 #260309,
+                0 8px 15px rgba(0,0,0,.7);
+        }
+
+
+        /* =========================================================
+           STATUS MESSAGE
+           ========================================================= */
+
+        .status-message {
+            min-height: 25px;
+
+            margin-top: 16px;
+
+            color: #888;
+
+            font-size: .85rem;
+
+            font-weight: 600;
+        }
+
+
+        .status-message.warning {
+            color:
+                #e07a88;
+        }
+
+
+        /* =========================================================
+           RESULT AREA
+           ========================================================= */
+
+        .result {
+            position: relative;
+
+            min-height:
+                190px;
+
+            margin-top:
+                30px;
+
+            padding:
+                30px 20px;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            background:
+                radial-gradient(
+                    ellipse,
+                    rgba(142,13,29,.24),
+                    transparent 65%
+                );
+
+            border:
+                1px solid #393939;
+
+            overflow:
+                hidden;
+        }
+
+
+        /* Large decorative X behind the result */
+
+        .result::before,
+        .result::after {
+            content: "";
+
+            position: absolute;
+
+            width: 120%;
+
+            height: 1px;
+
+            background:
+                rgba(255,255,255,.035);
+
+            pointer-events: none;
+        }
+
+
+        .result::before {
+            transform:
+                rotate(12deg);
+        }
+
+
+        .result::after {
+            transform:
+                rotate(-12deg);
+        }
+
+
+        .result-content {
+            position: relative;
+
+            z-index: 2;
+
+            width: 100%;
+
+            text-align:
+                center;
+        }
+
+
+        .result-label {
+            display:
+                block;
+
+            color:
+                #777;
+
+            font-size:
+                .7rem;
+
+            font-weight:
+                900;
+
+            letter-spacing:
+                .35em;
+
+            text-transform:
+                uppercase;
+
+            margin-bottom:
+                12px;
+        }
+
+
+        /* =========================================================
+           WINNING OPTION
+           ========================================================= */
+
+        #resultText {
+            color:
+                var(--bone);
+
+            font-family:
+                Impact,
+                "Arial Black",
+                sans-serif;
+
+            font-size:
+                clamp(2.4rem, 9vw, 5.5rem);
+
+            line-height:
+                .95;
+
+            letter-spacing:
+                .02em;
+
+            text-transform:
+                uppercase;
+
+            overflow-wrap:
+                anywhere;
+
+            text-shadow:
+                4px 4px 0 #000,
+                7px 7px 0 var(--blood-dark),
+                0 0 35px rgba(211,28,54,.35);
+        }
+
+
+        /* =========================================================
+           RESULT ANIMATION
+           ========================================================= */
+
+        .result.reveal {
+            animation:
+                resultReveal .5s ease-out;
+        }
+
+
+        @keyframes resultReveal {
+            0% {
+                opacity: 0;
+
+                transform:
+                    scale(.8)
+                    rotate(-1deg);
+            }
+
+            55% {
+                opacity: 1;
+
+                transform:
+                    scale(1.05)
+                    rotate(.5deg);
+            }
+
+            100% {
+                transform:
+                    scale(1)
+                    rotate(0);
+            }
+        }
+
+
+        /* =========================================================
+           FOOTER
+           ========================================================= */
+
+        footer {
+            text-align:
+                center;
+
+            color:
+                #4d4d4d;
+
+            font-size:
+                .7rem;
+
+            font-weight:
+                700;
+
+            letter-spacing:
+                .15em;
+
+            text-transform:
+                uppercase;
+
+            margin-top:
+                25px;
+        }
+
+
+        /* =========================================================
+           MOBILE RESPONSIVENESS
+           On smaller screens, the input and Add button stack.
+           ========================================================= */
+
+        @media (max-width: 600px) {
+
+            .page {
+                width:
+                    min(100% - 18px, 960px);
+
+                padding-top:
+                    30px;
+            }
+
+
+            .input-row {
+                flex-direction:
+                    column;
+            }
+
+
+            .add-button {
+                min-height:
+                    52px;
+            }
+
+
+            .card {
+                padding:
+                    28px 17px;
+            }
+
+
+            .option-item {
+                align-items:
+                    flex-start;
+            }
+
+
+            .remove-button {
+                flex-shrink:
+                    0;
+            }
+
+
+            .decide-button {
+                min-height:
+                    90px;
+            }
+        }
+
+
+        /* =========================================================
+           REDUCED MOTION ACCESSIBILITY
+           Users who prefer reduced motion will not receive the
+           animated transitions.
+           ========================================================= */
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration:
+                    0.01ms !important;
+
+                animation-iteration-count:
+                    1 !important;
+
+                transition-duration:
+                    0.01ms !important;
+            }
+        }
+
+
+        /* =========================================================
+           SCREEN READER ONLY
+           Visually hides labels while keeping them available to
+           assistive technology.
+           ========================================================= */
+
+        .visually-hidden {
+            position:
+                absolute;
+
+            width:
+                1px;
+
+            height:
+                1px;
+
+            padding:
+                0;
+
+            margin:
+                -1px;
+
+            overflow:
+                hidden;
+
+            clip:
+                rect(0, 0, 0, 0);
+
+            white-space:
+                nowrap;
+
+            border:
+                0;
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+    <main class="page">
+
+        <!-- =====================================================
+             HEADER
+             ===================================================== -->
+
+        <header>
+
+            <div class="eyebrow">
+                ⚔ The Ultimate Decision Machine ⚔
+            </div>
+
+            <h1>
+                DECIDE
+            </h1>
+
+            <div class="title-slash"></div>
+
+            <p class="tagline">
+                Stop overthinking. Let fate handle it.
+            </p>
+
+        </header>
+
+
+        <!-- =====================================================
+             MAIN APPLICATION
+             ===================================================== -->
+
+        <section
+            class="card"
+            aria-labelledby="decision-heading"
+        >
+
+            <h2
+                id="decision-heading"
+                class="section-title"
+            >
+                Your Options
+            </h2>
+
+
+            <!-- =================================================
+                 OPTION INPUT
+                 ================================================= -->
+
+            <div class="input-row">
+
+                <label
+                    for="optionInput"
+                    class="visually-hidden"
+                >
+                    Enter an option
+                </label>
+
+                <input
+                    type="text"
+                    id="optionInput"
+                    placeholder="Type your option here..."
+                    maxlength="150"
+                    autocomplete="off"
+                    aria-label="Enter an option"
+                >
+
+                <button
+                    type="button"
+                    id="addButton"
+                    class="add-button"
+                    aria-label="Add option"
+                >
+                    + Add
+                </button>
+
+            </div>
+
+
+            <!-- =================================================
+                 OPTIONS LIST
+                 ================================================= -->
+
+            <div class="options-container">
+
+                <ul
+                    id="optionList"
+                    aria-live="polite"
+                    aria-label="Your decision options"
+                >
+                </ul>
+
+                <p
+                    id="emptyState"
+                    class="empty-state"
+                >
+                    No options yet. Feed the machine.
+                </p>
+
+            </div>
+
+
+            <!-- =================================================
+                 DECISION AREA
+                 ================================================= -->
+
+            <div class="decision-area">
+
+                <button
+                    type="button"
+                    id="decideButton"
+                    class="decide-button"
+                    aria-label="Choose one option at random"
+                >
+                    ⚔ DECIDE ⚔
+                </button>
+
+
+                <!--
+                    Displays helpful feedback when there are not
+                    enough options to make a decision.
+                -->
+
+                <p
+                    id="statusMessage"
+                    class="status-message"
+                    aria-live="polite"
+                ></p>
+
+
+                <!-- =================================================
+                     RESULT
+                     ================================================= -->
+
+                <div
+                    class="result"
+                    id="resultArea"
+                    aria-live="assertive"
+                    aria-atomic="true"
+                >
+
+                    <div class="result-content">
+
+                        <span class="result-label">
+                            The verdict is...
+                        </span>
+
+                        <div id="resultText">
+                            ???
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <footer>
+            ☠ No fate was harmed in the making of this decision. ☠
+        </footer>
+
+    </main>
+
+
+    <script>
+
+        /* =========================================================
+           DECISION MAKER JAVASCRIPT
+           v1.1 - Heavy Metal / Tattoo Flash redesign
+
+           This application uses only vanilla JavaScript.
+
+           Nothing is sent to a server.
+
+           Everything happens locally inside the browser.
+           ========================================================= */
+
+
+        /* =========================================================
+           FIND THE HTML ELEMENTS
+
+           We save references to the important parts of the page
+           so our JavaScript can interact with them.
+           ========================================================= */
+
+        const optionInput =
+            document.getElementById("optionInput");
+
+        const addButton =
+            document.getElementById("addButton");
+
+        const optionList =
+            document.getElementById("optionList");
+
+        const emptyState =
+            document.getElementById("emptyState");
+
+        const decideButton =
+            document.getElementById("decideButton");
+
+        const resultText =
+            document.getElementById("resultText");
+
+        const resultArea =
+            document.getElementById("resultArea");
+
+        const statusMessage =
+            document.getElementById("statusMessage");
+
+
+        /* =========================================================
+           OPTIONS ARRAY
+
+           This array temporarily stores all of the choices entered
+           by the user.
+
+           Because this is a browser-only application, these choices
+           are not uploaded or transmitted anywhere.
+
+           Refreshing the page clears the list.
+           ========================================================= */
+
+        let options = [];
+
+
+        /* =========================================================
+           ADD OPTION
+
+           Reads the user's text and adds it to the options array.
+           ========================================================= */
+
+        function addOption() {
+
+            /*
+             * trim() removes accidental spaces before and after
+             * whatever the user typed.
+             */
+
+            const option =
+                optionInput.value.trim();
+
+
+            /*
+             * Do not allow empty options.
+             */
+
+            if (option === "") {
+
+                statusMessage.textContent =
+                    "Please enter an option first.";
+
+                statusMessage.classList.add("warning");
+
+                optionInput.focus();
+
+                return;
+            }
+
+
+            /*
+             * Add the user's option to our array.
+             */
+
+            options.push(option);
+
+
+            /*
+             * Clear the input field so another option can be
+             * entered immediately.
+             */
+
+            optionInput.value = "";
+
+
+            /*
+             * Clear any previous warning.
+             */
+
+            statusMessage.textContent = "";
+
+            statusMessage.classList.remove("warning");
+
+
+            /*
+             * Update the visible list.
+             */
+
+            renderOptions();
+
+
+            /*
+             * Put keyboard focus back into the input.
+             * This makes it easy to add several choices quickly.
+             */
+
+            optionInput.focus();
+        }
+
+
+        /* =========================================================
+           REMOVE OPTION
+
+           Removes one option from the array using its index.
+           ========================================================= */
+
+        function removeOption(index) {
+
+            /*
+             * splice() removes exactly one item at the specified
+             * position in the array.
+             */
+
+            options.splice(index, 1);
+
+
+            /*
+             * Redraw the list so the removed option disappears.
+             */
+
+            renderOptions();
+
+
+            /*
+             * Reset the previous decision because the available
+             * choices have changed.
+             */
+
+            resultText.textContent = "???";
+        }
+
+
+        /* =========================================================
+           RENDER OPTIONS
+
+           Rebuilds the visible list based on the current contents
+           of the options array.
+           ========================================================= */
+
+        function renderOptions() {
+
+            /*
+             * Remove the existing list contents before rebuilding.
+             */
+
+            optionList.innerHTML = "";
+
+
+            /*
+             * If there are no options, display the empty-state
+             * message and stop here.
+             */
+
+            if (options.length === 0) {
+
+                emptyState.hidden = false;
+
+                return;
+            }
+
+
+            /*
+             * Hide the empty-state message when choices exist.
+             */
+
+            emptyState.hidden = true;
+
+
+            /*
+             * Go through every option currently stored in the array.
+             */
+
+            options.forEach((option, index) => {
+
+                /*
+                 * Create a new list item.
+                 */
+
+                const listItem =
+                    document.createElement("li");
+
+                listItem.className =
+                    "option-item";
+
+
+                /*
+                 * Create the numbered label.
+                 */
+
+                const number =
+                    document.createElement("span");
+
+                number.className =
+                    "option-number";
+
+                number.textContent =
+                    String(index + 1).padStart(2, "0");
+
+
+                /*
+                 * Create the option text.
+                 *
+                 * textContent is intentionally used rather than
+                 * innerHTML. This prevents user-entered text from
+                 * being interpreted as HTML or JavaScript.
+                 */
+
+                const text =
+                    document.createElement("span");
+
+                text.className =
+                    "option-text";
+
+                text.textContent =
+                    option;
+
+
+                /*
+                 * Create the Remove button.
+                 */
+
+                const removeButton =
+                    document.createElement("button");
+
+                removeButton.type =
+                    "button";
+
+                removeButton.className =
+                    "remove-button";
+
+                removeButton.textContent =
+                    "Remove";
+
+
+                /*
+                 * Give screen-reader users a useful description of
+                 * exactly which option the button will remove.
+                 */
+
+                removeButton.setAttribute(
+                    "aria-label",
+                    `Remove option ${index + 1}: ${option}`
+                );
+
+
+                /*
+                 * Connect the button to the removeOption function.
+                 */
+
+                removeButton.addEventListener(
+                    "click",
+                    () => removeOption(index)
+                );
+
+
+                /*
+                 * Assemble the finished list item.
+                 */
+
+                listItem.appendChild(number);
+
+                listItem.appendChild(text);
+
+                listItem.appendChild(removeButton);
+
+
+                /*
+                 * Put the list item onto the page.
+                 */
+
+                optionList.appendChild(listItem);
+
+            });
+        }
+
+
+        /* =========================================================
+           MAKE DECISION
+
+           Randomly selects one of the user's options.
+           ========================================================= */
+
+        function makeDecision() {
+
+            /*
+             * We need at least two choices for a meaningful
+             * decision.
+             */
+
+            if (options.length < 2) {
+
+                statusMessage.textContent =
+                    "I need at least 2 options before I can decide. Please give me another choice!";
+
+                statusMessage.classList.add("warning");
+
+                return;
+            }
+
+
+            /*
+             * Remove any previous warning.
+             */
+
+            statusMessage.textContent = "";
+
+            statusMessage.classList.remove("warning");
+
+
+            /*
+             * Math.random() generates a random number from 0 up
+             * to, but not including, 1.
+             *
+             * Multiplying by options.length gives us a number
+             * somewhere inside the range of the array.
+             *
+             * Math.floor() turns that into a valid whole-number
+             * array index.
+             */
+
+            const randomIndex =
+                Math.floor(
+                    Math.random() * options.length
+                );
+
+
+            /*
+             * Retrieve the randomly selected option.
+             */
+
+            const winner =
+                options[randomIndex];
+
+
+            /*
+             * Display the winning option.
+             */
+
+            resultText.textContent =
+                winner;
+
+
+            /*
+             * Remove the animation class first.
+             * This allows the animation to restart every time
+             * the user clicks Decide.
+             */
+
+            resultArea.classList.remove("reveal");
+
+
+            /*
+             * Reading offsetWidth forces the browser to recognize
+             * that the animation class was removed before we add it
+             * again.
+             */
+
+            void resultArea.offsetWidth;
+
+
+            /*
+             * Start the reveal animation.
+             */
+
+            resultArea.classList.add("reveal");
+        }
+
+
+        /* =========================================================
+           BUTTON EVENTS
+
+           Clicking Add runs addOption().
+           Clicking Decide runs makeDecision().
+           ========================================================= */
+
+        addButton.addEventListener(
+            "click",
+            addOption
+        );
+
+        decideButton.addEventListener(
+            "click",
+            makeDecision
+        );
+
+
+        /* =========================================================
+           ENTER KEY SUPPORT
+
+           Pressing Enter while inside the option input adds the
+           option without requiring the user to click Add.
+           ========================================================= */
+
+        optionInput.addEventListener(
+            "keydown",
+            (event) => {
+
+                if (event.key === "Enter") {
+
+                    event.preventDefault();
+
+                    addOption();
+                }
+            }
+        );
+
+
+        /* =========================================================
+           INITIALIZE THE PAGE
+
+           Render the empty state when the application first loads.
+           ========================================================= */
+
+        renderOptions();
+
+    </script>
+
+</body>
+</html>
