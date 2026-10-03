@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <meta
@@ -14,23 +13,10 @@
 
     <style>
         /* =========================================================
-           v2.2 - Added Magic 8-Ball
+           v2.3 - Added Decision Maker
            Personal project homepage for Elizabeth Mautz
-
-           This version includes:
-           - Tattoo-inspired decorative artwork
-           - Cybersecurity / networking visual elements
-           - Interactive project links
-           - Purple cyber glow effects
-           - Subtle animations
-           - Responsive and accessible design
-           - Seven personal web projects
            ========================================================= */
 
-
-        /* ---------------------------------------------------------
-           COLOR VARIABLES
-           --------------------------------------------------------- */
         :root {
             --background: #090a0f;
             --background-soft: #10121a;
@@ -53,6 +39,7 @@
         /* ---------------------------------------------------------
            BASIC RESET
            --------------------------------------------------------- */
+
         * {
             box-sizing: border-box;
         }
@@ -95,6 +82,7 @@
         /* ---------------------------------------------------------
            SUBTLE TECH GRID
            --------------------------------------------------------- */
+
         body::before {
             content: "";
 
@@ -130,6 +118,7 @@
         /* ---------------------------------------------------------
            ACCESSIBILITY SKIP LINK
            --------------------------------------------------------- */
+
         .skip-link {
             position: absolute;
 
@@ -154,6 +143,7 @@
         /* ---------------------------------------------------------
            PAGE WRAPPER
            --------------------------------------------------------- */
+
         .page-wrapper {
             width: min(1100px, calc(100% - 2rem));
             margin: auto;
@@ -163,6 +153,7 @@
         /* ---------------------------------------------------------
            HERO AREA
            --------------------------------------------------------- */
+
         header {
             position: relative;
 
@@ -174,11 +165,13 @@
 
 
         /* ---------------------------------------------------------
-           SMALL TECH LABEL ABOVE NAME
+           SYSTEM LABEL
            --------------------------------------------------------- */
+
         .system-label {
             display: inline-flex;
             align-items: center;
+
             gap: 0.7rem;
 
             margin-bottom: 1rem;
@@ -186,14 +179,15 @@
             color: var(--purple-light);
 
             font-family: "Courier New", monospace;
+
             font-size: 0.78rem;
 
             letter-spacing: 0.12em;
+
             text-transform: uppercase;
         }
 
 
-        /* Small glowing "online" dot */
         .system-dot {
             width: 8px;
             height: 8px;
@@ -225,12 +219,14 @@
         /* ---------------------------------------------------------
            NAME
            --------------------------------------------------------- */
+
         h1 {
             margin: 0;
 
             max-width: 850px;
 
             font-size: clamp(3.5rem, 11vw, 7.5rem);
+
             line-height: 0.85;
 
             letter-spacing: -0.065em;
@@ -239,7 +235,6 @@
         }
 
 
-        /* Outlined last name */
         .outline-name {
             display: block;
 
@@ -258,6 +253,7 @@
         /* ---------------------------------------------------------
            INTRODUCTION
            --------------------------------------------------------- */
+
         .intro {
             max-width: 700px;
 
@@ -276,6 +272,7 @@
                 );
         }
 
+
         .intro strong {
             color: var(--white);
         }
@@ -284,6 +281,7 @@
         /* ---------------------------------------------------------
            INTERESTS
            --------------------------------------------------------- */
+
         .interests {
             display: flex;
             flex-wrap: wrap;
@@ -354,6 +352,7 @@
         /* ---------------------------------------------------------
            TATTOO FLASH DECORATIONS
            --------------------------------------------------------- */
+
         .tattoo-decoration {
             position: absolute;
 
@@ -366,6 +365,7 @@
                 );
 
             user-select: none;
+
             pointer-events: none;
         }
 
@@ -403,6 +403,7 @@
         /* ---------------------------------------------------------
            SECTION DIVIDER
            --------------------------------------------------------- */
+
         .divider {
             display: flex;
             align-items: center;
@@ -418,6 +419,7 @@
 
         .divider-line {
             height: 1px;
+
             flex: 1;
 
             background:
@@ -439,6 +441,7 @@
         /* ---------------------------------------------------------
            PROJECT SECTION
            --------------------------------------------------------- */
+
         main {
             padding-bottom: 6rem;
         }
@@ -491,6 +494,7 @@
         /* ---------------------------------------------------------
            PROJECT LIST
            --------------------------------------------------------- */
+
         .project-list {
             list-style: none;
 
@@ -516,7 +520,6 @@
         }
 
 
-        /* Purple hover glow */
         .project-item::before {
             content: "";
 
@@ -537,7 +540,8 @@
                     60%
                 );
 
-            transform: translateX(-100%);
+            transform:
+                translateX(-100%);
 
             transition:
                 transform
@@ -549,7 +553,8 @@
 
 
         .project-item:hover::before {
-            transform: translateX(0);
+            transform:
+                translateX(0);
         }
 
 
@@ -588,7 +593,6 @@
         }
 
 
-        /* Keyboard focus */
         .project-link:focus-visible {
             outline:
                 3px
@@ -599,7 +603,6 @@
         }
 
 
-        /* Project number */
         .project-number {
             color: var(--purple);
 
@@ -611,6 +614,7 @@
 
         .project-name {
             font-weight: 750;
+
             font-size: 1.05rem;
         }
 
@@ -644,8 +648,9 @@
 
 
         /* ---------------------------------------------------------
-           TECH TERMINAL SECTION
+           TECH TERMINAL
            --------------------------------------------------------- */
+
         .terminal {
             margin-top: 4rem;
 
@@ -676,6 +681,7 @@
 
         .terminal-top {
             display: flex;
+
             gap: 0.4rem;
 
             margin-bottom: 1rem;
@@ -707,6 +713,7 @@
         /* ---------------------------------------------------------
            FOOTER
            --------------------------------------------------------- */
+
         footer {
             padding:
                 1.5rem
@@ -727,6 +734,7 @@
         /* ---------------------------------------------------------
            MOBILE DESIGN
            --------------------------------------------------------- */
+
         @media (max-width: 700px) {
 
             .tattoo-dagger {
@@ -765,6 +773,7 @@
         /* ---------------------------------------------------------
            REDUCED MOTION ACCESSIBILITY
            --------------------------------------------------------- */
+
         @media (prefers-reduced-motion: reduce) {
 
             html {
@@ -790,10 +799,10 @@
 
 <body>
 
-    <!--
-        Keyboard users can select this link to jump directly
-        to the projects section.
-    -->
+    <!-- =========================================================
+         SKIP LINK
+         ========================================================= -->
+
     <a
         class="skip-link"
         href="#projects"
@@ -805,15 +814,16 @@
     <!-- =========================================================
          HERO / INTRODUCTION
          ========================================================= -->
+
     <header>
 
-        <!-- Decorative tattoo-inspired symbols -->
         <span
             class="tattoo-decoration tattoo-star"
             aria-hidden="true"
         >
             ✦
         </span>
+
 
         <span
             class="tattoo-decoration tattoo-dagger"
@@ -825,7 +835,6 @@
 
         <div class="page-wrapper">
 
-            <!-- Small cyber/tech-style system label -->
             <div class="system-label">
 
                 <span
@@ -840,6 +849,7 @@
 
             <h1>
                 Elizabeth
+
                 <span class="outline-name">
                     Mautz
                 </span>
@@ -847,10 +857,12 @@
 
 
             <p class="intro">
+
                 I'm an
                 <strong>
                     FLCC Networking and Cybersecurity student
                 </strong>
+
                 and currently a
                 <strong>
                     middle school Spanish teacher.
@@ -859,16 +871,17 @@
                 This is my corner of the internet for
                 experimenting, learning, and building
                 small web projects.
+
             </p>
 
 
-            <!-- Personal interests -->
             <div
                 class="interests"
                 aria-label="Elizabeth's interests"
             >
 
                 <span class="interest">
+
                     <span
                         class="interest-icon"
                         aria-hidden="true"
@@ -877,10 +890,12 @@
                     </span>
 
                     Heavy Metal
+
                 </span>
 
 
                 <span class="interest">
+
                     <span
                         class="interest-icon"
                         aria-hidden="true"
@@ -889,10 +904,12 @@
                     </span>
 
                     Travel
+
                 </span>
 
 
                 <span class="interest">
+
                     <span
                         class="interest-icon"
                         aria-hidden="true"
@@ -901,6 +918,7 @@
                     </span>
 
                     Tattoos
+
                 </span>
 
             </div>
@@ -911,12 +929,14 @@
 
 
     <!-- =========================================================
-         DECORATIVE DIVIDER
+         DIVIDER
          ========================================================= -->
+
     <div
         class="page-wrapper divider"
         aria-hidden="true"
     >
+
         <span class="divider-symbol">
             ✦
         </span>
@@ -926,12 +946,14 @@
         <span class="divider-symbol">
             ◆
         </span>
+
     </div>
 
 
     <!-- =========================================================
          PROJECTS
          ========================================================= -->
+
     <main id="projects">
 
         <div class="page-wrapper">
@@ -946,16 +968,18 @@
                     class="section-number"
                     aria-hidden="true"
                 >
-                    01 // 07
+                    01 // 08
                 </span>
 
             </div>
 
 
             <p class="section-description">
+
                 Things I've built while learning,
                 experimenting, and having fun with code.
                 Pick one and try it out.
+
             </p>
 
 
@@ -966,6 +990,7 @@
                      PROJECT 1
                      Concert Countdown
                      ================================================= -->
+
                 <li class="project-item">
 
                     <a
@@ -1008,6 +1033,7 @@
                      PROJECT 2
                      Nutter Butter & Cosmic Brownie
                      ================================================= -->
+
                 <li class="project-item">
 
                     <a
@@ -1051,6 +1077,7 @@
                      PROJECT 3
                      Picture Carousel
                      ================================================= -->
+
                 <li class="project-item">
 
                     <a
@@ -1092,6 +1119,7 @@
                      PROJECT 4
                      Pomodoro Timer
                      ================================================= -->
+
                 <li class="project-item">
 
                     <a
@@ -1134,6 +1162,7 @@
                      PROJECT 5
                      QR Code Generator
                      ================================================= -->
+
                 <li class="project-item">
 
                     <a
@@ -1176,6 +1205,7 @@
                      PROJECT 6
                      Latte Recipe
                      ================================================= -->
+
                 <li class="project-item">
 
                     <a
@@ -1218,6 +1248,7 @@
                      PROJECT 7
                      Magic 8-Ball
                      ================================================= -->
+
                 <li class="project-item">
 
                     <a
@@ -1256,12 +1287,56 @@
                 </li>
 
 
+                <!-- =================================================
+                     PROJECT 8
+                     Decision Maker
+                     ================================================= -->
+
+                <li class="project-item">
+
+                    <a
+                        class="project-link"
+                        href="decision-maker/index.html"
+                        target="_blank"
+                        rel="noopener"
+                        aria-label="Open Decision Maker in a new tab"
+                    >
+
+                        <span
+                            class="project-number"
+                            aria-hidden="true"
+                        >
+                            08
+                        </span>
+
+                        <span class="project-name">
+                            Decision Maker
+                        </span>
+
+                        <span class="project-description">
+                            Add your options and let the
+                            Decision Maker randomly choose one.
+                        </span>
+
+                        <span
+                            class="project-arrow"
+                            aria-hidden="true"
+                        >
+                            ↗
+                        </span>
+
+                    </a>
+
+                </li>
+
+
             </ul>
 
 
             <!-- =================================================
                  DECORATIVE TECH TERMINAL
                  ================================================= -->
+
             <div
                 class="terminal"
                 aria-label="Project status"
@@ -1271,31 +1346,38 @@
                     class="terminal-top"
                     aria-hidden="true"
                 >
+
                     <span class="terminal-circle"></span>
                     <span class="terminal-circle"></span>
                     <span class="terminal-circle"></span>
+
                 </div>
 
 
                 <p class="terminal-line">
+
                     <span class="terminal-command">
                         elizabeth@portfolio:~$
                     </span>
 
                     load projects
+
                 </p>
 
 
                 <p class="terminal-line">
-                    &gt; 7 projects detected
+                    &gt; 8 projects detected
                 </p>
 
 
                 <p class="terminal-line">
+
                     &gt; status:
+
                     <span class="terminal-command">
                         ready to explore_
                     </span>
+
                 </p>
 
             </div>
@@ -1308,6 +1390,7 @@
     <!-- =========================================================
          FOOTER
          ========================================================= -->
+
     <footer>
 
         <div class="page-wrapper">
@@ -1323,7 +1406,7 @@
 
     <script>
         // =========================================================
-        // v2.2 - Homepage JavaScript
+        // Homepage JavaScript
         // =========================================================
 
         const footerText =
