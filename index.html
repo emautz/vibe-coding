@@ -14,7 +14,7 @@
 
     <style>
         /* =========================================================
-           v2.1 - Removed Hello Project
+           v2.2 - Added Magic 8-Ball
            Personal project homepage for Elizabeth Mautz
 
            This version includes:
@@ -24,15 +24,12 @@
            - Purple cyber glow effects
            - Subtle animations
            - Responsive and accessible design
-           - Six personal web projects
+           - Seven personal web projects
            ========================================================= */
 
 
         /* ---------------------------------------------------------
            COLOR VARIABLES
-
-           Keeping the main colors here makes it easy to completely
-           change the color scheme later.
            --------------------------------------------------------- */
         :root {
             --background: #090a0f;
@@ -97,9 +94,6 @@
 
         /* ---------------------------------------------------------
            SUBTLE TECH GRID
-
-           This creates faint grid lines across the page using CSS
-           gradients. No image files are needed.
            --------------------------------------------------------- */
         body::before {
             content: "";
@@ -135,9 +129,6 @@
 
         /* ---------------------------------------------------------
            ACCESSIBILITY SKIP LINK
-
-           Keyboard users can use this link to skip directly to the
-           projects section without tabbing through the entire intro.
            --------------------------------------------------------- */
         .skip-link {
             position: absolute;
@@ -162,9 +153,6 @@
 
         /* ---------------------------------------------------------
            PAGE WRAPPER
-
-           This prevents the content from becoming too wide on large
-           monitors while still allowing it to shrink on phones.
            --------------------------------------------------------- */
         .page-wrapper {
             width: min(1100px, calc(100% - 2rem));
@@ -251,8 +239,7 @@
         }
 
 
-        /* Gives the last name an outlined, poster/tattoo-inspired
-           appearance. */
+        /* Outlined last name */
         .outline-name {
             display: block;
 
@@ -366,12 +353,6 @@
 
         /* ---------------------------------------------------------
            TATTOO FLASH DECORATIONS
-
-           These symbols give the page some tattoo-flash personality
-           without requiring any image files.
-
-           They are decorative only and are hidden from screen
-           readers using aria-hidden in the HTML.
            --------------------------------------------------------- */
         .tattoo-decoration {
             position: absolute;
@@ -421,8 +402,6 @@
 
         /* ---------------------------------------------------------
            SECTION DIVIDER
-
-           Combines tattoo-style symbols with a tech-inspired line.
            --------------------------------------------------------- */
         .divider {
             display: flex;
@@ -511,9 +490,6 @@
 
         /* ---------------------------------------------------------
            PROJECT LIST
-
-           The projects stay in a simple list instead of large cards,
-           but each entire row can be clicked.
            --------------------------------------------------------- */
         .project-list {
             list-style: none;
@@ -540,8 +516,7 @@
         }
 
 
-        /* Purple glow that slides across a project row when the
-           visitor hovers over it. */
+        /* Purple hover glow */
         .project-item::before {
             content: "";
 
@@ -613,7 +588,7 @@
         }
 
 
-        /* Makes keyboard navigation easy to see. */
+        /* Keyboard focus */
         .project-link:focus-visible {
             outline:
                 3px
@@ -624,7 +599,7 @@
         }
 
 
-        /* Number beside each project */
+        /* Project number */
         .project-number {
             color: var(--purple);
 
@@ -659,7 +634,6 @@
         }
 
 
-        /* Moves the arrow slightly when a project is hovered over. */
         .project-link:hover .project-arrow {
             transform:
                 translate(
@@ -671,9 +645,6 @@
 
         /* ---------------------------------------------------------
            TECH TERMINAL SECTION
-
-           This is a decorative fake terminal that reinforces the
-           networking/cybersecurity theme.
            --------------------------------------------------------- */
         .terminal {
             margin-top: 4rem;
@@ -755,9 +726,6 @@
 
         /* ---------------------------------------------------------
            MOBILE DESIGN
-
-           On smaller screens the project rows change to a simpler
-           layout so the text has enough room.
            --------------------------------------------------------- */
         @media (max-width: 700px) {
 
@@ -796,9 +764,6 @@
 
         /* ---------------------------------------------------------
            REDUCED MOTION ACCESSIBILITY
-
-           If someone has enabled "Reduce Motion" on their device,
-           the animations and transitions are minimized.
            --------------------------------------------------------- */
         @media (prefers-reduced-motion: reduce) {
 
@@ -897,12 +862,7 @@
             </p>
 
 
-            <!--
-                Personal interests are displayed as visual tags.
-
-                The small symbols are decorative, so they use
-                aria-hidden="true".
-            -->
+            <!-- Personal interests -->
             <div
                 class="interests"
                 aria-label="Elizabeth's interests"
@@ -982,14 +942,11 @@
                     Projects
                 </h2>
 
-                <!--
-                    There are now six projects on the homepage.
-                -->
                 <span
                     class="section-number"
                     aria-hidden="true"
                 >
-                    01 // 06
+                    01 // 07
                 </span>
 
             </div>
@@ -1256,17 +1213,54 @@
 
                 </li>
 
+
+                <!-- =================================================
+                     PROJECT 7
+                     Magic 8-Ball
+                     ================================================= -->
+                <li class="project-item">
+
+                    <a
+                        class="project-link"
+                        href="magic-8-ball/index.html"
+                        target="_blank"
+                        rel="noopener"
+                        aria-label="Open Magic 8-Ball in a new tab"
+                    >
+
+                        <span
+                            class="project-number"
+                            aria-hidden="true"
+                        >
+                            07
+                        </span>
+
+                        <span class="project-name">
+                            Magic 8-Ball
+                        </span>
+
+                        <span class="project-description">
+                            Ask a question and let the
+                            Magic 8-Ball decide your fate.
+                        </span>
+
+                        <span
+                            class="project-arrow"
+                            aria-hidden="true"
+                        >
+                            ↗
+                        </span>
+
+                    </a>
+
+                </li>
+
+
             </ul>
 
 
             <!-- =================================================
                  DECORATIVE TECH TERMINAL
-
-                 This reinforces the networking/cybersecurity theme.
-
-                 It looks like a terminal window but does not send
-                 information anywhere and does not actually execute
-                 any commands.
                  ================================================= -->
             <div
                 class="terminal"
@@ -1293,7 +1287,7 @@
 
 
                 <p class="terminal-line">
-                    &gt; 6 projects detected
+                    &gt; 7 projects detected
                 </p>
 
 
@@ -1329,74 +1323,19 @@
 
     <script>
         // =========================================================
-        // v2.1 - Homepage JavaScript
-        //
-        // The page intentionally uses very little JavaScript.
-        //
-        // Most of the design, hover effects, responsive behavior,
-        // and animations are handled by CSS.
-        //
-        // This keeps the JavaScript easy to understand and helps
-        // the page remain fast and accessible.
+        // v2.2 - Homepage JavaScript
         // =========================================================
 
-
-        // ---------------------------------------------------------
-        // STEP 1: FIND THE FOOTER
-        //
-        // document.getElementById() searches the HTML for an element
-        // with the matching id.
-        //
-        // The footer contains:
-        //
-        //     id="footer-text"
-        //
-        // We store that HTML element inside a variable named
-        // footerText so JavaScript can work with it.
-        // ---------------------------------------------------------
         const footerText =
             document.getElementById("footer-text");
 
 
-        // ---------------------------------------------------------
-        // STEP 2: GET THE CURRENT YEAR
-        //
-        // new Date() creates a JavaScript Date object using the
-        // current date and time reported by the visitor's device.
-        //
-        // getFullYear() extracts only the four-digit year.
-        //
-        // For example:
-        //
-        //     2026
-        //
-        // This means the copyright year automatically stays current
-        // instead of needing to be manually edited every January.
-        // ---------------------------------------------------------
+        // Get the current year automatically.
         const currentYear =
             new Date().getFullYear();
 
 
-        // ---------------------------------------------------------
-        // STEP 3: UPDATE THE FOOTER
-        //
-        // textContent changes the text that appears inside an HTML
-        // element.
-        //
-        // The backticks (` `) create what JavaScript calls a
-        // "template literal."
-        //
-        // Template literals allow us to insert a variable into text
-        // using this format:
-        //
-        //     ${variableName}
-        //
-        // Therefore, ${currentYear} is replaced by the actual year.
-        //
-        // If the year is 2026, the visitor will see:
-        //
-        // © 2026 Elizabeth Mautz • Personal Projects
-        // ---------------------------------------------------------
+        // Update the footer.
         footerText.textContent =
             `© ${currentYear} Elizabeth Mautz • Personal Projects`;
     </script>
