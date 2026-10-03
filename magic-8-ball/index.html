@@ -1,0 +1,380 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#09070b">
+  <title>Dark Magic 8-Ball</title>
+  <style>
+    /* v1.0 - Dark, gothic styling for the Magic 8-Ball page.
+       All styles live in this file, so no external stylesheet is required. */
+
+    :root {
+      color-scheme: dark;
+      --background: #09070b;
+      --panel: #151018;
+      --text: #f5eef7;
+      --muted: #b8aaba;
+      --blood: #c51d3a;
+      --blood-bright: #ff3155;
+      --line: rgba(255, 255, 255, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { min-height: 100%; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 2rem 1rem;
+      overflow-x: hidden;
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(ellipse at 50% 40%, rgba(111, 13, 39, 0.23), transparent 42%),
+        radial-gradient(ellipse at 15% 85%, rgba(73, 24, 88, 0.15), transparent 35%),
+        var(--background);
+    }
+
+    /* A subtle decorative texture made entirely with CSS. */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.15;
+      background-image: radial-gradient(rgba(255,255,255,.32) .6px, transparent .6px);
+      background-size: 19px 19px;
+      mask-image: linear-gradient(to bottom, black, transparent 90%);
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 620px);
+      text-align: center;
+    }
+
+    .eyebrow {
+      margin: 0 0 .65rem;
+      color: var(--blood-bright);
+      font-size: .75rem;
+      font-weight: 800;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.25rem, 8vw, 4.1rem);
+      font-weight: 500;
+      letter-spacing: -.045em;
+      line-height: 1.05;
+      text-shadow: 0 0 30px rgba(197, 29, 58, .2);
+    }
+
+    .intro {
+      max-width: 430px;
+      margin: 1rem auto 1.8rem;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    /* The ball uses layered gradients to give it a rounded, glossy appearance. */
+    .ball-wrap {
+      display: grid;
+      place-items: center;
+      margin: 0 auto 1.8rem;
+      perspective: 900px;
+    }
+
+    .ball {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: min(68vw, 340px);
+      aspect-ratio: 1;
+      padding: 1.2rem;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 50%;
+      background:
+        radial-gradient(ellipse at 31% 19%, rgba(255,255,255,.16), transparent 17%),
+        radial-gradient(ellipse at 35% 25%, #25212a 0%, #100e14 32%, #050407 69%, #000 100%);
+      box-shadow:
+        inset -18px -22px 38px rgba(0,0,0,.95),
+        inset 8px 8px 20px rgba(255,255,255,.06),
+        0 28px 65px rgba(0,0,0,.7),
+        0 0 50px rgba(151, 14, 44, .12);
+      transition: transform .35s ease, box-shadow .35s ease;
+    }
+
+    .ball::before {
+      content: "";
+      position: absolute;
+      inset: 8%;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.035);
+      box-shadow: inset 0 0 28px rgba(255,255,255,.025);
+      pointer-events: none;
+    }
+
+    .answer-window {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 56%;
+      min-height: 56%;
+      padding: 1rem;
+      clip-path: polygon(50% 0%, 94% 25%, 94% 75%, 50% 100%, 6% 75%, 6% 25%);
+      background: linear-gradient(145deg, #1a2337, #080c18 68%, #03050a);
+      filter: drop-shadow(0 0 12px rgba(74, 102, 180, .15));
+    }
+
+    .answer-window::before {
+      content: "";
+      position: absolute;
+      inset: 5%;
+      clip-path: inherit;
+      border: 1px solid rgba(137, 169, 255, .12);
+      background: radial-gradient(ellipse at 50% 25%, rgba(83, 119, 199, .16), transparent 70%);
+      pointer-events: none;
+    }
+
+    .answer {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      max-width: 100%;
+      color: #e5eaff;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(.7rem, 2.8vw, 1.05rem);
+      line-height: 1.35;
+      text-shadow: 0 0 12px rgba(120, 151, 255, .6);
+      overflow-wrap: anywhere;
+    }
+
+    .ball.shake {
+      animation: shake .65s ease-in-out;
+      box-shadow:
+        inset -18px -22px 38px rgba(0,0,0,.95),
+        0 28px 65px rgba(0,0,0,.7),
+        0 0 65px rgba(255, 49, 85, .28);
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0) rotate(0); }
+      15% { transform: translateX(-8px) rotate(-2deg); }
+      30% { transform: translateX(8px) rotate(2deg); }
+      45% { transform: translateX(-6px) rotate(-1.5deg); }
+      60% { transform: translateX(6px) rotate(1.5deg); }
+      75% { transform: translateX(-3px) rotate(-.5deg); }
+    }
+
+    .question-form {
+      display: grid;
+      gap: .75rem;
+      width: min(100%, 460px);
+      margin: 0 auto;
+      text-align: left;
+    }
+
+    label {
+      color: #e7dce9;
+      font-size: .9rem;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      min-height: 54px;
+      padding: .9rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      outline: none;
+      color: var(--text);
+      background: rgba(255,255,255,.045);
+      font: inherit;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+
+    input::placeholder { color: #85788b; }
+
+    input:focus-visible {
+      border-color: var(--blood-bright);
+      box-shadow: 0 0 0 3px rgba(255,49,85,.17);
+    }
+
+    button {
+      min-height: 54px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px;
+      padding: .9rem 1.25rem;
+      color: white;
+      background: linear-gradient(135deg, #a81331, #6f0c25);
+      box-shadow: 0 8px 24px rgba(117, 10, 38, .25);
+      font: inherit;
+      font-weight: 800;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
+    }
+
+    button:hover {
+      filter: brightness(1.15);
+      box-shadow: 0 10px 30px rgba(197,29,58,.32);
+    }
+
+    button:active { transform: scale(.985); }
+
+    button:focus-visible {
+      outline: 3px solid #ff8ba0;
+      outline-offset: 3px;
+    }
+
+    .hint {
+      margin: .85rem 0 0;
+      color: #887b8d;
+      font-size: .8rem;
+      text-align: center;
+    }
+
+    /* Keep the answer available to assistive technology without relying on animation. */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 420px) {
+      body { padding: 1.4rem .9rem; }
+      .intro { margin-bottom: 1.35rem; }
+      .ball { width: min(76vw, 300px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">✦ Consult the void ✦</p>
+    <h1>Dark Magic 8-Ball</h1>
+    <p class="intro">Ask the universe a question. Trust the darkness to answer… if it feels like it.</p>
+
+    <div class="ball-wrap" aria-label="Magic 8-Ball answer display">
+      <div class="ball" id="magicBall">
+        <div class="answer-window">
+          <p class="answer" id="answerText">ASK<br>AWAY</p>
+        </div>
+      </div>
+    </div>
+
+    <form class="question-form" id="questionForm">
+      <label for="questionInput">What do you seek to know?</label>
+      <input
+        id="questionInput"
+        name="question"
+        type="text"
+        placeholder="Will today be iconic?"
+        autocomplete="off"
+        maxlength="300"
+        aria-describedby="questionHint"
+      >
+      <button type="submit">Ask the 8-Ball ✦</button>
+      <p class="hint" id="questionHint">Type a question, then press Enter or tap the button.</p>
+    </form>
+
+    <!-- This live region announces each new answer to screen readers. -->
+    <p class="sr-only" id="announcedAnswer" role="status" aria-live="polite" aria-atomic="true"></p>
+  </main>
+
+  <script>
+    // v1.0 - Initial build of the Dark Magic 8-Ball.
+    // EDIT YOUR ANSWERS HERE: Keep every possible answer in this one easy-to-find list.
+    // Each time someone asks a question, the script randomly selects one item from this array.
+    const answers = [
+      "no, better luck next time",
+      "yes absolutely slay queen!",
+      "maybe, try again",
+      "not in a million years",
+      "100% certain that's a no",
+      "not sure",
+      "oh yeah!!!",
+      "mmmmmmm, let me think on that"
+    ];
+
+    // Find the page elements once so the form and ball can be updated when needed.
+    const questionForm = document.getElementById("questionForm");
+    const questionInput = document.getElementById("questionInput");
+    const magicBall = document.getElementById("magicBall");
+    const answerText = document.getElementById("answerText");
+    const announcedAnswer = document.getElementById("announcedAnswer");
+
+    // When the form is submitted, choose an answer and show it in the center of the ball.
+    // Using the form's submit event means both clicking the button and pressing Enter work.
+    questionForm.addEventListener("submit", function (event) {
+      // Stop the browser from reloading the page when the form is submitted.
+      event.preventDefault();
+
+      // A question is optional for the random-answer mechanic, but prompting for one
+      // makes the experience clearer and avoids answering an accidental empty submission.
+      const question = questionInput.value.trim();
+      if (question.length === 0) {
+        questionInput.focus();
+        questionInput.setCustomValidity("Type a question before asking the 8-Ball.");
+        questionInput.reportValidity();
+        return;
+      }
+
+      // Clear any earlier validation message now that a real question has been entered.
+      questionInput.setCustomValidity("");
+
+      // Math.random() gives a number from 0 (inclusive) to 1 (exclusive).
+      // Multiplying it by the list length and rounding down gives a valid random index.
+      const randomIndex = Math.floor(Math.random() * answers.length);
+      const chosenAnswer = answers[randomIndex];
+
+      // Replace the starter text with the chosen answer. textContent safely displays
+      // the answer as text rather than treating it as HTML.
+      answerText.textContent = chosenAnswer;
+      announcedAnswer.textContent = "The Magic 8-Ball says: " + chosenAnswer;
+
+      // Replay the shake animation on every ask by removing its class, forcing the
+      // browser to register that change, and adding the class again.
+      magicBall.classList.remove("shake");
+      void magicBall.offsetWidth;
+      magicBall.classList.add("shake");
+    });
+
+    // Remove the custom validation warning as soon as the user starts correcting input.
+    questionInput.addEventListener("input", function () {
+      questionInput.setCustomValidity("");
+    });
+
+    // Once the shake finishes, remove the animation class so the ball is ready to shake again.
+    magicBall.addEventListener("animationend", function () {
+      magicBall.classList.remove("shake");
+    });
+  </script>
+</body>
+</html>
