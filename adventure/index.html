@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#100912">
+  <title>Warped Tour: Choose Your Fate</title>
+
+  <style>
+    /* ========================================
+       WARPED TOUR ADVENTURE
+       Emo / Scene / Comic Book Aesthetic
+       ======================================== */
+
+    :root {
+      --black: #100912;
+      --dark-purple: #25102e;
+      --purple: #772b91;
+      --hot-pink: #ff268f;
+      --light-pink: #ff9fd1;
+      --electric-blue: #66e7ff;
+      --cream: #fff0f6;
+      --yellow: #ffe66d;
+      --muted: #c5b4cb;
+      --border: #f4b8ff;
+      --panel: rgba(22, 11, 27, 0.94);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--black);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--cream);
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      background:
+        radial-gradient(ellipse at 15% 15%, #59205e 0, transparent 34%),
+        radial-gradient(ellipse at 90% 80%, #3c124e 0, transparent 32%),
+        repeating-linear-gradient(
+          135deg,
+          rgba(255, 38, 143, 0.035) 0,
+          rgba(255, 38, 143, 0.035) 2px,
+          transparent 2px,
+          transparent 7px
+        ),
+        var(--black);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 22px 14px 36px;
+      overflow-x: hidden;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    button:focus-visible {
+      outline: 3px solid var(--electric-blue);
+      outline-offset: 4px;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 850px;
+      margin: 0 auto;
+    }
+
+    .top-label {
+      text-align: center;
+      color: var(--electric-blue);
+      font-weight: 900;
+      font-size: 0.78rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .masthead {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .masthead h1 {
+      margin: 0;
+      font-size: clamp(2.4rem, 8vw, 5.2rem);
+      line-height: 0.95;
+      font-weight: 1000;
+      font-style: italic;
+      text-transform: uppercase;
+      letter-spacing: -0.06em;
+      color: var(--hot-pink);
+      text-shadow:
+        3px 3px 0 var(--purple),
+        6px 6px 0 #000,
+        0 0 22px rgba(255, 38, 143, 0.45);
+      -webkit-text-stroke: 1px #ffd8ec;
+    }
+
+    .masthead .subtitle {
+      margin: 15px 0 0;
+      font-size: clamp(0.8rem, 2.7vw, 1.05rem);
+      color: var(--cream);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      font-weight: 900;
+    }
+
+    .stickers {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .sticker {
+      padding: 5px 10px;
+      color: var(--black);
+      background: var(--yellow);
+      font-size: 0.7rem;
+      font-weight: 1000;
+      text-transform: uppercase;
+      transform: rotate(-2deg);
+      border: 2px solid var(--black);
+      box-shadow: 2px 2px 0 var(--hot-pink);
+    }
+
+    .sticker:nth-child(2) {
+      background: var(--electric-blue);
+      transform: rotate(2deg);
+    }
+
+    .sticker:nth-child(3) {
+      background: var(--light-pink);
+      transform: rotate(-1deg);
+    }
+
+    .game-frame {
+      position: relative;
+      padding: clamp(17px, 4vw, 35px);
+      background: var(--panel);
+      border: 3px solid var(--border);
+      outline: 3px solid var(--purple);
+      box-shadow:
+        0 0 0 7px var(--black),
+        0 0 35px rgba(255, 38, 143, 0.2);
+      clip-path: polygon(
+        0 12px,
+        12px 0,
+        calc(100% - 12px) 0,
+        100% 12px,
+        100% calc(100% - 12px),
+        calc(100% - 12px) 100%,
+        12px 100%,
+        0 calc(100% - 12px)
+      );
+    }
+
+    .scene-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .chapter {
+      color: var(--electric-blue);
+      font-size: 0.75rem;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .status {
+      color: var(--light-pink);
+      font-size: 0.75rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .scene-art {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 145px;
+      margin-bottom: 18px;
+      padding: 15px;
+      position: relative;
+      overflow: hidden;
+      border: 2px solid var(--purple);
+      background:
+        radial-gradient(circle at 50% 50%, #67266f 0, transparent 65%),
+        repeating-linear-gradient(
+          45deg,
+          rgba(255, 255, 255, 0.04) 0,
+          rgba(255, 255, 255, 0.04) 3px,
+          transparent 3px,
+          transparent 8px
+        ),
+        #190e20;
+    }
+
+    .scene-emoji {
+      position: relative;
+      z-index: 1;
+      font-size: clamp(4rem, 12vw, 6rem);
+      line-height: 1;
+      filter: drop-shadow(5px 5px 0 rgba(255, 38, 143, 0.6));
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .scene-art::before,
+    .scene-art::after {
+      position: absolute;
+      color: rgba(255, 38, 143, 0.25);
+      font-size: 4rem;
+      font-weight: 1000;
+      content: "✦";
+    }
+
+    .scene-art::before {
+      top: 5px;
+      left: 14%;
+    }
+
+    .scene-art::after {
+      bottom: 0;
+      right: 14%;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(-3deg); }
+      50% { transform: translateY(-7px) rotate(3deg); }
+    }
+
+    .scene-title {
+      margin: 0 0 13px;
+      color: var(--hot-pink);
+      font-size: clamp(1.5rem, 5vw, 2.4rem);
+      line-height: 1.1;
+      font-weight: 1000;
+      font-style: italic;
+      text-transform: uppercase;
+      text-shadow: 3px 3px 0 #000;
+    }
+
+    .scene-text {
+      margin: 0;
+      color: var(--cream);
+      font-size: clamp(1rem, 2.6vw, 1.15rem);
+      line-height: 1.8;
+      white-space: pre-line;
+    }
+
+    .timer-area {
+      margin-top: 25px;
+      display: none;
+    }
+
+    .timer-area.active {
+      display: block;
+    }
+
+    .timer-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .timer-number {
+      color: var(--yellow);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .timer-track {
+      width: 100%;
+      height: 10px;
+      background: #38213f;
+      border: 1px solid #765183;
+      overflow: hidden;
+    }
+
+    .timer-bar {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        var(--electric-blue),
+        var(--hot-pink)
+      );
+      transform-origin: left;
+      transition: width 0.15s linear;
+    }
+
+    .choices-heading {
+      margin: 28px 0 13px;
+      color: var(--electric-blue);
+      font-size: 0.78rem;
+      font-weight: 1000;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .choice-button {
+      position: relative;
+      width: 100%;
+      min-height: 64px;
+      padding: 15px 17px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-align: left;
+      cursor: pointer;
+      color: var(--cream);
+      background: linear-gradient(110deg, #301239, #1b1022);
+      border: 2px solid var(--purple);
+      box-shadow: 4px 4px 0 #080509;
+      transition:
+        transform 0.15s ease,
+        border-color 0.15s ease,
+        background 0.15s ease;
+    }
+
+    .choice-button:hover {
+      transform: translate(-2px, -2px);
+      border-color: var(--hot-pink);
+      background: linear-gradient(110deg, #50174e, #28122f);
+      box-shadow: 6px 6px 0 #080509;
+    }
+
+    .choice-button:active {
+      transform: translate(1px, 1px);
+      box-shadow: 2px 2px 0 #080509;
+    }
+
+    .choice-button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .choice-key {
+      flex: 0 0 34px;
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      color: var(--black);
+      background: var(--hot-pink);
+      border: 2px solid var(--cream);
+      font-weight: 1000;
+      font-size: 1rem;
+      box-shadow: 2px 2px 0 var(--black);
+    }
+
+    .choice-label {
+      font-weight: 900;
+      font-size: 0.97rem;
+      line-height: 1.5;
+    }
+
+    .choice-arrow {
+      margin-left: auto;
+      color: var(--light-pink);
+      font-size: 1.3rem;
+    }
+
+    .consequence {
+      display: none;
+      margin-top: 23px;
+      padding: 18px 12px;
+      text-align: center;
+      background: var(--yellow);
+      color: var(--black);
+      border: 3px solid #fff;
+      box-shadow: 5px 5px 0 var(--hot-pink);
+      transform: rotate(-1deg);
+    }
+
+    .consequence.show {
+      display: block;
+      animation: pop-in 0.3s ease-out;
+    }
+
+    .consequence strong {
+      display: block;
+      font-size: clamp(1.2rem, 4vw, 1.8rem);
+      font-weight: 1000;
+      font-style: italic;
+      text-transform: uppercase;
+    }
+
+    .consequence p {
+      margin: 7px 0 0;
+      font-size: 0.9rem;
+      font-weight: 800;
+      line-height: 1.5;
+    }
+
+    @keyframes pop-in {
+      from { opacity: 0; transform: scale(0.9) rotate(-3deg); }
+      to { opacity: 1; transform: scale(1) rotate(-1deg); }
+    }
+
+    .ending {
+      display: none;
+      margin-top: 25px;
+      padding: 22px 15px;
+      text-align: center;
+      background: rgba(255, 38, 143, 0.08);
+      border: 2px dashed var(--hot-pink);
+    }
+
+    .ending.show {
+      display: block;
+    }
+
+    .ending-badge {
+      display: inline-block;
+      margin-bottom: 12px;
+      padding: 7px 13px;
+      color: var(--black);
+      background: var(--hot-pink);
+      font-size: 0.85rem;
+      font-weight: 1000;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .ending.win .ending-badge {
+      background: var(--yellow);
+    }
+
+    .ending h3 {
+      margin: 0 0 10px;
+      color: var(--hot-pink);
+      font-size: clamp(1.5rem, 5vw, 2.3rem);
+      font-weight: 1000;
+      font-style: italic;
+      text-transform: uppercase;
+    }
+
+    .ending.win h3 {
+      color: var(--yellow);
+    }
+
+    .ending p {
+      margin: 0;
+      color: var(--cream);
+      line-height: 1.7;
+    }
+
+    .ending .ending-emoji {
+      display: block;
+      margin: 14px 0;
+      font-size: 3.5rem;
+    }
+
+    .bottom-actions {
+      display: flex;
+      justify-content: center;
+      margin-top: 22px;
+    }
+
+    .replay-button {
+      display: none;
+      padding: 13px 23px;
+      color: var(--black);
+      background: var(--electric-blue);
+      border: 3px solid white;
+      box-shadow: 4px 4px 0 var(--hot-pink);
+      font-size: 0.9rem;
+      font-weight: 1000;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .replay-button.show {
+      display: inline-block;
+    }
+
+    .replay-button:hover {
+      transform: translate(-2px, -2px);
+    }
+
+    .footer {
+      margin-top: 27px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.72rem;
+      line-height: 1.8;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .footer span {
+      color: var(--hot-pink);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (min-width: 620px) {
+      body {
+        padding-top: 35px;
+      }
+
+      .choices {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .choice-button {
+        min-height: 82px;
+      }
+
+      .scene-art {
+        min-height: 180px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header class="masthead">
+      <div class="top-label">A Choose Your Own Adventure</div>
+      <h1>Warped Tour</h1>
+      <p class="subtitle">Choose your fate. Survive the chaos.</p>
+
+      <div class="stickers" aria-label="Game themes">
+        <span class="sticker">Music</span>
+        <span class="sticker">Mayhem</span>
+        <span class="sticker">2000s Energy</span>
+      </div>
+    </header>
+
+    <section class="game-frame" aria-labelledby="scene-title">
+      <div class="scene-topline">
+        <span class="chapter" id="chapter">ISSUE #01 · THE ARRIVAL</span>
+        <span class="status" id="status">YOUR STORY STARTS NOW</span>
+      </div>
+
+      <div class="scene-art" aria-hidden="true">
+        <span class="scene-emoji" id="scene-emoji">🎸</span>
+      </div>
+
+      <h2 class="scene-title" id="scene-title">Welcome to Warped Tour</h2>
+      <p class="scene-text" id="scene-text" aria-live="polite"></p>
+
+      <div class="timer-area" id="timer-area">
+        <div class="timer-label">
+          <span>Choose before time runs out!</span>
+          <span class="timer-number" id="timer-number">25s</span>
+        </div>
+        <div
+          class="timer-track"
+          role="progressbar"
+          aria-label="Time remaining"
+          aria-valuemin="0"
+          aria-valuemax="25"
+          aria-valuenow="25"
+          id="timer-track"
+        >
+          <div class="timer-bar" id="timer-bar"></div>
+        </div>
+      </div>
+
+      <div class="choices-heading" id="choices-heading">
+        What are you going to do?
+      </div>
+
+      <div class="choices" id="choices"></div>
+
+      <div class="consequence" id="consequence" aria-live="assertive">
+        <strong>THEY WILL REMEMBER THAT.</strong>
+        <p id="consequence-text"></p>
+      </div>
+
+      <section class="ending" id="ending" aria-live="polite">
+        <span class="ending-badge" id="ending-badge">THE END</span>
+        <span class="ending-emoji" id="ending-emoji">💀</span>
+        <h3 id="ending-title">Game Over</h3>
+        <p id="ending-text"></p>
+      </section>
+
+      <div class="bottom-actions">
+        <button class="replay-button" id="replay-button" type="button">
+          ↻ Replay the Adventure
+        </button>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div>One festival. A million ways to mess it up.</div>
+      <div><span>★</span> Make your choices wisely <span>★</span></div>
+    </footer>
+  </main>
+
+  <script>
+    /* ========================================
+       EDIT YOUR STORY HERE
+       ========================================
+       Each scene has:
+       id        = unique scene name
+       chapter   = small heading above the story
+       title     = large scene heading
+       emoji     = scene illustration
+       text      = story paragraph
+       choices   = available decisions
+       ending    = optional ending information
+
+       Each choice has:
+       label     = text shown on the button
+       next      = ID of the next scene
+       consequence = optional reaction to your choice
+
+       A scene with ending: true is a final ending.
+       ======================================== */
+
+    const STORY = [
+      {
+        id: "start",
+        chapter: "ISSUE #01 · THE ARRIVAL",
+        title: "You Made It!",
+        emoji: "🎸",
+        text: "You just arrived at Vans Warped Tour! The sun is blazing, the music is blasting, and the entire place smells like sunscreen and questionable decisions.\n\nWhere are you going first?",
+        choices: [
+          {
+            label: "Hit the merch line",
+            next: "merch",
+            consequence: "The merch table has claimed another victim."
+          },
+          {
+            label: "Head straight to the barricade",
+            next: "music",
+            consequence: "Front row dreams. Let's see if you can survive."
+          }
+        ]
+      },
+
+      {
+        id: "merch",
+        chapter: "ISSUE #02 · BAD DECISIONS",
+        title: "The Merch Trap",
+        emoji: "👕",
+        text: "You get in the merch line, ready to spend your entire paycheck on band shirts.\n\nOne line becomes two. Two becomes an eternity. By the time you finally get your merch, your favorite band has already finished their set.\n\nYou missed them. For a T-shirt.",
+        ending: true,
+        outcome: "lose",
+        endingBadge: "THE END",
+        endingEmoji: "💸",
+        endingTitle: "Merch Over Music",
+        endingText: "The shirt is cute, but your favorite band is gone. You will be thinking about this for the next six months."
+      },
+
+      {
+        id: "music",
+        chapter: "ISSUE #03 · FRONT ROW FEVER",
+        title: "Barricade Life",
+        emoji: "🤘",
+        text: "You make it to the barricade! You catch a couple of really cool sets, scream your lungs out, and feel like you are exactly where you belong.\n\nThen the next band comes on. You are not really a fan, and suddenly you desperately need a bathroom break.\n\nYou have 25 seconds to decide. What do you do?",
+        timed: true,
+        timeoutNext: "yikes",
+        timeoutConsequence: "You took too long to decide. The crowd has made the decision for you.",
+        choices: [
+          {
+            label: "Leave the barricade and use the restroom",
+            next: "goodcall",
+            consequence: "Your bladder says thank you. Your spot might not."
+          },
+          {
+            label: "Stick it out all day. Nothing can make you leave!",
+            next: "yikes",
+            consequence: "You have chosen chaos over common sense."
+          }
+        ]
+      },
+
+      {
+        id: "yikes",
+        chapter: "ISSUE #04 · ABSOLUTE CATASTROPHE",
+        title: "A Legendary Mistake",
+        emoji: "💀",
+        text: "You decide to tough it out. You can survive one more set, right?\n\nWRONG.\n\nYour bladder is not as strong as your will. An unfortunate accident happens, and the people in the pit are NOT happy about it.\n\nThis is not the kind of crowd participation anyone wanted.",
+        ending: true,
+        outcome: "lose",
+        endingBadge: "GAME OVER",
+        endingEmoji: "🫠",
+        endingTitle: "The Pit Remembers",
+        endingText: "Your festival legend will live on for all the wrong reasons. Sometimes the bravest thing you can do is find a bathroom."
+      },
+
+      {
+        id: "goodcall",
+        chapter: "ISSUE #05 · A MUCH-NEEDED BREAK",
+        title: "Listen to Your Body",
+        emoji: "🚻",
+        text: "You leave the barricade and find a bathroom. Crisis avoided!\n\nYour bladder thanks you. Your future self thanks you. The crowd has moved on, and you still have plenty of festival left.\n\nNow you have another decision to make. What is next?",
+        choices: [
+          {
+            label: "Grab food and water",
+            next: "fuel",
+            consequence: "Hydration and snacks? You are playing the long game."
+          },
+          {
+            label: "Rush straight back into the heat and crowd",
+            next: "low",
+            consequence: "You cannot run on concert adrenaline forever."
+          }
+        ]
+      },
+
+      {
+        id: "low",
+        chapter: "ISSUE #06 · RUNNING ON EMPTY",
+        title: "Battery: 0%",
+        emoji: "🥵",
+        text: "You rush straight back into the heat. There is music to see and absolutely no time to waste!\n\nExcept you have barely eaten, you are running low on water, and the sun is cooking you alive.\n\nSuddenly, everything goes blurry. You pass out from exhaustion and wake up in the medical tent.\n\nYou can hear the music in the distance. Your favorite bands are playing, and you cannot see any of them.",
+        ending: true,
+        outcome: "lose",
+        endingBadge: "GAME OVER",
+        endingEmoji: "🩺",
+        endingTitle: "Medical Tent Era",
+        endingText: "You came for the bands and ended up with a medical wristband. Next time: eat something, drink water, and take care of yourself."
+      },
+
+      {
+        id: "fuel",
+        chapter: "ISSUE #07 · THE COMEBACK",
+        title: "Fuel Up, Bestie",
+        emoji: "🍟",
+        text: "You make the smartest decision of the entire festival.\n\nYou grab some water and a plate of loaded fries. The salt! The carbs! The hydration! Your body is practically sending you a thank-you card.\n\nRecharged and ready, you head back to the stages. You have enough energy to dance, scream, and enjoy the rest of the festival.\n\nNight falls. The lights go wild. And then, finally, it happens: your favorite band walks onto the stage.",
+        ending: true,
+        outcome: "win",
+        endingBadge: "TRUE ENDING UNLOCKED",
+        endingEmoji: "🖤",
+        endingTitle: "WARPED TOUR LEGEND",
+        endingText: "You made it to the end of the night, stayed hydrated, ate your loaded fries, and got to see your favorite band live. You survived the chaos. You understood the assignment. THIS is how you do Warped Tour."
+      }
+    ];
+
+    /* ========================================
+       GAME ENGINE
+       You usually do not need to edit below.
+       ======================================== */
+
+    const TIME_LIMIT = 25;
+
+    const elements = {
+      chapter: document.getElementById("chapter"),
+      status: document.getElementById("status"),
+      emoji: document.getElementById("scene-emoji"),
+      title: document.getElementById("scene-title"),
+      text: document.getElementById("scene-text"),
+      choices: document.getElementById("choices"),
+      choicesHeading: document.getElementById("choices-heading"),
+      timerArea: document.getElementById("timer-area"),
+      timerNumber: document.getElementById("timer-number"),
+      timerBar: document.getElementById("timer-bar"),
+      timerTrack: document.getElementById("timer-track"),
+      consequence: document.getElementById("consequence"),
+      consequenceText: document.getElementById("consequence-text"),
+      ending: document.getElementById("ending"),
+      endingBadge: document.getElementById("ending-badge"),
+      endingEmoji: document.getElementById("ending-emoji"),
+      endingTitle: document.getElementById("ending-title"),
+      endingText: document.getElementById("ending-text"),
+      replay: document.getElementById("replay-button")
+    };
+
+    const scenes = new Map(STORY.map(scene => [scene.id, scene]));
+
+    let currentScene = null;
+    let timerInterval = null;
+    let transitionTimeout = null;
+    let timeLeft = TIME_LIMIT;
+    let gameLocked = false;
+    let gameOver = false;
+
+    function clearGameTimers() {
+      if (timerInterval !== null) {
+        window.clearInterval(timerInterval);
+        timerInterval = null;
+      }
+
+      if (transitionTimeout !== null) {
+        window.clearTimeout(transitionTimeout);
+        transitionTimeout = null;
+      }
+    }
+
+    function startGame() {
+      clearGameTimers();
+      gameLocked = false;
+      gameOver = false;
+      showScene("start");
+    }
+
+    function showScene(sceneId) {
+      clearGameTimers();
+
+      const scene = scenes.get(sceneId);
+
+      if (!scene) {
+        elements.title.textContent = "Oops! Missing Scene";
+        elements.text.textContent =
+          "This scene could not be found. Check the STORY array.";
+        elements.choices.replaceChildren();
+        elements.timerArea.classList.remove("active");
+        elements.replay.classList.add("show");
+        return;
+      }
+
+      currentScene = scene;
+      gameLocked = false;
+      gameOver = false;
+
+      elements.chapter.textContent = scene.chapter || "NEXT CHAPTER";
+      elements.status.textContent = scene.ending
+        ? "STORY COMPLETE"
+        : "YOUR MOVE";
+      elements.emoji.textContent = scene.emoji || "🎸";
+      elements.title.textContent = scene.title;
+      elements.text.textContent = scene.text;
+
+      elements.choices.replaceChildren();
+      elements.consequence.classList.remove("show");
+      elements.ending.classList.remove("show", "win");
+      elements.replay.classList.remove("show");
+
+      if (scene.ending) {
+        showEnding(scene);
+        return;
+      }
+
+      elements.choicesHeading.textContent = "What are you going to do?";
+      elements.choicesHeading.style.display = "block";
+
+      scene.choices.forEach((choice, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "choice-button";
+        button.dataset.choiceIndex = String(index);
+
+        const key = document.createElement("span");
+        key.className = "choice-key";
+        key.setAttribute("aria-hidden", "true");
+        key.textContent = String(index + 1);
+
+        const label = document.createElement("span");
+        label.className = "choice-label";
+        label.textContent = choice.label;
+
+        const arrow = document.createElement("span");
+        arrow.className = "choice-arrow";
+        arrow.setAttribute("aria-hidden", "true");
+        arrow.textContent = "➜";
+
+        button.append(key, label, arrow);
+        button.addEventListener("click", () => choose(index));
+        elements.choices.appendChild(button);
+      });
+
+      if (scene.timed) {
+        startTimer(scene);
+      } else {
+        elements.timerArea.classList.remove("active");
+      }
+    }
+
+    function showEnding(scene) {
+      gameOver = true;
+
+      elements.timerArea.classList.remove("active");
+      elements.choicesHeading.style.display = "none";
+      elements.status.textContent =
+        scene.outcome === "win" ? "YOU DID IT!" : "FESTIVAL FATE SEALED";
+
+      elements.endingBadge.textContent = scene.endingBadge || "THE END";
+      elements.endingEmoji.textContent = scene.endingEmoji || "💀";
+      elements.endingTitle.textContent = scene.endingTitle || scene.title;
+      elements.endingText.textContent = scene.endingText || scene.text;
+
+      elements.ending.classList.add("show");
+
+      if (scene.outcome === "win") {
+        elements.ending.classList.add("win");
+      }
+
+      elements.replay.classList.add("show");
+    }
+
+    function startTimer(scene) {
+      timeLeft = TIME_LIMIT;
+
+      elements.timerArea.classList.add("active");
+      updateTimerDisplay();
+
+      timerInterval = window.setInterval(() => {
+        timeLeft = Math.max(0, timeLeft - 1);
+        updateTimerDisplay();
+
+        if (timeLeft <= 0) {
+          clearGameTimers();
+
+          if (!gameLocked && currentScene === scene) {
+            handleTimeout(scene);
+          }
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      elements.timerNumber.textContent = timeLeft + "s";
+      elements.timerBar.style.width =
+        (timeLeft / TIME_LIMIT * 100) + "%";
+      elements.timerTrack.setAttribute("aria-valuenow", String(timeLeft));
+
+      if (timeLeft <= 5) {
+        elements.timerNumber.style.color = "#ff268f";
+      } else {
+        elements.timerNumber.style.color = "#ffe66d";
+      }
+    }
+
+    function handleTimeout(scene) {
+      if (gameLocked || gameOver) return;
+
+      gameLocked = true;
+      disableChoices();
+
+      const consequence = scene.timeoutConsequence ||
+        "Time ran out! Your hesitation has consequences.";
+
+      showConsequence(consequence);
+
+      const destination = scene.timeoutNext ||
+        (scene.choices[0] && scene.choices[0].next);
+
+      if (!destination) {
+        elements.status.textContent = "TIME'S UP";
+        elements.replay.classList.add("show");
+        return;
+      }
+
+      transitionTimeout = window.setTimeout(() => {
+        showScene(destination);
+      }, 1300);
+    }
+
+    function choose(index) {
+      if (gameLocked || gameOver || !currentScene) return;
+
+      const choice = currentScene.choices[index];
+      if (!choice) return;
+
+      gameLocked = true;
+      clearGameTimers();
+      disableChoices();
+
+      showConsequence(
+        choice.consequence || "Your choice has been made. Let's see what happens."
+      );
+
+      transitionTimeout = window.setTimeout(() => {
+        showScene(choice.next);
+      }, 1000);
+    }
+
+    function disableChoices() {
+      elements.choices
+        .querySelectorAll("button")
+        .forEach(button => {
+          button.disabled = true;
+        });
+    }
+
+    function showConsequence(message) {
+      elements.consequenceText.textContent = message;
+      elements.consequence.classList.add("show");
+    }
+
+    elements.replay.addEventListener("click", startGame);
+
+    document.addEventListener("keydown", event => {
+      if (gameLocked || gameOver || !currentScene) return;
+
+      // Do not trigger game shortcuts while typing in a form field.
+      if (
+        event.target instanceof HTMLElement &&
+        ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName)
+      ) {
+        return;
+      }
+
+      const number = Number(event.key);
+
+      if (
+        Number.isInteger(number) &&
+        number >= 1 &&
+        number <= currentScene.choices.length
+      ) {
+        choose(number - 1);
+      }
+    });
+
+    // Start the adventure when the page loads.
+    startGame();
+  </script>
+</body>
+</html>
