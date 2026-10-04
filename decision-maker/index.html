@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
 
-    <!-- v1.1 - Heavy Metal / Tattoo Flash redesign -->
+    <!-- v1.2 - Added shareable option links -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <meta
@@ -16,7 +16,7 @@
     <style>
         /* =========================================================
            DECISION MAKER
-           v1.1 - Heavy Metal / Tattoo Flash redesign
+           v1.2 - Heavy Metal / Tattoo Flash + Share Links
 
            Everything is contained in this one HTML file.
            No frameworks.
@@ -127,7 +127,7 @@
 
 
         /* =========================================================
-           DECORATIVE SIDE SCRATCHES
+           DECORATIVE SIDE SCRATCH
            Gives the page the feeling of an old concert flyer.
            ========================================================= */
 
@@ -658,6 +658,75 @@
 
 
         /* =========================================================
+           SHARE / COPY LINK AREA
+           
+           This sits between the option list and the Decide button.
+           ========================================================= */
+
+        .share-area {
+            display: flex;
+
+            justify-content: center;
+
+            margin-bottom: 30px;
+        }
+
+
+        .copy-link-button {
+            background:
+                transparent;
+
+            color:
+                var(--bone-dark);
+
+            border:
+                1px solid #555;
+
+            padding:
+                10px 18px;
+
+            font-size:
+                .72rem;
+
+            font-weight:
+                900;
+
+            letter-spacing:
+                .14em;
+
+            text-transform:
+                uppercase;
+
+            transition:
+                color .2s ease,
+                border-color .2s ease,
+                background .2s ease,
+                transform .15s ease;
+        }
+
+
+        .copy-link-button:hover {
+            color:
+                white;
+
+            border-color:
+                var(--blood-bright);
+
+            background:
+                rgba(142,13,29,.18);
+
+            transform:
+                translateY(-2px);
+        }
+
+
+        .copy-link-button:active {
+            transform:
+                translateY(1px);
+        }
+
+
+        /* =========================================================
            DECISION AREA
            ========================================================= */
 
@@ -674,7 +743,6 @@
 
         /* =========================================================
            HUGE DECISION BUTTON
-           This is intentionally the visual centerpiece.
            ========================================================= */
 
         .decide-button {
@@ -792,6 +860,12 @@
         .status-message.warning {
             color:
                 #e07a88;
+        }
+
+
+        .status-message.success {
+            color:
+                #b8b0a2;
         }
 
 
@@ -1002,7 +1076,6 @@
 
         /* =========================================================
            MOBILE RESPONSIVENESS
-           On smaller screens, the input and Add button stack.
            ========================================================= */
 
         @media (max-width: 600px) {
@@ -1050,13 +1123,21 @@
                 min-height:
                     90px;
             }
+
+
+            .copy-link-button {
+                width:
+                    100%;
+
+                min-height:
+                    48px;
+            }
         }
 
 
         /* =========================================================
            REDUCED MOTION ACCESSIBILITY
-           Users who prefer reduced motion will not receive the
-           animated transitions.
+           Respects the user's operating-system preference.
            ========================================================= */
 
         @media (prefers-reduced-motion: reduce) {
@@ -1078,8 +1159,7 @@
 
         /* =========================================================
            SCREEN READER ONLY
-           Visually hides labels while keeping them available to
-           assistive technology.
+           Keeps labels accessible without visually displaying them.
            ========================================================= */
 
         .visually-hidden {
@@ -1217,6 +1297,27 @@
 
 
             <!-- =================================================
+                 COPY LINK
+                 
+                 This button creates a URL containing all current
+                 options and copies it to the clipboard.
+                 ================================================= -->
+
+            <div class="share-area">
+
+                <button
+                    type="button"
+                    id="copyLinkButton"
+                    class="copy-link-button"
+                    aria-label="Copy a link containing the current options"
+                >
+                    🔗 Copy Link
+                </button>
+
+            </div>
+
+
+            <!-- =================================================
                  DECISION AREA
                  ================================================= -->
 
@@ -1233,8 +1334,9 @@
 
 
                 <!--
-                    Displays helpful feedback when there are not
-                    enough options to make a decision.
+                    This message provides feedback for actions such
+                    as not having enough options or successfully
+                    copying the link.
                 -->
 
                 <p
@@ -1285,13 +1387,14 @@
 
         /* =========================================================
            DECISION MAKER JAVASCRIPT
-           v1.1 - Heavy Metal / Tattoo Flash redesign
+           v1.2 - Added shareable option links
 
            This application uses only vanilla JavaScript.
 
            Nothing is sent to a server.
 
-           Everything happens locally inside the browser.
+           Options can be encoded into the page URL so the page
+           can be shared with someone else.
            ========================================================= */
 
 
@@ -1299,7 +1402,7 @@
            FIND THE HTML ELEMENTS
 
            We save references to the important parts of the page
-           so our JavaScript can interact with them.
+           so the JavaScript can interact with them.
            ========================================================= */
 
         const optionInput =
@@ -1313,6 +1416,9 @@
 
         const emptyState =
             document.getElementById("emptyState");
+
+        const copyLinkButton =
+            document.getElementById("copyLinkButton");
 
         const decideButton =
             document.getElementById("decideButton");
@@ -1330,16 +1436,254 @@
         /* =========================================================
            OPTIONS ARRAY
 
-           This array temporarily stores all of the choices entered
-           by the user.
+           This array temporarily stores all choices entered by the
+           user.
 
-           Because this is a browser-only application, these choices
-           are not uploaded or transmitted anywhere.
+           The array exists only in the browser.
 
-           Refreshing the page clears the list.
+           It is never sent to a server.
+
+           If the page is opened with an ?options= URL parameter,
+           those options will be loaded into this array when the
+           application starts.
            ========================================================= */
 
         let options = [];
+
+
+        /* =========================================================
+           LOAD OPTIONS FROM URL
+
+           This function checks the current page address for an
+           "options" parameter.
+
+           For example:
+
+           ?options=Pizza,Tacos,Sushi
+
+           becomes:
+
+           ["Pizza", "Tacos", "Sushi"]
+
+           URLSearchParams automatically handles URL encoding, so
+           spaces and special characters can safely travel in the
+           link.
+           ========================================================= */
+
+        function loadOptionsFromURL() {
+
+            /*
+             * URLSearchParams reads the query string portion of
+             * the current page address.
+             */
+
+            const params =
+                new URLSearchParams(window.location.search);
+
+
+            /*
+             * Look specifically for the "options" parameter.
+             */
+
+            const optionsParameter =
+                params.get("options");
+
+
+            /*
+             * If there is no options parameter, there is nothing
+             * to load.
+             */
+
+            if (!optionsParameter) {
+                return;
+            }
+
+
+            /*
+             * Split the value at commas to recreate the original
+             * array of choices.
+             *
+             * trim() removes unnecessary spaces around each option.
+             */
+
+            options =
+                optionsParameter
+                    .split(",")
+                    .map(option => option.trim())
+                    .filter(option => option.length > 0);
+
+
+            /*
+             * Display the options that were loaded from the URL.
+             */
+
+            renderOptions();
+        }
+
+
+        /* =========================================================
+           CREATE SHAREABLE LINK
+
+           This function creates a new URL containing the current
+           options.
+
+           Example:
+
+           https://example.com/decision.html?options=Pizza%2CTacos%2CSushi
+
+           The browser will encode the comma and any special
+           characters safely.
+           ========================================================= */
+
+        function createShareableLink() {
+
+            /*
+             * Create a URL object based on the page the user is
+             * currently viewing.
+             */
+
+            const shareURL =
+                new URL(window.location.href);
+
+
+            /*
+             * Remove any existing query parameters first.
+             * This ensures the link contains only the current
+             * options.
+             */
+
+            shareURL.search = "";
+
+
+            /*
+             * Only add the options parameter if the user actually
+             * has options entered.
+             */
+
+            if (options.length > 0) {
+
+                /*
+                 * join(",") combines the array into a comma-separated
+                 * list such as:
+                 *
+                 * Pizza,Tacos,Sushi
+                 */
+
+                shareURL.searchParams.set(
+                    "options",
+                    options.join(",")
+                );
+            }
+
+
+            /*
+             * Return the complete URL as a string.
+             */
+
+            return shareURL.toString();
+        }
+
+
+        /* =========================================================
+           COPY SHAREABLE LINK
+
+           Creates the shareable URL and copies it to the user's
+           clipboard.
+
+           The modern Clipboard API is used when available.
+           A fallback is included for older browsers.
+           ========================================================= */
+
+        async function copyShareableLink() {
+
+            /*
+             * If there aren't any choices, there isn't anything
+             * useful to share.
+             */
+
+            if (options.length === 0) {
+
+                statusMessage.textContent =
+                    "Add some options first, then I'll make you a link.";
+
+                statusMessage.classList.remove("success");
+
+                statusMessage.classList.add("warning");
+
+                return;
+            }
+
+
+            /*
+             * Build the URL containing the current options.
+             */
+
+            const shareURL =
+                createShareableLink();
+
+
+            try {
+
+                /*
+                 * Use the modern browser clipboard API.
+                 */
+
+                await navigator.clipboard.writeText(
+                    shareURL
+                );
+
+
+                /*
+                 * Tell the user the link was successfully copied.
+                 */
+
+                statusMessage.textContent =
+                    "Link copied! Send it to someone and let fate decide.";
+
+                statusMessage.classList.remove("warning");
+
+                statusMessage.classList.add("success");
+
+
+                /*
+                 * Change the button text temporarily so the user
+                 * gets additional visual confirmation.
+                 */
+
+                copyLinkButton.textContent =
+                    "✓ Link Copied!";
+
+
+                /*
+                 * Return the button to its original text after
+                 * two seconds.
+                 */
+
+                setTimeout(() => {
+
+                    copyLinkButton.textContent =
+                        "🔗 Copy Link";
+
+                }, 2000);
+
+            } catch (error) {
+
+                /*
+                 * If the browser blocks clipboard access, we provide
+                 * a helpful fallback message instead of failing
+                 * silently.
+                 */
+
+                statusMessage.textContent =
+                    "I couldn't copy it automatically. Your link is: " +
+                    shareURL;
+
+                statusMessage.classList.remove("success");
+
+                statusMessage.classList.add("warning");
+
+            }
+        }
 
 
         /* =========================================================
@@ -1370,6 +1714,8 @@
 
                 statusMessage.classList.add("warning");
 
+                statusMessage.classList.remove("success");
+
                 optionInput.focus();
 
                 return;
@@ -1392,12 +1738,14 @@
 
 
             /*
-             * Clear any previous warning.
+             * Clear any previous message.
              */
 
             statusMessage.textContent = "";
 
             statusMessage.classList.remove("warning");
+
+            statusMessage.classList.remove("success");
 
 
             /*
@@ -1409,7 +1757,6 @@
 
             /*
              * Put keyboard focus back into the input.
-             * This makes it easy to add several choices quickly.
              */
 
             optionInput.focus();
@@ -1445,6 +1792,17 @@
              */
 
             resultText.textContent = "???";
+
+
+            /*
+             * Clear any status message.
+             */
+
+            statusMessage.textContent = "";
+
+            statusMessage.classList.remove("warning");
+
+            statusMessage.classList.remove("success");
         }
 
 
@@ -1519,8 +1877,8 @@
                  * Create the option text.
                  *
                  * textContent is intentionally used rather than
-                 * innerHTML. This prevents user-entered text from
-                 * being interpreted as HTML or JavaScript.
+                 * innerHTML so user-entered content is treated as
+                 * plain text.
                  */
 
                 const text =
@@ -1552,7 +1910,7 @@
 
                 /*
                  * Give screen-reader users a useful description of
-                 * exactly which option the button will remove.
+                 * exactly which option will be removed.
                  */
 
                 removeButton.setAttribute(
@@ -1612,6 +1970,8 @@
 
                 statusMessage.classList.add("warning");
 
+                statusMessage.classList.remove("success");
+
                 return;
             }
 
@@ -1624,16 +1984,18 @@
 
             statusMessage.classList.remove("warning");
 
+            statusMessage.classList.remove("success");
+
 
             /*
-             * Math.random() generates a random number from 0 up
+             * Math.random() creates a random decimal from 0 up
              * to, but not including, 1.
              *
-             * Multiplying by options.length gives us a number
-             * somewhere inside the range of the array.
+             * Multiplying it by the number of options gives us
+             * a number within the range of our array.
              *
-             * Math.floor() turns that into a valid whole-number
-             * array index.
+             * Math.floor() turns that number into a valid whole
+             * number array index.
              */
 
             const randomIndex =
@@ -1652,6 +2014,9 @@
 
             /*
              * Display the winning option.
+
+             * textContent is used so even unusual user-entered
+             * characters are displayed safely.
              */
 
             resultText.textContent =
@@ -1659,25 +2024,23 @@
 
 
             /*
-             * Remove the animation class first.
-             * This allows the animation to restart every time
-             * the user clicks Decide.
+             * Remove the animation class first so that the
+             * animation can restart every time Decide is clicked.
              */
 
             resultArea.classList.remove("reveal");
 
 
             /*
-             * Reading offsetWidth forces the browser to recognize
-             * that the animation class was removed before we add it
-             * again.
+             * Force the browser to recognize the class removal
+             * before adding it again.
              */
 
             void resultArea.offsetWidth;
 
 
             /*
-             * Start the reveal animation.
+             * Start the result reveal animation.
              */
 
             resultArea.classList.add("reveal");
@@ -1687,8 +2050,8 @@
         /* =========================================================
            BUTTON EVENTS
 
-           Clicking Add runs addOption().
-           Clicking Decide runs makeDecision().
+           These connect the buttons to their corresponding
+           functions.
            ========================================================= */
 
         addButton.addEventListener(
@@ -1696,9 +2059,16 @@
             addOption
         );
 
+
         decideButton.addEventListener(
             "click",
             makeDecision
+        );
+
+
+        copyLinkButton.addEventListener(
+            "click",
+            copyShareableLink
         );
 
 
@@ -1706,7 +2076,7 @@
            ENTER KEY SUPPORT
 
            Pressing Enter while inside the option input adds the
-           option without requiring the user to click Add.
+           option without requiring the mouse.
            ========================================================= */
 
         optionInput.addEventListener(
@@ -1724,10 +2094,22 @@
 
 
         /* =========================================================
-           INITIALIZE THE PAGE
+           INITIALIZE THE APPLICATION
 
-           Render the empty state when the application first loads.
+           First check whether the page URL contains shared options.
+
+           If it does, those options are loaded immediately.
+
+           If it doesn't, the normal empty-state message appears.
            ========================================================= */
+
+        loadOptionsFromURL();
+
+
+        /*
+         * Render the list one more time to make sure the interface
+         * accurately reflects the current options.
+         */
 
         renderOptions();
 
