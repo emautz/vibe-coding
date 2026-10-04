@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <meta
@@ -18,14 +17,11 @@
             --background-soft: #10121a;
             --surface: #141720;
             --surface-hover: #1b1f2b;
-
             --text: #f5f3f7;
             --muted: #aaa8b2;
-
             --purple: #a879ff;
             --purple-light: #d0b8ff;
             --purple-dark: #6945a8;
-
             --border: #2b2e3a;
             --white: #ffffff;
         }
@@ -42,8 +38,16 @@
 
         body {
             background:
-                radial-gradient(circle at top left, rgba(168, 121, 255, 0.12), transparent 30%),
-                radial-gradient(circle at bottom right, rgba(105, 69, 168, 0.12), transparent 30%),
+                radial-gradient(
+                    circle at top left,
+                    rgba(168, 121, 255, 0.12),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at bottom right,
+                    rgba(105, 69, 168, 0.12),
+                    transparent 30%
+                ),
                 var(--background);
             color: var(--text);
             font-family: Arial, Helvetica, sans-serif;
@@ -151,11 +155,8 @@
             grid-template-columns: 90px 1fr 40px;
             align-items: center;
             gap: 20px;
-
             padding: 28px 20px;
-
             border-bottom: 1px solid var(--border);
-
             background: transparent;
 
             transition:
@@ -163,9 +164,15 @@
                 padding-left 0.25s ease;
         }
 
-        .project:hover {
+        .project:hover,
+        .project:focus-visible {
             background: var(--surface);
             padding-left: 30px;
+        }
+
+        .project:focus-visible {
+            outline: 2px solid var(--purple);
+            outline-offset: -2px;
         }
 
         .project-number {
@@ -191,7 +198,8 @@
             transition: transform 0.25s ease;
         }
 
-        .project:hover .project-arrow {
+        .project:hover .project-arrow,
+        .project:focus-visible .project-arrow {
             transform: translateX(6px);
         }
 
@@ -225,10 +233,15 @@
             font-family: "Courier New", monospace;
             font-size: 0.9rem;
             color: #cfc9d9;
+            overflow-wrap: anywhere;
         }
 
         .terminal-line {
             margin-bottom: 8px;
+        }
+
+        .terminal-line:last-child {
+            margin-bottom: 0;
         }
 
         .terminal-prompt {
@@ -249,12 +262,13 @@
             }
 
             .project {
-                grid-template-columns: 55px 1fr 25px;
+                grid-template-columns: 45px 1fr 22px;
                 gap: 10px;
                 padding: 22px 10px;
             }
 
-            .project:hover {
+            .project:hover,
+            .project:focus-visible {
                 padding-left: 15px;
             }
 
@@ -268,6 +282,20 @@
 
             .section-heading {
                 align-items: center;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
             }
         }
     </style>
@@ -286,9 +314,7 @@
                 system://elizabeth-mautz
             </div>
 
-            <h1>
-                Elizabeth Mautz
-            </h1>
+            <h1>Elizabeth Mautz</h1>
 
             <p class="hero-description">
                 I'm an FLCC Networking and Cybersecurity student and currently
@@ -307,21 +333,16 @@
     </header>
 
     <main id="main-content">
-
         <div class="container">
 
             <section aria-labelledby="projects-heading">
 
                 <div class="section-heading">
-
-                    <h2 id="projects-heading">
-                        Projects
-                    </h2>
+                    <h2 id="projects-heading">Projects</h2>
 
                     <div class="project-count">
-                        01 // 10
+                        01 // 11
                     </div>
-
                 </div>
 
                 <div class="projects">
@@ -333,25 +354,17 @@
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        <div class="project-number">
-                            01
-                        </div>
+                        <div class="project-number">01</div>
 
                         <div>
-                            <div class="project-name">
-                                Concert Countdown
-                            </div>
-
+                            <div class="project-name">Concert Countdown</div>
                             <div class="project-description">
                                 Counting down to Motionless in White on October 30.
                             </div>
                         </div>
 
-                        <div class="project-arrow">
-                            →
-                        </div>
+                        <div class="project-arrow" aria-hidden="true">→</div>
                     </a>
-
 
                     <!-- Project 02 -->
                     <a
@@ -360,25 +373,19 @@
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        <div class="project-number">
-                            02
-                        </div>
+                        <div class="project-number">02</div>
 
                         <div>
                             <div class="project-name">
-                                Nutter Butter & Cosmic Brownie
+                                Nutter Butter &amp; Cosmic Brownie
                             </div>
-
                             <div class="project-description">
                                 Meet my cats, their personalities, and their questionable life choices.
                             </div>
                         </div>
 
-                        <div class="project-arrow">
-                            →
-                        </div>
+                        <div class="project-arrow" aria-hidden="true">→</div>
                     </a>
-
 
                     <!-- Project 03 -->
                     <a
@@ -387,25 +394,17 @@
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        <div class="project-number">
-                            03
-                        </div>
+                        <div class="project-number">03</div>
 
                         <div>
-                            <div class="project-name">
-                                Picture Carousel
-                            </div>
-
+                            <div class="project-name">Picture Carousel</div>
                             <div class="project-description">
                                 An interactive five-picture carousel.
                             </div>
                         </div>
 
-                        <div class="project-arrow">
-                            →
-                        </div>
+                        <div class="project-arrow" aria-hidden="true">→</div>
                     </a>
-
 
                     <!-- Project 04 -->
                     <a
@@ -414,25 +413,17 @@
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        <div class="project-number">
-                            04
-                        </div>
+                        <div class="project-number">04</div>
 
                         <div>
-                            <div class="project-name">
-                                Pomodoro Timer
-                            </div>
-
+                            <div class="project-name">Pomodoro Timer</div>
                             <div class="project-description">
                                 A simple timer for focused work and study sessions.
                             </div>
                         </div>
 
-                        <div class="project-arrow">
-                            →
-                        </div>
+                        <div class="project-arrow" aria-hidden="true">→</div>
                     </a>
-
 
                     <!-- Project 05 -->
                     <a
@@ -441,25 +432,17 @@
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        <div class="project-number">
-                            05
-                        </div>
+                        <div class="project-number">05</div>
 
                         <div>
-                            <div class="project-name">
-                                QR Code Generator
-                            </div>
-
+                            <div class="project-name">QR Code Generator</div>
                             <div class="project-description">
                                 Enter a link, pick a color, and generate a QR code.
                             </div>
                         </div>
 
-                        <div class="project-arrow">
-                            →
-                        </div>
+                        <div class="project-arrow" aria-hidden="true">→</div>
                     </a>
-
 
                     <!-- Project 06 -->
                     <a
@@ -468,25 +451,17 @@
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        <div class="project-number">
-                            06
-                        </div>
+                        <div class="project-number">06</div>
 
                         <div>
-                            <div class="project-name">
-                                Latte Recipe
-                            </div>
-
+                            <div class="project-name">Latte Recipe</div>
                             <div class="project-description">
                                 A latte recipe with photos and a separate notes page.
                             </div>
                         </div>
 
-                        <div class="project-arrow">
-                            →
-                        </div>
+                        <div class="project-arrow" aria-hidden="true">→</div>
                     </a>
-
 
                     <!-- Project 07 -->
                     <a
@@ -495,25 +470,17 @@
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        <div class="project-number">
-                            07
-                        </div>
+                        <div class="project-number">07</div>
 
                         <div>
-                            <div class="project-name">
-                                Magic 8-Ball
-                            </div>
-
+                            <div class="project-name">Magic 8-Ball</div>
                             <div class="project-description">
                                 Ask a question and let the Magic 8-Ball decide your fate.
                             </div>
                         </div>
 
-                        <div class="project-arrow">
-                            →
-                        </div>
+                        <div class="project-arrow" aria-hidden="true">→</div>
                     </a>
-
 
                     <!-- Project 08 -->
                     <a
@@ -522,25 +489,17 @@
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        <div class="project-number">
-                            08
-                        </div>
+                        <div class="project-number">08</div>
 
                         <div>
-                            <div class="project-name">
-                                Decision Maker
-                            </div>
-
+                            <div class="project-name">Decision Maker</div>
                             <div class="project-description">
                                 Add your options and let the Decision Maker randomly choose one.
                             </div>
                         </div>
 
-                        <div class="project-arrow">
-                            →
-                        </div>
+                        <div class="project-arrow" aria-hidden="true">→</div>
                     </a>
-
 
                     <!-- Project 09 -->
                     <a
@@ -549,25 +508,17 @@
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        <div class="project-number">
-                            09
-                        </div>
+                        <div class="project-number">09</div>
 
                         <div>
-                            <div class="project-name">
-                                Breathing Buddy
-                            </div>
-
+                            <div class="project-name">Breathing Buddy</div>
                             <div class="project-description">
                                 A calming guided breathing exercise with four-second breathing phases.
                             </div>
                         </div>
 
-                        <div class="project-arrow">
-                            →
-                        </div>
+                        <div class="project-arrow" aria-hidden="true">→</div>
                     </a>
-
 
                     <!-- Project 10 -->
                     <a
@@ -576,33 +527,43 @@
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        <div class="project-number">
-                            10
-                        </div>
+                        <div class="project-number">10</div>
 
                         <div>
-                            <div class="project-name">
-                                Invite
-                            </div>
-
+                            <div class="project-name">Invite</div>
                             <div class="project-description">
                                 An interactive invitation project.
                             </div>
                         </div>
 
-                        <div class="project-arrow">
-                            →
+                        <div class="project-arrow" aria-hidden="true">→</div>
+                    </a>
+
+                    <!-- Project 11 -->
+                    <a
+                        class="project"
+                        href="adventure/index.html"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <div class="project-number">11</div>
+
+                        <div>
+                            <div class="project-name">Warped Tour Adventure</div>
+                            <div class="project-description">
+                                A choose-your-own-adventure game where your Warped Tour decisions determine your fate.
+                            </div>
                         </div>
+
+                        <div class="project-arrow" aria-hidden="true">→</div>
                     </a>
 
                 </div>
-
             </section>
-
 
             <div class="terminal">
 
-                <div class="terminal-top">
+                <div class="terminal-top" aria-hidden="true">
                     <span class="terminal-dot"></span>
                     <span class="terminal-dot"></span>
                     <span class="terminal-dot"></span>
@@ -611,9 +572,7 @@
                 <div class="terminal-body">
 
                     <div class="terminal-line">
-                        <span class="terminal-prompt">
-                            &gt;
-                        </span>
+                        <span class="terminal-prompt">&gt;</span>
                         whoami
                     </div>
 
@@ -622,20 +581,16 @@
                     </div>
 
                     <div class="terminal-line">
-                        <span class="terminal-prompt">
-                            &gt;
-                        </span>
+                        <span class="terminal-prompt">&gt;</span>
                         ls projects/
                     </div>
 
                     <div class="terminal-line">
-                        10 projects detected
+                        11 projects detected
                     </div>
 
                     <div class="terminal-line">
-                        <span class="terminal-prompt">
-                            &gt;
-                        </span>
+                        <span class="terminal-prompt">&gt;</span>
                         status
                     </div>
 
@@ -644,24 +599,16 @@
                     </div>
 
                 </div>
-
             </div>
 
         </div>
-
     </main>
 
-
     <footer>
-
         <div class="container">
-
             <p id="copyright"></p>
-
         </div>
-
     </footer>
-
 
     <script>
         const currentYear = new Date().getFullYear();
