@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Makes the page scale correctly on phones and tablets. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Basic description for accessibility and search engines. -->
+    <meta
+        name="description"
+        content="A calm, simple breathing buddy that guides you through four-second breathing and holding phases."
+    >
+
+    <title>Breathing Buddy</title>
+
+    <style>
+        /* =========================================================
+           v1.0 - Initial build
+           Breathing Buddy
+           
+           The entire design is contained in this file.
+           No external libraries or build tools are required.
+           ========================================================= */
+
+        /* ---------------------------------------------------------
+           COLOR PALETTE
+           ---------------------------------------------------------
+           #DDFDFE = very light, calming blue
+           #70877F = muted green
+           #604D53 = muted plum/brown
+           --------------------------------------------------------- */
+
+        :root {
+            --light: #DDFDFE;
+            --green: #70877F;
+            --dark: #604D53;
+            --circle-size: 220px;
+        }
+
+        /* ---------------------------------------------------------
+           GLOBAL PAGE STYLES
+           --------------------------------------------------------- */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            min-height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+
+            background: var(--light);
+            color: var(--dark);
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* ---------------------------------------------------------
+           MAIN APPLICATION CONTAINER
+           --------------------------------------------------------- */
+
+        .app {
+            width: 100%;
+            max-width: 650px;
+
+            text-align: center;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ---------------------------------------------------------
+           PAGE HEADING
+           --------------------------------------------------------- */
+
+        h1 {
+            margin: 0 0 8px;
+
+            font-size: clamp(2rem, 7vw, 3rem);
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .intro {
+            margin: 0 0 30px;
+
+            max-width: 500px;
+
+            font-size: 1rem;
+            line-height: 1.6;
+
+            opacity: 0.85;
+        }
+
+        /* ---------------------------------------------------------
+           BREATHING AREA
+           
+           This area gives the circle plenty of room to expand
+           without pushing other elements around the page.
+           --------------------------------------------------------- */
+
+        .breathing-area {
+            width: min(90vw, 430px);
+            height: min(90vw, 430px);
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            position: relative;
+
+            margin-bottom: 25px;
+        }
+
+        /* ---------------------------------------------------------
+           BREATHING CIRCLE
+           
+           JavaScript changes the transform scale of this circle.
+           CSS handles the smooth animation.
+           
+           The circle starts at 0.75 scale and grows to 1.25,
+           giving a noticeable but gentle breathing movement.
+           --------------------------------------------------------- */
+
+        .breathing-circle {
+            width: var(--circle-size);
+            height: var(--circle-size);
+
+            max-width: 55vw;
+            max-height: 55vw;
+
+            border-radius: 50%;
+
+            background: var(--green);
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            transform: scale(0.75);
+
+            /*
+             * This transition makes the circle move smoothly.
+             * The JavaScript changes the scale at the beginning
+             * and end of each breathing phase.
+             */
+            transition:
+                transform 4s ease-in-out;
+
+            /*
+             * Keeps the browser from trying to redraw the
+             * circle unnecessarily during animation.
+             */
+            will-change: transform;
+
+            /*
+             * A subtle shadow gives the circle depth without
+             * introducing any flashing or distracting effects.
+             */
+            box-shadow:
+                0 12px 30px rgba(96, 77, 83, 0.15);
+        }
+
+        /* ---------------------------------------------------------
+           PHASE INSTRUCTIONS
+           --------------------------------------------------------- */
+
+        .phase-display {
+            min-height: 90px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            margin-bottom: 25px;
+        }
+
+        .phase {
+            margin: 0;
+
+            font-size: clamp(1.7rem, 6vw, 2.3rem);
+            font-weight: 600;
+
+            color: var(--dark);
+        }
+
+        .countdown {
+            margin-top: 5px;
+
+            font-size: 2rem;
+            font-weight: 400;
+
+            color: var(--green);
+
+            /*
+             * The number changes instantly rather than flashing.
+             */
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ---------------------------------------------------------
+           CONTROL BUTTONS
+           --------------------------------------------------------- */
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+
+            width: 100%;
+        }
+
+        button {
+            min-width: 120px;
+            min-height: 50px;
+
+            padding: 12px 24px;
+
+            border: 2px solid var(--dark);
+            border-radius: 999px;
+
+            background: transparent;
+            color: var(--dark);
+
+            font: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition:
+                background-color 0.2s ease,
+                color 0.2s ease,
+                transform 0.2s ease;
+        }
+
+        button:hover:not(:disabled) {
+            background: var(--dark);
+            color: var(--light);
+        }
+
+        button:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        button:focus-visible {
+            outline: 4px solid var(--green);
+            outline-offset: 4px;
+        }
+
+        button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        /* ---------------------------------------------------------
+           STATUS MESSAGE
+           
+           This gives screen-reader users and visual users a
+           simple indication of whether the exercise is running.
+           --------------------------------------------------------- */
+
+        .status {
+            min-height: 25px;
+
+            margin-top: 22px;
+
+            font-size: 0.9rem;
+            opacity: 0.75;
+        }
+
+        /* ---------------------------------------------------------
+           MOBILE RESPONSIVENESS
+           --------------------------------------------------------- */
+
+        @media (max-width: 500px) {
+            body {
+                padding: 15px;
+            }
+
+            .intro {
+                margin-bottom: 15px;
+            }
+
+            .breathing-area {
+                width: 90vw;
+                height: 80vw;
+
+                max-height: 360px;
+            }
+
+            :root {
+                --circle-size: 190px;
+            }
+
+            .controls {
+                gap: 10px;
+            }
+
+            button {
+                min-width: 110px;
+                padding: 11px 18px;
+            }
+        }
+
+        /* ---------------------------------------------------------
+           REDUCED MOTION ACCESSIBILITY
+           
+           Some users intentionally request less animation from
+           their operating system. In that situation, we shorten
+           the visual transition while the breathing timer still
+           follows the correct four-second timing.
+           --------------------------------------------------------- */
+
+        @media (prefers-reduced-motion: reduce) {
+            .breathing-circle {
+                transition: transform 0.15s linear;
+            }
+
+            button {
+                transition: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="app">
+
+        <h1>Breathing Buddy</h1>
+
+        <p class="intro">
+            Follow the circle and breathe at your own comfortable pace.
+        </p>
+
+        <!--
+            The breathing area contains the animated circle.
+            aria-label gives assistive technology a meaningful
+            description of what the visual represents.
+        -->
+        <div
+            class="breathing-area"
+            role="img"
+            aria-label="Breathing guide circle"
+        >
+            <div
+                class="breathing-circle"
+                id="breathingCircle"
+                aria-hidden="true"
+            ></div>
+        </div>
+
+        <!--
+            This section displays the current breathing instruction
+            and the number of seconds remaining in the phase.
+        -->
+        <section
+            class="phase-display"
+            aria-live="polite"
+            aria-atomic="true"
+            aria-label="Breathing instructions"
+        >
+            <p class="phase" id="phaseText">Ready</p>
+            <div class="countdown" id="countdown">4</div>
+        </section>
+
+        <!--
+            The controls can be reached normally with a keyboard
+            using Tab and activated with Enter or Space.
+        -->
+        <div class="controls">
+            <button
+                type="button"
+                id="startButton"
+                aria-label="Start breathing exercise"
+            >
+                Start
+            </button>
+
+            <button
+                type="button"
+                id="stopButton"
+                aria-label="Stop breathing exercise"
+                disabled
+            >
+                Stop
+            </button>
+        </div>
+
+        <p
+            class="status"
+            id="statusText"
+            aria-live="polite"
+        >
+            Press Start when you're ready.
+        </p>
+
+    </main>
+
+    <script>
+        /*
+         * =========================================================
+         * v1.0 - Initial build
+         * BREATHING BUDDY JAVASCRIPT
+         * =========================================================
+         *
+         * Everything below runs entirely inside the user's browser.
+         *
+         * Nothing is sent to a server.
+         * There are no cookies.
+         * There are no external APIs.
+         * There is no sound.
+         *
+         * The breathing cycle is:
+         *
+         * 1. Breathe in  - 4 seconds
+         * 2. Hold         - 4 seconds
+         * 3. Breathe out - 4 seconds
+         * 4. Hold         - 4 seconds
+         *
+         * Then the cycle repeats until the user presses Stop.
+         * =========================================================
+         */
+
+
+        /* ---------------------------------------------------------
+           FIND THE HTML ELEMENTS WE NEED TO CONTROL
+           ---------------------------------------------------------
+           
+           These variables give JavaScript a reference to the
+           circle, text, countdown, buttons, and status message.
+           --------------------------------------------------------- */
+
+        const breathingCircle =
+            document.getElementById("breathingCircle");
+
+        const phaseText =
+            document.getElementById("phaseText");
+
+        const countdown =
+            document.getElementById("countdown");
+
+        const startButton =
+            document.getElementById("startButton");
+
+        const stopButton =
+            document.getElementById("stopButton");
+
+        const statusText =
+            document.getElementById("statusText");
+
+
+        /* ---------------------------------------------------------
+           BREATHING SETTINGS
+           ---------------------------------------------------------
+           
+           Each phase lasts exactly four seconds.
+           
+           JavaScript measures time in milliseconds, so four seconds
+           becomes 4000 milliseconds.
+           --------------------------------------------------------- */
+
+        const PHASE_DURATION = 4000;
+
+        /*
+         * These scale values determine how large the circle becomes.
+         *
+         * 0.75 = smaller starting size
+         * 1.25 = larger breathing-in size
+         *
+         * Keeping the difference moderate makes the movement feel
+         * calm rather than exaggerated.
+         */
+        const SMALL_SCALE = 0.75;
+        const LARGE_SCALE = 1.25;
+
+
+        /* ---------------------------------------------------------
+           THE FOUR BREATHING PHASES
+           ---------------------------------------------------------
+           
+           Each object describes:
+           
+           - The words displayed to the user
+           - The size the circle should move toward
+           
+           The array repeats from the beginning after the fourth
+           phase.
+           --------------------------------------------------------- */
+
+        const phases = [
+            {
+                name: "Breathe in",
+                scale: LARGE_SCALE
+            },
+            {
+                name: "Hold",
+                scale: LARGE_SCALE
+            },
+            {
+                name: "Breathe out",
+                scale: SMALL_SCALE
+            },
+            {
+                name: "Hold",
+                scale: SMALL_SCALE
+            }
+        ];
+
+
+        /* ---------------------------------------------------------
+           TRACKING VARIABLES
+           ---------------------------------------------------------
+           
+           phaseIndex tells us which of the four phases we're on.
+           
+           timer stores the interval that updates the countdown.
+           
+           phaseTimeout stores the timer that moves us to the next
+           breathing phase.
+           
+           isRunning prevents multiple breathing exercises from
+           accidentally being started at the same time.
+           --------------------------------------------------------- */
+
+        let phaseIndex = 0;
+        let timer = null;
+        let phaseTimeout = null;
+        let isRunning = false;
+
+
+        /* ---------------------------------------------------------
+           START BUTTON
+           ---------------------------------------------------------
+           
+           When the user presses Start:
+           
+           1. We make sure an exercise isn't already running.
+           2. We mark the exercise as active.
+           3. We update the buttons.
+           4. We begin with "Breathe in."
+           --------------------------------------------------------- */
+
+        startButton.addEventListener("click", () => {
+
+            if (isRunning) {
+                return;
+            }
+
+            isRunning = true;
+
+            phaseIndex = 0;
+
+            startButton.disabled = true;
+            stopButton.disabled = false;
+
+            statusText.textContent =
+                "Breathing exercise in progress.";
+
+            beginPhase();
+
+        });
+
+
+        /* ---------------------------------------------------------
+           STOP BUTTON
+           ---------------------------------------------------------
+           
+           Stop immediately cancels both JavaScript timers.
+           
+           The circle is returned smoothly to its starting size.
+           
+           The user can then press Start again whenever they want.
+           --------------------------------------------------------- */
+
+        stopButton.addEventListener("click", () => {
+
+            stopBreathing();
+
+        });
+
+
+        /* ---------------------------------------------------------
+           BEGIN A BREATHING PHASE
+           ---------------------------------------------------------
+           
+           This function:
+           
+           1. Gets the current phase.
+           2. Displays its instruction.
+           3. Changes the circle size.
+           4. Starts the four-second countdown.
+           5. Schedules the next phase.
+           
+           The CSS transition on the circle is responsible for
+           making the size change smooth.
+           --------------------------------------------------------- */
+
+        function beginPhase() {
+
+            /*
+             * Clear any previous timers before starting a new phase.
+             * This prevents multiple timers from accidentally running.
+             */
+            clearTimers();
+
+            const currentPhase = phases[phaseIndex];
+
+            /*
+             * Display the current instruction.
+             */
+            phaseText.textContent = currentPhase.name;
+
+            /*
+             * Start the countdown at four.
+             */
+            countdown.textContent = "4";
+
+            /*
+             * Tell the circle what size it should move toward.
+             *
+             * Because CSS has a four-second transition, the circle
+             * will smoothly reach this size over the duration of
+             * the phase.
+             */
+            breathingCircle.style.transform =
+                `scale(${currentPhase.scale})`;
+
+
+            /* -----------------------------------------------------
+               COUNTDOWN TIMER
+               
+               We update the visible number once per second.
+               
+               The first number shown is 4.
+               After one second it becomes 3.
+               Then 2, then 1.
+               
+               At four seconds the phase changes.
+               ----------------------------------------------------- */
+
+            let secondsRemaining = 4;
+
+            timer = setInterval(() => {
+
+                secondsRemaining--;
+
+                if (secondsRemaining > 0) {
+
+                    countdown.textContent =
+                        secondsRemaining.toString();
+
+                }
+
+            }, 1000);
+
+
+            /* -----------------------------------------------------
+               MOVE TO THE NEXT PHASE AFTER FOUR SECONDS
+               ----------------------------------------------------- */
+
+            phaseTimeout = setTimeout(() => {
+
+                /*
+                 * Move to the next phase.
+                 *
+                 * The % operator makes the index wrap back to zero
+                 * after the fourth phase.
+                 */
+                phaseIndex =
+                    (phaseIndex + 1) % phases.length;
+
+                beginPhase();
+
+            }, PHASE_DURATION);
+        }
+
+
+        /* ---------------------------------------------------------
+           STOP THE EXERCISE
+           ---------------------------------------------------------
+           
+           This function safely stops everything.
+           --------------------------------------------------------- */
+
+        function stopBreathing() {
+
+            isRunning = false;
+
+            clearTimers();
+
+            /*
+             * Return the circle to its smaller resting position.
+             * The CSS transition makes this movement smooth.
+             */
+            breathingCircle.style.transform =
+                `scale(${SMALL_SCALE})`;
+
+            /*
+             * Restore the initial interface.
+             */
+            phaseText.textContent = "Ready";
+            countdown.textContent = "4";
+
+            startButton.disabled = false;
+            stopButton.disabled = true;
+
+            statusText.textContent =
+                "Exercise stopped. Press Start when you're ready.";
+
+        }
+
+
+        /* ---------------------------------------------------------
+           CLEAR ALL ACTIVE TIMERS
+           ---------------------------------------------------------
+           
+           JavaScript timers continue running until they are
+           explicitly cancelled. This helper makes sure both the
+           countdown interval and phase timer are stopped.
+           --------------------------------------------------------- */
+
+        function clearTimers() {
+
+            if (timer !== null) {
+                clearInterval(timer);
+                timer = null;
+            }
+
+            if (phaseTimeout !== null) {
+                clearTimeout(phaseTimeout);
+                phaseTimeout = null;
+            }
+
+        }
+
+
+        /* ---------------------------------------------------------
+           INITIAL PAGE STATE
+           ---------------------------------------------------------
+           
+           The circle starts small and the exercise is stopped.
+           
+           This is also useful if JavaScript loads after the HTML,
+           because it guarantees the interface begins in a known
+           state.
+           --------------------------------------------------------- */
+
+        breathingCircle.style.transform =
+            `scale(${SMALL_SCALE})`;
+
+        phaseText.textContent = "Ready";
+        countdown.textContent = "4";
+
+    </script>
+
+</body>
+</html>
