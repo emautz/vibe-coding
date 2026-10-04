@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Makes the page scale correctly on phones, tablets, and desktops -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Description used by browsers and search engines -->
+    <meta
+        name="description"
+        content="You're invited to a Motionless in White listening party."
+    >
+
+    <title>You're Invited — Listening Party</title>
+
+    <style>
+        /* =========================================================
+           v1.0 - INITIAL BUILD
+           Dark gothic / vampire-inspired listening party invitation
+           ========================================================= */
+
+        /* ---------- BASIC RESET ---------- */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(
+                    circle at 50% 35%,
+                    rgba(120, 0, 15, 0.22),
+                    transparent 35%
+                ),
+                radial-gradient(
+                    circle at 50% 100%,
+                    rgba(90, 0, 12, 0.18),
+                    transparent 45%
+                ),
+                #080708;
+
+            color: #f1eeee;
+            font-family: Georgia, "Times New Roman", serif;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            overflow-x: hidden;
+        }
+
+        /* ---------- MAIN INVITATION ---------- */
+
+        .invitation {
+            position: relative;
+            width: min(92%, 900px);
+            min-height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            padding: 50px 20px;
+        }
+
+        .card {
+            position: relative;
+            width: 100%;
+            max-width: 760px;
+
+            padding: clamp(35px, 7vw, 75px);
+
+            text-align: center;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(25, 22, 24, 0.98),
+                    rgba(9, 8, 9, 0.99)
+                );
+
+            border: 1px solid rgba(150, 20, 30, 0.55);
+
+            box-shadow:
+                0 0 0 1px rgba(0, 0, 0, 0.9),
+                0 0 35px rgba(120, 0, 15, 0.22),
+                inset 0 0 60px rgba(0, 0, 0, 0.8);
+
+            overflow: hidden;
+        }
+
+        /* Thin decorative border inside the invitation */
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 12px;
+
+            border: 1px solid rgba(130, 20, 30, 0.3);
+
+            pointer-events: none;
+        }
+
+        /* ---------- DECORATIVE CORNERS ---------- */
+
+        .corner {
+            position: absolute;
+            width: 45px;
+            height: 45px;
+
+            border-color: #78000e;
+            border-style: solid;
+
+            opacity: 0.8;
+        }
+
+        .corner.top-left {
+            top: 24px;
+            left: 24px;
+
+            border-width: 2px 0 0 2px;
+        }
+
+        .corner.top-right {
+            top: 24px;
+            right: 24px;
+
+            border-width: 2px 2px 0 0;
+        }
+
+        .corner.bottom-left {
+            bottom: 24px;
+            left: 24px;
+
+            border-width: 0 0 2px 2px;
+        }
+
+        .corner.bottom-right {
+            bottom: 24px;
+            right: 24px;
+
+            border-width: 0 2px 2px 0;
+        }
+
+        /* ---------- SMALL INTRO TEXT ---------- */
+
+        .eyebrow {
+            position: relative;
+
+            font-family: "Trebuchet MS", Arial, sans-serif;
+            font-size: clamp(0.7rem, 2vw, 0.85rem);
+
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+
+            color: #a9a2a4;
+
+            margin-bottom: 20px;
+        }
+
+        /* ---------- MAIN GREETING ---------- */
+
+        #greeting {
+            position: relative;
+
+            font-size: clamp(2rem, 7vw, 4.5rem);
+            line-height: 1.05;
+
+            font-weight: normal;
+
+            color: #f3eeee;
+
+            text-shadow:
+                0 0 18px rgba(170, 0, 20, 0.35);
+
+            margin-bottom: 24px;
+        }
+
+        /* The person's name gets the blood-red accent */
+
+        #guest-name {
+            color: #b51227;
+            text-shadow:
+                0 0 12px rgba(180, 0, 25, 0.5),
+                0 0 30px rgba(130, 0, 15, 0.25);
+        }
+
+        /* ---------- ORNAMENT ---------- */
+
+        .ornament {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 14px;
+
+            margin: 20px auto 30px;
+
+            color: #8e0b19;
+        }
+
+        .ornament-line {
+            width: 80px;
+            height: 1px;
+
+            background:
+                linear-gradient(
+                    to right,
+                    transparent,
+                    #8e0b19
+                );
+        }
+
+        .ornament-line:last-child {
+            background:
+                linear-gradient(
+                    to left,
+                    transparent,
+                    #8e0b19
+                );
+        }
+
+        .ornament-symbol {
+            font-size: 1.1rem;
+            color: #a40d1d;
+        }
+
+        /* ---------- EVENT TITLE ---------- */
+
+        .event-title {
+            position: relative;
+
+            font-family: "Trebuchet MS", Arial, sans-serif;
+
+            font-size: clamp(1rem, 3vw, 1.35rem);
+
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+
+            color: #bdb5b7;
+
+            margin-bottom: 35px;
+        }
+
+        .event-title strong {
+            color: #eee7e8;
+        }
+
+        /* ---------- DATE AND TIME ---------- */
+
+        .event-details {
+            position: relative;
+
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+
+            gap: 20px;
+
+            margin: 0 auto 40px;
+
+            max-width: 600px;
+        }
+
+        .detail {
+            padding: 25px 15px;
+
+            border-top: 1px solid rgba(150, 15, 30, 0.6);
+            border-bottom: 1px solid rgba(150, 15, 30, 0.35);
+
+            background:
+                linear-gradient(
+                    to bottom,
+                    rgba(100, 0, 15, 0.08),
+                    transparent
+                );
+        }
+
+        .detail-label {
+            display: block;
+
+            font-family: "Trebuchet MS", Arial, sans-serif;
+
+            font-size: 0.72rem;
+
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+
+            color: #8d8587;
+
+            margin-bottom: 10px;
+        }
+
+        .detail-main {
+            display: block;
+
+            font-size: clamp(1.7rem, 5vw, 2.8rem);
+
+            color: #f2e9ea;
+
+            line-height: 1.1;
+
+            text-shadow:
+                0 0 12px rgba(140, 0, 20, 0.3);
+        }
+
+        .detail-sub {
+            display: block;
+
+            margin-top: 8px;
+
+            font-family: "Trebuchet MS", Arial, sans-serif;
+
+            font-size: 0.78rem;
+
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+
+            color: #9d9395;
+        }
+
+        /* ---------- LOCATION ---------- */
+
+        .location {
+            position: relative;
+
+            margin-bottom: 35px;
+        }
+
+        .location-label {
+            display: block;
+
+            font-family: "Trebuchet MS", Arial, sans-serif;
+
+            font-size: 0.7rem;
+
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+
+            color: #82797b;
+
+            margin-bottom: 8px;
+        }
+
+        .location-text {
+            font-size: clamp(1.1rem, 3vw, 1.35rem);
+
+            color: #d9d1d2;
+
+            letter-spacing: 0.05em;
+        }
+
+        /* ---------- DESCRIPTION ---------- */
+
+        .description {
+            position: relative;
+
+            max-width: 540px;
+
+            margin: 0 auto 35px;
+
+            color: #9f9799;
+
+            font-family: "Trebuchet MS", Arial, sans-serif;
+
+            font-size: 0.9rem;
+
+            line-height: 1.7;
+
+            letter-spacing: 0.04em;
+        }
+
+        /* ---------- BLOOD-RED DIVIDER ---------- */
+
+        .blood-divider {
+            position: relative;
+
+            width: 150px;
+            height: 2px;
+
+            margin: 30px auto;
+
+            background:
+                linear-gradient(
+                    to right,
+                    transparent,
+                    #9d0b1c,
+                    transparent
+                );
+
+            box-shadow:
+                0 0 10px rgba(150, 0, 20, 0.45);
+        }
+
+        /* ---------- FOOTER ---------- */
+
+        .footer {
+            position: relative;
+
+            font-family: "Trebuchet MS", Arial, sans-serif;
+
+            font-size: 0.68rem;
+
+            letter-spacing: 0.2em;
+
+            text-transform: uppercase;
+
+            color: #665f61;
+        }
+
+        /* ---------- SUBTLE BACKGROUND VIGNETTE ---------- */
+
+        .vignette {
+            position: fixed;
+            inset: 0;
+
+            pointer-events: none;
+
+            background:
+                radial-gradient(
+                    ellipse at center,
+                    transparent 40%,
+                    rgba(0, 0, 0, 0.72) 100%
+                );
+
+            z-index: 10;
+        }
+
+        /* ---------- RESPONSIVE MOBILE DESIGN ---------- */
+
+        @media (max-width: 600px) {
+
+            .invitation {
+                width: 100%;
+                padding: 20px 12px;
+            }
+
+            .card {
+                padding: 55px 22px;
+            }
+
+            .event-details {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .detail {
+                padding: 20px 12px;
+            }
+
+            .corner {
+                width: 30px;
+                height: 30px;
+            }
+
+            .corner.top-left,
+            .corner.top-right {
+                top: 18px;
+            }
+
+            .corner.bottom-left,
+            .corner.bottom-right {
+                bottom: 18px;
+            }
+
+            .corner.top-left,
+            .corner.bottom-left {
+                left: 18px;
+            }
+
+            .corner.top-right,
+            .corner.bottom-right {
+                right: 18px;
+            }
+
+            .card::before {
+                inset: 8px;
+            }
+        }
+
+        /* ---------- ACCESSIBILITY: REDUCED MOTION ---------- */
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!--
+        Main semantic invitation region.
+        Everything needed for the invitation is contained inside this section.
+    -->
+    <main class="invitation" aria-labelledby="greeting">
+
+        <article class="card">
+
+            <!-- Decorative gothic-style corners -->
+            <span class="corner top-left" aria-hidden="true"></span>
+            <span class="corner top-right" aria-hidden="true"></span>
+            <span class="corner bottom-left" aria-hidden="true"></span>
+            <span class="corner bottom-right" aria-hidden="true"></span>
+
+            <!-- Small introductory heading -->
+            <p class="eyebrow">
+                An evening of beautiful destruction
+            </p>
+
+            <!--
+                JavaScript changes this heading depending on whether
+                a name exists in the URL.
+            -->
+            <h1 id="greeting">
+                You're invited!
+            </h1>
+
+            <!-- Decorative divider -->
+            <div class="ornament" aria-hidden="true">
+                <span class="ornament-line"></span>
+                <span class="ornament-symbol">✦</span>
+                <span class="ornament-line"></span>
+            </div>
+
+            <!-- Event name -->
+            <p class="event-title">
+                <strong>Motionless in White</strong>
+                Listening Party
+            </p>
+
+            <!-- Large, easy-to-read date and time -->
+            <section
+                class="event-details"
+                aria-label="Event date and time"
+            >
+
+                <div class="detail">
+                    <span class="detail-label">
+                        Date
+                    </span>
+
+                    <time
+                        class="detail-main"
+                        datetime="2026-10-09"
+                    >
+                        Friday
+                        <br>
+                        October 9
+                    </time>
+
+                    <span class="detail-sub">
+                        2026
+                    </span>
+                </div>
+
+                <div class="detail">
+                    <span class="detail-label">
+                        Time
+                    </span>
+
+                    <time
+                        class="detail-main"
+                        datetime="2026-10-09T22:00"
+                    >
+                        10:00 PM
+                    </time>
+
+                    <span class="detail-sub">
+                        Until the music stops
+                    </span>
+                </div>
+
+            </section>
+
+            <!-- Location -->
+            <section
+                class="location"
+                aria-label="Event location"
+            >
+                <span class="location-label">
+                    Where
+                </span>
+
+                <p class="location-text">
+                    My Apartment
+                </p>
+            </section>
+
+            <!-- Atmospheric invitation text -->
+            <p class="description">
+                Turn down the lights. Turn up the volume.
+                Come lose yourself in the darkness for a night
+                of heavy riffs, haunting melodies, and beautifully
+                unhinged music.
+            </p>
+
+            <!-- Decorative divider -->
+            <div
+                class="blood-divider"
+                aria-hidden="true"
+            ></div>
+
+            <p class="footer">
+                Dress dark. Bring your favorite songs.
+            </p>
+
+        </article>
+
+    </main>
+
+    <!-- Creates a subtle dark vignette around the edges -->
+    <div
+        class="vignette"
+        aria-hidden="true"
+    ></div>
+
+
+    <script>
+        /* =========================================================
+           v1.0 - INVITATION PERSONALIZATION
+           
+           This section reads the person's name from the URL.
+           
+           Example:
+           
+           index.html?to=Sam
+           
+           becomes:
+           
+           "Sam, you're invited!"
+           
+           If the URL doesn't contain a "to" parameter, the page
+           simply says:
+           
+           "You're invited!"
+           
+           Everything happens locally in the browser. Nothing is
+           sent to a server.
+           ========================================================= */
+
+
+        /*
+         * STEP 1:
+         * Create a URLSearchParams object from the current page URL.
+         *
+         * URLSearchParams is a built-in JavaScript feature that makes
+         * it easy to read things like "?to=Sam".
+         */
+        const urlParameters = new URLSearchParams(
+            window.location.search
+        );
+
+
+        /*
+         * STEP 2:
+         * Look for a parameter called "to".
+         *
+         * If the URL is:
+         *
+         * ?to=Sam
+         *
+         * the value will be "Sam".
+         */
+        const guestName = urlParameters.get("to");
+
+
+        /*
+         * STEP 3:
+         * Find the heading element where the personalized greeting
+         * should appear.
+         */
+        const greetingElement = document.getElementById("greeting");
+
+
+        /*
+         * STEP 4:
+         * Check whether a usable name was provided.
+         *
+         * The trim() function removes accidental spaces.
+         *
+         * If there is a name, we personalize the greeting.
+         * If there isn't one, we leave the generic greeting in place.
+         */
+        if (guestName && guestName.trim() !== "") {
+
+            /*
+             * decodeURIComponent isn't needed here because
+             * URLSearchParams automatically decodes normal URL values.
+             *
+             * We also create the text using textContent rather than
+             * innerHTML. This is safer because the person's name is
+             * treated strictly as text instead of being interpreted
+             * as HTML.
+             */
+            const cleanName = guestName.trim();
+
+            greetingElement.textContent =
+                cleanName + ", you're invited!";
+
+        } else {
+
+            /*
+             * No name was supplied, so the invitation still makes
+             * perfect sense on its own.
+             */
+            greetingElement.textContent =
+                "You're invited!";
+        }
+    </script>
+
+</body>
+</html>
