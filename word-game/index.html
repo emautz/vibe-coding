@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Five Letter Word Guessing Game</title>
+
+    <style>
+        /* =====================================================
+           v1.0 - INITIAL BUILD
+           STYLE SECTION
+           These styles control the appearance of the entire game.
+           ===================================================== */
+
+        /* Define the main colors and settings used throughout the page. */
+        :root {
+            --background: #121213;
+            --panel: #1b1b1d;
+            --text: #ffffff;
+            --muted: #a5a5a8;
+            --border: #3a3a3c;
+            --green: #538d4e;
+            --yellow: #b59f3b;
+            --gray: #3a3a3c;
+            --keyboard: #818384;
+            --focus: #ffffff;
+        }
+
+        /* Make padding and borders part of an element's total size. */
+        * {
+            box-sizing: border-box;
+        }
+
+        /* Center the game and provide the overall dark theme. */
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px 12px 30px;
+            background: var(--background);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Keep the game at a comfortable width on larger screens. */
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Style the heading and subtitle. */
+        header {
+            width: 100%;
+            text-align: center;
+            padding: 8px 0 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(1.5rem, 6vw, 2rem);
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            margin: 8px 0 0;
+            font-size: 0.9rem;
+        }
+
+        /* Keep the board centered and prevent it from becoming too wide. */
+        #board {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 5px;
+            width: min(100%, 340px);
+            margin: 24px auto 20px;
+        }
+
+        /* Each tile is a square that displays one letter. */
+        .tile {
+            aspect-ratio: 1 / 1;
+            min-width: 0;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1.2rem, 6vw, 2rem);
+            font-weight: 700;
+            text-transform: uppercase;
+            user-select: none;
+            transition: background-color 0.2s ease,
+                        border-color 0.2s ease;
+        }
+
+        /* Highlight tiles that contain a letter. */
+        .tile.filled {
+            border-color: #77777a;
+        }
+
+        /* Green means the letter and its position are both correct. */
+        .tile.correct {
+            background: var(--green);
+            border-color: var(--green);
+        }
+
+        /* Yellow means the letter exists elsewhere in the answer. */
+        .tile.present {
+            background: var(--yellow);
+            border-color: var(--yellow);
+        }
+
+        /* Gray means the letter is not available in the answer. */
+        .tile.absent {
+            background: var(--gray);
+            border-color: var(--gray);
+        }
+
+        /* Style the message shown when the player submits a guess. */
+        #message {
+            min-height: 24px;
+            margin: 0 0 14px;
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* Arrange the keyboard in three centered rows. */
+        #keyboard {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .keyboard-row {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        /* Make every keyboard key large enough to tap comfortably. */
+        .key {
+            height: 52px;
+            min-width: 0;
+            flex: 1;
+            max-width: 44px;
+            padding: 0;
+            border: none;
+            border-radius: 4px;
+            background: var(--keyboard);
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            touch-action: manipulation;
+        }
+
+        /* Give the Enter and Backspace keys extra width. */
+        .key.wide {
+            flex: 1.6;
+            max-width: 68px;
+            font-size: 0.75rem;
+        }
+
+        /* Show keyboard feedback when hovering or pressing a key. */
+        .key:hover {
+            filter: brightness(1.15);
+        }
+
+        .key:active {
+            transform: scale(0.96);
+        }
+
+        /* Clearly show keyboard focus for people navigating with Tab. */
+        button:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 3px;
+        }
+
+        /* Style the new-game button. */
+        #new-game {
+            margin-top: 20px;
+            padding: 11px 20px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background: var(--panel);
+            color: var(--text);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        #new-game:hover {
+            background: #29292c;
+        }
+
+        /* Explain the tile colors in a small legend. */
+        .legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+            color: var(--muted);
+            font-size: 0.78rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-swatch {
+            width: 13px;
+            height: 13px;
+            border-radius: 2px;
+        }
+
+        .legend-correct {
+            background: var(--green);
+        }
+
+        .legend-present {
+            background: var(--yellow);
+        }
+
+        .legend-absent {
+            background: var(--gray);
+        }
+
+        /* Hide the live announcement visually while keeping it accessible. */
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Adjust spacing and keyboard size on small phone screens. */
+        @media (max-width: 360px) {
+            body {
+                padding: 12px 8px 20px;
+            }
+
+            #board {
+                gap: 4px;
+                margin-top: 18px;
+            }
+
+            .key {
+                height: 46px;
+                font-size: 0.85rem;
+            }
+
+            .key.wide {
+                font-size: 0.65rem;
+            }
+
+            .keyboard-row {
+                gap: 3px;
+            }
+        }
+
+        /* Respect a player's preference for reduced animation. */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="game-container">
+
+        <!-- The heading introduces the game to the player. -->
+        <header>
+            <h1>WORD GUESS</h1>
+            <p class="subtitle">Guess the five-letter word in six tries.</p>
+        </header>
+
+        <!-- JavaScript creates all 30 letter tiles inside this board. -->
+        <section
+            id="board"
+            role="group"
+            aria-label="Guess board with six rows and five letters per row"
+        ></section>
+
+        <!-- This area displays instructions, errors, and game results. -->
+        <p id="message" role="status" aria-live="polite" aria-atomic="true">
+            Enter your first guess!
+        </p>
+
+        <!-- JavaScript creates the clickable keyboard inside this section. -->
+        <section
+            id="keyboard"
+            role="group"
+            aria-label="On-screen letter keyboard"
+        ></section>
+
+        <!-- This legend explains what each tile color means. -->
+        <section class="legend" aria-label="Tile color guide">
+            <div class="legend-item">
+                <span class="legend-swatch legend-correct"></span>
+                <span>Correct spot</span>
+            </div>
+
+            <div class="legend-item">
+                <span class="legend-swatch legend-present"></span>
+                <span>Wrong spot</span>
+            </div>
+
+            <div class="legend-item">
+                <span class="legend-swatch legend-absent"></span>
+                <span>Not in word</span>
+            </div>
+        </section>
+
+        <!-- The player can start another game without reloading the page. -->
+        <button id="new-game" type="button">
+            New Game
+        </button>
+
+        <!-- Screen readers receive additional updates about submitted guesses. -->
+        <p id="accessible-announcement"
+           class="visually-hidden"
+           aria-live="polite"
+           aria-atomic="true"></p>
+
+    </main>
+
+    <script>
+        // =========================================================
+        // v1.0 - INITIAL BUILD
+        // WORD LIST
+        //
+        // Edit this list to change the words that can be selected
+        // as the secret answer. Every entry must have five letters.
+        //
+        // The game randomly selects one of these words whenever a
+        // new game begins. Guesses do not have to be in this list.
+        // =========================================================
+
+        const WORDS = [
+            "APPLE",
+            "BEACH",
+            "BRAIN",
+            "BREAD",
+            "BRAVE",
+            "BRICK",
+            "CANDY",
+            "CHAIR",
+            "CHARM",
+            "CHEST",
+            "CLOUD",
+            "DANCE",
+            "DREAM",
+            "DRINK",
+            "EARTH",
+            "FLAME",
+            "FRAME",
+            "GHOST",
+            "GIANT",
+            "GRACE",
+            "GRAPE",
+            "GREEN",
+            "HEART",
+            "HOUSE",
+            "JUICE",
+            "KNIFE",
+            "LAUGH",
+            "LIGHT",
+            "MAGIC",
+            "MUSIC",
+            "NIGHT",
+            "OCEAN",
+            "PAINT",
+            "PARTY",
+            "PIANO",
+            "PLANT",
+            "QUEEN",
+            "RADIO",
+            "RAVEN",
+            "ROBOT",
+            "SHEEP",
+            "SHINE",
+            "SMILE",
+            "SNAKE",
+            "SPACE",
+            "SPOOK",
+            "STONE",
+            "STORM",
+            "SUGAR",
+            "SWEET",
+            "TIGER",
+            "TOAST",
+            "TRAIN",
+            "TRUST",
+            "WATER",
+            "WITCH",
+            "WORLD",
+            "WRITE"
+        ];
+
+        // =========================================================
+        // GAME SETTINGS
+        //
+        // These values control the number of guesses, the word
+        // length, and the letters used to build the keyboard.
+        // =========================================================
+
+        const WORD_LENGTH = 5;
+        const MAX_GUESSES = 6;
+
+        // The first two rows contain the standard letter layout.
+        // The third row also contains the Enter and Backspace keys.
+        const KEYBOARD_ROWS = [
+            ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+            ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+            ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "BACKSPACE"]
+        ];
+
+        // =========================================================
+        // GAME STATE
+        //
+        // These variables remember the secret word, the current
+        // guess, the number of completed guesses, and whether the
+        // player has already won or lost.
+        // =========================================================
+
+        let answer = "";
+        let currentGuess = "";
+        let guessesUsed = 0;
+        let gameOver = false;
+
+        // Store the letter colors already earned by each keyboard
+        // key. This keeps a later guess from downgrading a key's
+        // feedback from green to yellow or from yellow to gray.
+        const keyboardLetterStates = {};
+
+        // =========================================================
+        // FIND THE HTML ELEMENTS
+        //
+        // Save references to the parts of the page that JavaScript
+        // will update throughout the game.
+        // =========================================================
+
+        const board = document.getElementById("board");
+        const keyboard = document.getElementById("keyboard");
+        const message = document.getElementById("message");
+        const newGameButton = document.getElementById("new-game");
+        const announcement = document.getElementById(
+            "accessible-announcement"
+        );
+
+        // =========================================================
+        // CREATE THE BOARD
+        //
+        // Build six rows of five empty tiles. Each tile gets an
+        // accessible label so screen-reader users can identify
+        // its row, position, and current letter.
+        // =========================================================
+
+        function createBoard() {
+            board.innerHTML = "";
+
+            // Create one row for every allowed guess.
+            for (let row = 0; row < MAX_GUESSES; row++) {
+
+                // Create five tiles in each row.
+                for (let col = 0; col < WORD_LENGTH; col++) {
+                    const tile = document.createElement("div");
+
+                    tile.className = "tile";
+                    tile.id = `tile-${row}-${col}`;
+                    tile.setAttribute("role", "img");
+                    tile.setAttribute(
+                        "aria-label",
+                        `Guess ${row + 1}, letter ${col + 1}: empty`
+                    );
+
+                    board.appendChild(tile);
+                }
+            }
+        }
+
+        // =========================================================
+        // CREATE THE ON-SCREEN KEYBOARD
+        //
+        // Create a button for every letter and two special keys.
+        // Using real buttons allows players to reach keys with Tab
+        // and activate them with Enter or the Space bar.
+        // =========================================================
+
+        function createKeyboard() {
+            keyboard.innerHTML = "";
+
+            KEYBOARD_ROWS.forEach((rowLetters, rowIndex) => {
+                const row = document.createElement("div");
+
+                row.className = "keyboard-row";
+                row.setAttribute("role", "group");
+                row.setAttribute(
+                    "aria-label",
+                    `Keyboard row ${rowIndex + 1}`
+                );
+
+                rowLetters.forEach((letter) => {
+                    const key = document.createElement("button");
+
+                    key.type = "button";
+                    key.className = "key";
+                    key.dataset.key = letter;
+
+                    // Give each button a useful accessible name.
+                    if (letter === "ENTER") {
+                        key.textContent = "Enter";
+                        key.classList.add("wide");
+                        key.setAttribute("aria-label", "Submit guess");
+                    } else if (letter === "BACKSPACE") {
+                        key.textContent = "⌫";
+                        key.classList.add("wide");
+                        key.setAttribute(
+                            "aria-label",
+                            "Backspace, delete last letter"
+                        );
+                    } else {
+                        key.textContent = letter;
+                        key.setAttribute(
+                            "aria-label",
+                            `Enter letter ${letter}`
+                        );
+                    }
+
+                    // Clicking the button sends its value to the
+                    // same function used by the physical keyboard.
+                    key.addEventListener("click", () => {
+                        handleKeyPress(letter);
+                    });
+
+                    row.appendChild(key);
+                });
+
+                keyboard.appendChild(row);
+            });
+        }
+
+        // =========================================================
+        // UPDATE A TILE
+        //
+        // Display a letter in the selected tile and update its
+        // accessible label. The label also includes the row and
+        // column so assistive technology can describe the board.
+        // =========================================================
+
+        function updateTile(row, col, letter) {
+            const tile = document.getElementById(`tile-${row}-${col}`);
+
+            tile.textContent = letter;
+            tile.classList.toggle("filled", letter !== "");
+
+            tile.setAttribute(
+                "aria-label",
+                `Guess ${row + 1}, letter ${col + 1}: ${
+                    letter === "" ? "empty" : letter
+                }`
+            );
+        }
+
+        // =========================================================
+        // UPDATE THE CURRENT GUESS
+        //
+        // Whenever the player adds or deletes a letter, redraw
+        // the current row so the board always matches the input.
+        // =========================================================
+
+        function updateCurrentRow() {
+            for (let col = 0; col < WORD_LENGTH; col++) {
+                const letter = currentGuess[col] || "";
+
+                updateTile(guessesUsed, col, letter);
+            }
+        }
+
+        // =========================================================
+        // ADD A LETTER
+        //
+        // Add a letter only if the game is still active and the
+        // player has not already entered five letters.
+        // =========================================================
+
+        function addLetter(letter) {
+            if (gameOver || currentGuess.length >= WORD_LENGTH) {
+                return;
+            }
+
+            currentGuess += letter;
+            updateCurrentRow();
+        }
+
+        // =========================================================
+        // DELETE A LETTER
+        //
+        // Remove the last letter from the current guess. Backspace
+        // cannot remove letters from previously submitted guesses.
+        // =========================================================
+
+        function deleteLetter() {
+            if (gameOver || currentGuess.length === 0) {
+                return;
+            }
+
+            currentGuess = currentGuess.slice(0, -1);
+            updateCurrentRow();
+        }
+
+        // =========================================================
+        // CHECK THE GUESS
+        //
+        // Compare the submitted word against the secret answer.
+        //
+        // IMPORTANT: First mark all exact matches as green and
+        // remove those letters from consideration. Then mark
+        // yellow matches using only the remaining letters.
+        //
+        // This two-pass approach correctly handles repeated
+        // letters instead of marking too many tiles yellow.
+        // =========================================================
+
+        function checkGuess(guess) {
+            const result = Array(WORD_LENGTH).fill("absent");
+
+            // Convert the answer into an array so we can track
+            // which letters have already been matched.
+            const remainingLetters = answer.split("");
+
+            // PASS ONE: Find letters in their exact positions.
+            for (let i = 0; i < WORD_LENGTH; i++) {
+                if (guess[i] === answer[i]) {
+                    result[i] = "correct";
+
+                    // Remove this matched letter so it cannot be
+                    // counted again during the yellow-letter pass.
+                    remainingLetters[i] = null;
+                }
+            }
+
+            // PASS TWO: Find correct letters in incorrect positions.
+            for (let i = 0; i < WORD_LENGTH; i++) {
+
+                // Green letters have already been handled.
+                if (result[i] === "correct") {
+                    continue;
+                }
+
+                // Look for an unmatched copy of this guessed letter.
+                const matchingIndex = remainingLetters.indexOf(guess[i]);
+
+                if (matchingIndex !== -1) {
+                    result[i] = "present";
+
+                    // Use up that copy of the letter. This prevents
+                    // repeated letters from receiving extra yellows.
+                    remainingLetters[matchingIndex] = null;
+                }
+            }
+
+            return result;
+        }
+
+        // =========================================================
+        // COLOR THE SUBMITTED ROW
+        //
+        // Apply the color results to the five tiles and update
+        // each tile's accessible label with its result.
+        // =========================================================
+
+        function colorGuess(guess, results) {
+            for (let col = 0; col < WORD_LENGTH; col++) {
+                const tile = document.getElementById(
+                    `tile-${guessesUsed}-${col}`
+                );
+
+                const letter = guess[col];
+                const state = results[col];
+
+                tile.classList.add(state);
+
+                // Describe both the letter and its feedback in
+                // the tile's accessible label.
+                let description = "";
+
+                if (state === "correct") {
+                    description = "correct letter in the correct position";
+                } else if (state === "present") {
+                    description = "correct letter in the wrong position";
+                } else {
+                    description = "letter is not in the word";
+                }
+
+                tile.setAttribute(
+                    "aria-label",
+                    `Guess ${guessesUsed + 1}, letter ${col + 1}: ${
+                        letter
+                    }, ${description}`
+                );
+            }
+        }
+
+        // =========================================================
+        // UPDATE THE KEYBOARD COLORS
+        //
+        // Give the on-screen letter keys the best feedback they
+        // have earned so far. Green takes priority over yellow,
+        // and yellow takes priority over gray.
+        // =========================================================
+
+        function updateKeyboard(guess, results) {
+            const priority = {
+                absent: 1,
+                present: 2,
+                correct: 3
+            };
+
+            for (let i = 0; i < WORD_LENGTH; i++) {
+                const letter = guess[i];
+                const newState = results[i];
+                const oldState = keyboardLetterStates[letter];
+
+                // Keep the stronger result if this letter was
+                // already evaluated in an earlier guess.
+                if (
+                    !oldState ||
+                    priority[newState] > priority[oldState]
+                ) {
+                    keyboardLetterStates[letter] = newState;
+                }
+            }
+
+            // Apply the saved state to each matching keyboard key.
+            document.querySelectorAll(".key[data-key]").forEach((key) => {
+                const letter = key.dataset.key;
+                const state = keyboardLetterStates[letter];
+
+                // Special keys never receive letter feedback colors.
+                if (!state) {
+                    return;
+                }
+
+                key.style.backgroundColor =
+                    state === "correct"
+                        ? "var(--green)"
+                        : state === "present"
+                        ? "var(--yellow)"
+                        : "var(--gray)";
+
+                key.setAttribute(
+                    "aria-label",
+                    `Letter ${letter}, ${
+                        state === "correct"
+                            ? "correct position"
+                            : state === "present"
+                            ? "in the word, wrong position"
+                            : "not in the word"
+                    }`
+                );
+            });
+        }
+
+        // =========================================================
+        // SUBMIT A GUESS
+        //
+        // Check that the player entered five letters, evaluate the
+        // word, color the board and keyboard, and determine whether
+        // the player has won or used all six guesses.
+        // =========================================================
+
+        function submitGuess() {
+            // Do not accept input after the game has ended.
+            if (gameOver) {
+                return;
+            }
+
+            // Require exactly five letters before evaluating a guess.
+            if (currentGuess.length !== WORD_LENGTH) {
+                message.textContent = "Your guess must have five letters!";
+                announcement.textContent =
+                    "Your guess must have five letters.";
+                return;
+            }
+
+            // Determine the color of every letter in the guess.
+            const results = checkGuess(currentGuess);
+
+            // Update the board and keyboard with the results.
+            colorGuess(currentGuess, results);
+            updateKeyboard(currentGuess, results);
+
+            // Count this as one completed guess.
+            guessesUsed++;
+
+            // Check whether every letter is in the correct position.
+            if (currentGuess === answer) {
+                gameOver = true;
+
+                message.textContent =
+                    `You got it! The word was ${answer}.`;
+
+                announcement.textContent =
+                    `Congratulations! You guessed ${answer} in ${
+                        guessesUsed
+                    } ${guessesUsed === 1 ? "try" : "tries"}.`;
+
+                return;
+            }
+
+            // If no guesses remain, reveal the correct answer.
+            if (guessesUsed >= MAX_GUESSES) {
+                gameOver = true;
+
+                message.textContent = `Game over! The word was ${answer}.`;
+
+                announcement.textContent =
+                    `Game over. The correct word was ${answer}.`;
+
+                return;
+            }
+
+            // Otherwise, tell the player how many guesses remain.
+            const remaining = MAX_GUESSES - guessesUsed;
+
+            message.textContent =
+                `${remaining} ${remaining === 1 ? "guess" : "guesses"} remaining.`;
+
+            announcement.textContent =
+                `Guess submitted. ${remaining} ${
+                    remaining === 1 ? "guess" : "guesses"
+                } remaining.`;
+
+            // Clear the current input so the next guess starts empty.
+            currentGuess = "";
+        }
+
+        // =========================================================
+        // HANDLE KEYBOARD INPUT
+        //
+        // Send each clicked on-screen key or physical keyboard
+        // key to the correct game function.
+        // =========================================================
+
+        function handleKeyPress(key) {
+            // Ignore input after a win or loss.
+            if (gameOver) {
+                return;
+            }
+
+            if (key === "ENTER") {
+                submitGuess();
+            } else if (key === "BACKSPACE") {
+                deleteLetter();
+            } else if (/^[A-Z]$/.test(key)) {
+                addLetter(key);
+            }
+        }
+
+        // =========================================================
+        // PHYSICAL KEYBOARD SUPPORT
+        //
+        // Let players type letters directly, press Backspace to
+        // delete a letter, and press Enter to submit a guess.
+        //
+        // Ignore keyboard shortcuts involving Ctrl, Alt, or Meta
+        // so the game does not interfere with browser shortcuts.
+        // =========================================================
+
+        document.addEventListener("keydown", (event) => {
+            if (event.ctrlKey || event.altKey || event.metaKey) {
+                return;
+            }
+
+            const key = event.key.toUpperCase();
+
+            if (/^[A-Z]$/.test(key)) {
+                event.preventDefault();
+                handleKeyPress(key);
+            } else if (event.key === "Backspace") {
+                event.preventDefault();
+                handleKeyPress("BACKSPACE");
+            } else if (event.key === "Enter") {
+                event.preventDefault();
+                handleKeyPress("ENTER");
+            }
+        });
+
+        // =========================================================
+        // START OR RESTART THE GAME
+        //
+        // Select a random word, clear the old guesses and colors,
+        // reset the game state, and build a fresh empty board.
+        // =========================================================
+
+        function startNewGame() {
+            // Choose one random answer from the editable word list.
+            // toUpperCase() ensures the comparison always uses capitals.
+            const randomIndex = Math.floor(Math.random() * WORDS.length);
+            answer = WORDS[randomIndex].toUpperCase();
+
+            // Reset the current guess, attempt counter, and game status.
+            currentGuess = "";
+            guessesUsed = 0;
+            gameOver = false;
+
+            // Clear any saved feedback from the previous game.
+            Object.keys(keyboardLetterStates).forEach((letter) => {
+                delete keyboardLetterStates[letter];
+            });
+
+            // Rebuild the board and keyboard to remove old colors.
+            createBoard();
+            createKeyboard();
+
+            // Restore the initial instructions.
+            message.textContent = "Enter your first guess!";
+            announcement.textContent = "A new game has started.";
+        }
+
+        // =========================================================
+        // CONNECT THE NEW GAME BUTTON
+        //
+        // Clicking this button starts another game without needing
+        // to refresh the browser page.
+        // =========================================================
+
+        newGameButton.addEventListener("click", startNewGame);
+
+        // =========================================================
+        // INITIALIZE THE PAGE
+        //
+        // Start a new game as soon as the HTML finishes loading.
+        // All game logic runs locally in the user's browser.
+        // No network requests or external libraries are needed.
+        // =========================================================
+
+        startNewGame();
+    </script>
+</body>
+</html>
