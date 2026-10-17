@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Warped World | Virtual Music Festival</title>
+
+  <!--
+    LIBRARIES
+    1. A-Frame 1.7.0
+       Source: https://aframe.io/releases/1.7.0/aframe.min.js
+       Purpose: Creates the interactive 3D world directly in the browser.
+
+    All other functionality uses vanilla JavaScript, HTML, and CSS.
+
+    VERSION HISTORY
+    v1.0 - Initial build: sunny festival, stages, palm trees, crowd,
+           keyboard movement, mouse looking, interactive stage colors,
+           responsive layout, and an accessible scene description.
+  -->
+
+  <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
+
+  <style>
+    /* -------------------------------------------------------
+       1. GLOBAL DESIGN
+       The page uses a dark alternative-music aesthetic around
+       a bright, sunny 3D festival.
+    ------------------------------------------------------- */
+
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --background: #101015;
+      --panel: #1c1b24;
+      --accent: #d34dff;
+      --accent-blue: #56dfff;
+      --text: #f6f1fa;
+      --muted: #c4bdcd;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.6;
+    }
+
+    button,
+    a {
+      font: inherit;
+    }
+
+    button:focus-visible,
+    a:focus-visible {
+      outline: 3px solid var(--accent-blue);
+      outline-offset: 4px;
+    }
+
+    /* -------------------------------------------------------
+       2. HEADER
+    ------------------------------------------------------- */
+
+    .site-header {
+      padding: 26px 20px 20px;
+      text-align: center;
+      background:
+        radial-gradient(ellipse at top, #30203e 0%, transparent 65%),
+        var(--background);
+      border-bottom: 1px solid #39303f;
+    }
+
+    .eyebrow {
+      color: var(--accent-blue);
+      font-size: 0.78rem;
+      font-weight: bold;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 8px 0;
+      font-size: clamp(2rem, 6vw, 4rem);
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+    }
+
+    h1 span {
+      color: var(--accent);
+    }
+
+    .subtitle {
+      max-width: 650px;
+      margin: 12px auto 0;
+      color: var(--muted);
+    }
+
+    /* -------------------------------------------------------
+       3. SCENE CONTAINER
+       A-Frame automatically creates the WebGL 3D canvas.
+       The container keeps it within the page layout.
+    ------------------------------------------------------- */
+
+    main {
+      width: min(1200px, 100%);
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .scene-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .scene-heading h2 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .live-indicator {
+      color: #a5ffb7;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+    }
+
+    .scene-frame {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #51415c;
+      border-radius: 12px;
+      background: #87ceeb;
+      box-shadow: 0 0 35px #b53dff18;
+    }
+
+    a-scene {
+      display: block;
+      width: 100%;
+      height: clamp(360px, 65vh, 650px);
+    }
+
+    /* -------------------------------------------------------
+       4. IN-SCENE HELP
+       This is an HTML overlay, not part of the 3D world.
+    ------------------------------------------------------- */
+
+    .scene-help {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      z-index: 2;
+      max-width: calc(100% - 24px);
+      padding: 9px 12px;
+      border: 1px solid #ffffff50;
+      border-radius: 8px;
+      background: #101015d9;
+      color: white;
+      font-size: 0.78rem;
+      pointer-events: none;
+    }
+
+    /* -------------------------------------------------------
+       5. INSTRUCTIONS AND ACCESSIBLE DESCRIPTION
+    ------------------------------------------------------- */
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .info-panel {
+      padding: 20px;
+      border: 1px solid #38313f;
+      border-radius: 12px;
+      background: var(--panel);
+    }
+
+    .info-panel h2 {
+      margin: 0 0 10px;
+      font-size: 1.15rem;
+    }
+
+    .info-panel p,
+    .info-panel li {
+      color: var(--muted);
+    }
+
+    .info-panel ul {
+      padding-left: 20px;
+      margin-bottom: 0;
+    }
+
+    kbd {
+      display: inline-block;
+      min-width: 27px;
+      padding: 2px 6px;
+      border: 1px solid #665873;
+      border-radius: 5px;
+      background: #302639;
+      color: white;
+      text-align: center;
+      font-family: inherit;
+      font-size: 0.82rem;
+    }
+
+    .stage-status {
+      margin-top: 12px;
+      padding: 10px;
+      border-left: 3px solid var(--accent);
+      background: #ffffff08;
+      color: white;
+    }
+
+    .reset-button {
+      margin-top: 14px;
+      padding: 10px 15px;
+      border: 1px solid var(--accent);
+      border-radius: 7px;
+      background: transparent;
+      color: white;
+      cursor: pointer;
+    }
+
+    .reset-button:hover {
+      background: #d34dff20;
+    }
+
+    footer {
+      padding: 24px 16px;
+      color: #9990a5;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 650px) {
+      main {
+        padding: 12px;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+
+      a-scene {
+        height: 55vh;
+        min-height: 350px;
+      }
+
+      .scene-help {
+        font-size: 0.7rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="site-header">
+    <div class="eyebrow">A virtual alternative music experience</div>
+    <h1>Warped <span>World</span></h1>
+    <p class="subtitle">
+      Dust in the air. Guitars turned up. Palm trees overhead.
+      Step into your own little outdoor music festival.
+    </p>
+  </header>
+
+  <main>
+    <section aria-labelledby="scene-title">
+      <div class="scene-heading">
+        <h2 id="scene-title">Explore the festival grounds</h2>
+        <span class="live-indicator">● FESTIVAL OPEN</span>
+      </div>
+
+      <div class="scene-frame">
+
+        <!--
+          A-Frame scene:
+          WASD and arrow keys move the camera.
+          Mouse dragging lets visitors look around.
+          The cursor lets visitors select clickable stages.
+        -->
+        <a-scene
+          embedded
+          renderer="antialias: true; colorManagement: true"
+          background="color: #75c8f4"
+          fog="type: linear; color: #c5dce6; near: 35; far: 100"
+          vr-mode-ui="enabled: false"
+          loading-screen="enabled: false"
+          aria-label="Interactive three-dimensional outdoor music festival">
+
+          <!-- CAMERA AND CONTROLS -->
+          <a-entity
+            id="player"
+            position="0 1.7 12"
+            movement-controls="enabled: false">
+
+            <a-camera
+              id="festival-camera"
+              wasd-controls="acceleration: 25; fly: false"
+              look-controls="pointerLockEnabled: false"
+              near="0.1"
+              far="150"
+              fov="80">
+
+              <!--
+                A visible cursor is important for aiming at the
+                stages. Fuse is disabled so a click selects a stage.
+              -->
+              <a-entity
+                cursor="rayOrigin: mouse; fuse: false"
+                raycaster="objects: .clickable; far: 80"
+                position="0 0 -1"
+                geometry="primitive: ring; radiusInner: 0.008; radiusOuter: 0.014"
+                material="color: #ffffff; shader: flat; opacity: 0.9">
+              </a-entity>
+
+            </a-camera>
+          </a-entity>
+
+          <!-- LIGHTING AND SUN -->
+          <a-entity
+            light="type: ambient; color: #ffffff; intensity: 1.1">
+          </a-entity>
+
+          <a-entity
+            light="type: directional; color: #fff2d6; intensity: 1.8"
+            position="-10 18 8">
+          </a-entity>
+
+          <a-sphere
+            position="25 22 -55"
+            radius="4"
+            material="shader: flat; color: #fff3a0; emissive: #fff0a0">
+          </a-sphere>
+
+          <!--
+            GROUND:
+            A broad tan base creates the dusty festival field.
+            Small, randomly placed patches of grass, pebbles, and
+            footprints-like scuffs break up the surface.
+          -->
+          <a-plane
+            position="0 0 0"
+            rotation="-90 0 0"
+            width="200"
+            height="200"
+            material="color: #b7a078; roughness: 1">
+          </a-plane>
+
+          <a-entity id="ground-details"></a-entity>
+
+          <!-- DISTANT HORIZON -->
+          <a-cylinder
+            position="0 2 -75"
+            radius="1"
+            height="4"
+            open-ended="true"
+            material="color: #87a879"
+            scale="90 1 1">
+          </a-cylinder>
+
+          <!-- PALM TREES WILL BE GENERATED HERE -->
+          <a-entity id="palm-trees"></a-entity>
+
+          <!-- MAIN STAGE -->
+          <a-entity id="main-stage" position="0 0 -22">
+
+            <!-- Raised platform -->
+            <a-box
+              position="0 0.7 0"
+              width="14"
+              height="1.4"
+              depth="5"
+              material="color: #24232c; roughness: 0.8">
+            </a-box>
+
+            <!-- Roof and supports -->
+            <a-box
+              position="0 6.5 0"
+              width="16"
+              height="0.7"
+              depth="7"
+              material="color: #17151d">
+            </a-box>
+
+            <a-box
+              position="-7 3.5 0"
+              width="0.6"
+              height="6"
+              depth="0.6"
+              material="color: #292530">
+            </a-box>
+
+            <a-box
+              position="7 3.5 0"
+              width="0.6"
+              height="6"
+              depth="0.6"
+              material="color: #292530">
+            </a-box>
+
+            <!-- Backdrop -->
+            <a-box
+              position="0 3.7 -0.8"
+              width="12"
+              height="4.7"
+              depth="0.35"
+              material="color: #4c155e; emissive: #22052d">
+            </a-box>
+
+            <!-- Interactive stage sign -->
+            <a-box
+              class="clickable stage-color"
+              data-stage-name="Main Stage"
+              data-colors="#e52b73,#8d37ff,#ff6b25,#08b9d5,#b8f23c"
+              position="0 4 0.1"
+              width="8"
+              height="2.5"
+              depth="0.3"
+              material="color: #e52b73; emissive: #e52b73; emissiveIntensity: 0.7"
+              animation="property: scale; from: 1 1 1; to: 1.025 1.025 1; dir: alternate; dur: 1400; loop: true"
+              animation__glow="property: material.emissiveIntensity; from: 0.3; to: 0.9; dir: alternate; dur: 1800; loop: true">
+
+              <a-text
+                value="MAIN STAGE"
+                align="center"
+                color="#ffffff"
+                width="10"
+                position="0 0 0.22">
+              </a-text>
+            </a-box>
+
+            <!-- Speaker stacks -->
+            <a-box
+              position="-5 2.2 1"
+              width="1.4"
+              height="3.2"
+              depth="1"
+              material="color: #09090d">
+            </a-box>
+
+            <a-box
+              position="5 2.2 1"
+              width="1.4"
+              height="3.2"
+              depth="1"
+              material="color: #09090d">
+            </a-box>
+
+            <!-- Speaker circles -->
+            <a-entity id="main-speakers"></a-entity>
+
+            <!-- Drum kit -->
+            <a-cylinder
+              position="0 1.65 -0.4"
+              radius="0.7"
+              height="0.5"
+              rotation="90 0 0"
+              material="color: #8a225d">
+            </a-cylinder>
+
+            <!-- Microphone stand -->
+            <a-cylinder
+              position="-2 1.9 0.5"
+              radius="0.035"
+              height="2"
+              material="color: #bdbdc7">
+            </a-cylinder>
+
+            <a-cylinder
+              position="-2 2.9 0.5"
+              radius="0.04"
+              height="0.6"
+              rotation="0 0 65"
+              material="color: #bdbdc7">
+            </a-cylinder>
+          </a-entity>
+
+          <!-- SECOND STAGE -->
+          <a-entity id="side-stage" position="-25 0 -8">
+
+            <a-box
+              position="0 0.5 0"
+              width="9"
+              height="1"
+              depth="4"
+              material="color: #292633">
+            </a-box>
+
+            <a-box
+              position="0 4 -0.3"
+              width="10"
+              height="0.6"
+              depth="5"
+              material="color: #17151d">
+            </a-box>
+
+            <a-box
+              position="-4.4 2.2 0"
+              width="0.4"
+              height="4"
+              depth="0.5"
+              material="color: #38323e">
+            </a-box>
+
+            <a-box
+              position="4.4 2.2 0"
+              width="0.4"
+              height="4"
+              depth="0.5"
+              material="color: #38323e">
+            </a-box>
+
+            <a-box
+              position="0 2.2 0.1"
+              width="7"
+              height="2.6"
+              depth="0.3"
+              material="color: #142c4c">
+            </a-box>
+
+            <a-box
+              class="clickable stage-color"
+              data-stage-name="Side Stage"
+              data-colors="#00c2ff,#ff477e,#ffca3a,#9b5de5"
+              position="0 2.5 0.35"
+              width="5"
+              height="1.6"
+              depth="0.25"
+              material="color: #00c2ff; emissive: #00c2ff; emissiveIntensity: 0.7">
+
+              <a-text
+                value="SIDE STAGE"
+                align="center"
+                color="#ffffff"
+                width="7"
+                position="0 0 0.18">
+              </a-text>
+            </a-box>
+          </a-entity>
+
+          <!-- THIRD STAGE -->
+          <a-entity id="third-stage" position="25 0 -10">
+
+            <a-box
+              position="0 0.5 0"
+              width="9"
+              height="1"
+              depth="4"
+              material="color: #292633">
+            </a-box>
+
+            <a-box
+              position="0 4 -0.3"
+              width="10"
+              height="0.6"
+              depth="5"
+              material="color: #17151d">
+            </a-box>
+
+            <a-box
+              position="-4.4 2.2 0"
+              width="0.4"
+              height="4"
+              depth="0.5"
+              material="color: #38323e">
+            </a-box>
+
+            <a-box
+              position="4.4 2.2 0"
+              width="0.4"
+              height="4"
+              depth="0.5"
+              material="color: #38323e">
+            </a-box>
+
+            <a-box
+              position="0 2.2 0.1"
+              width="7"
+              height="2.6"
+              depth="0.3"
+              material="color: #533321">
+            </a-box>
+
+            <a-box
+              class="clickable stage-color"
+              data-stage-name="Desert Stage"
+              data-colors="#ff7b00,#ff006e,#8338ec,#3a86ff"
+              position="0 2.5 0.35"
+              width="5"
+              height="1.6"
+              depth="0.25"
+              material="color: #ff7b00; emissive: #ff7b00; emissiveIntensity: 0.7">
+
+              <a-text
+                value="DESERT STAGE"
+                align="center"
+                color="#ffffff"
+                width="7"
+                position="0 0 0.18">
+              </a-text>
+            </a-box>
+          </a-entity>
+
+          <!-- FESTIVAL FLAGS -->
+          <a-entity id="festival-flags"></a-entity>
+
+          <!-- CROWDS AND FESTIVAL ATTENDEES -->
+          <a-entity id="festival-crowd"></a-entity>
+
+          <!-- DRINK STAND AND FESTIVAL BOOTHS -->
+          <a-entity id="festival-booths"></a-entity>
+
+          <!-- A FEW CLOUDS IN THE BLUE SKY -->
+          <a-entity id="festival-clouds"></a-entity>
+
+        </a-scene>
+
+        <div class="scene-help" aria-hidden="true">
+          WASD / Arrows: Move · Drag mouse: Look · Click a stage: Change colors
+        </div>
+      </div>
+    </section>
+
+    <!-- Accessible instructions remain outside the 3D canvas. -->
+    <div class="info-grid">
+
+      <section class="info-panel" aria-labelledby="controls-title">
+        <h2 id="controls-title">How to explore</h2>
+        <ul>
+          <li><kbd>W</kbd> or <kbd>↑</kbd> — Walk forward.</li>
+          <li><kbd>S</kbd> or <kbd>↓</kbd> — Walk backward.</li>
+          <li><kbd>A</kbd> or <kbd>←</kbd> — Move left.</li>
+          <li><kbd>D</kbd> or <kbd>→</kbd> — Move right.</li>
+          <li>Drag the mouse to look around.</li>
+          <li>Click a glowing stage to change its colors.</li>
+        </ul>
+
+        <p>
+          Tip: Click inside the 3D scene first so the keyboard
+          controls can receive your movement keys.
+        </p>
+
+        <button class="reset-button" id="reset-view" type="button">
+          Reset starting view
+        </button>
+      </section>
+
+      <section class="info-panel" aria-labelledby="description-title">
+        <h2 id="description-title">World description</h2>
+
+        <p>
+          Welcome to a lively outdoor alternative music festival
+          inspired by the energy of Vans Warped Tour. Under a bright
+          blue sky, a warm sun shines over a wide, dusty field marked
+          by patches of trampled grass. Tall palm trees frame the
+          festival grounds, with their leafy crowns rising overhead.
+        </p>
+
+        <p>
+          Several stages stand across the venue, surrounded by
+          speaker stacks, equipment, colorful signs, festival flags,
+          vendor booths, and crowds of attendees in dark alternative
+          clothing. The main stage glows with vivid colors, and each
+          stage can be clicked to change its lighting. The atmosphere
+          is sunny, busy, and full of summer concert energy.
+        </p>
+
+        <p>
+          This description is provided as text for visitors who
+          cannot see or interact with the three-dimensional scene.
+        </p>
+
+        <p class="stage-status" id="stage-status" role="status" aria-live="polite">
+          Festival ready. Select any stage to change its colors.
+        </p>
+      </section>
+
+    </div>
+  </main>
+
+  <footer>
+    WARPED WORLD · A tiny virtual festival · Built with A-Frame
+  </footer>
+
+  <script>
+    /* =======================================================
+       VERSION 1.0 — FESTIVAL WORLD JAVASCRIPT
+
+       Everything below runs locally in the visitor's browser.
+       No accounts, servers, databases, or personal information
+       are needed. A-Frame handles rendering the 3D scene.
+    ======================================================= */
+
+    /* -------------------------------------------------------
+       1. HELPER FUNCTIONS
+
+       These functions make it easier to create many small
+       objects without writing the same HTML over and over.
+    ------------------------------------------------------- */
+
+    // Create an A-Frame element and apply its attributes.
+    // For example, createEntity("a-box", { color: "red" }).
+    function createEntity(tag, attributes, parent) {
+      const entity = document.createElement(tag);
+
+      Object.entries(attributes).forEach(([name, value]) => {
+        entity.setAttribute(name, value);
+      });
+
+      parent.appendChild(entity);
+      return entity;
+    }
+
+    // Generate a random number between a minimum and maximum.
+    // This gives the ground, crowds, and scenery natural variety.
+    function random(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    // Choose one random item from a list.
+    function choose(items) {
+      return items[Math.floor(Math.random() * items.length)];
+    }
+
+    /* -------------------------------------------------------
+       2. DUSTY GROUND AND GRASS
+
+       The ground has a dusty tan base. We scatter small,
+       flattened grass patches and tiny stones over it.
+       The scene is created from shapes rather than image files.
+    ------------------------------------------------------- */
+
+    const ground = document.getElementById("ground-details");
+
+    const grassColors = [
+      "#6c7950",
+      "#87905d",
+      "#a1a06c",
+      "#596e45",
+      "#b6a879"
+    ];
+
+    const stoneColors = [
+      "#867963",
+      "#c5b28d",
+      "#9a8d79",
+      "#716b5e"
+    ];
+
+    for (let i = 0; i < 950; i++) {
+      // Keep most details within the visible festival area.
+      const x = random(-42, 42);
+      const z = random(-48, 28);
+
+      // Small flattened green ellipses represent trampled grass.
+      createEntity("a-entity", {
+        geometry: "primitive: sphere",
+        position: `${x} 0.035 ${z}`,
+        scale: `${random(0.04, 0.19)} 0.012 ${random(0.08, 0.3)}`,
+        material: `color: ${choose(grassColors)}; roughness: 1`
+      }, ground);
+    }
+
+    for (let i = 0; i < 250; i++) {
+      // Tiny rocks and dirt-colored specks add texture.
+      const x = random(-42, 42);
+      const z = random(-45, 28);
+
+      createEntity("a-entity", {
+        geometry: "primitive: sphere",
+        position: `${x} 0.025 ${z}`,
+        scale: `${random(0.025, 0.07)} 0.015 ${random(0.025, 0.07)}`,
+        material: `color: ${choose(stoneColors)}; roughness: 1`
+      }, ground);
+    }
+
+    /* -------------------------------------------------------
+       3. PALM TREE GENERATOR
+
+       Each palm has a brown trunk and several long, tapered
+       leaves. Trees are positioned around the festival so
+       their crowns appear above the stages and horizon.
+    ------------------------------------------------------- */
+
+    const palms = document.getElementById("palm-trees");
+
+    function createPalm(x, z, height) {
+      const tree = createEntity("a-entity", {
+        position: `${x} 0 ${z}`
+      }, palms);
+
+      // Slightly tilted trunks make the trees less uniform.
+      createEntity("a-cylinder", {
+        position: `0 ${height / 2} 0`,
+        radius: 0.25,
+        height: height,
+        rotation: `0 0 ${random(-5, 5)}`,
+        material: "color: #76513b; roughness: 1"
+      }, tree);
+
+      // The crown sits at the very top of the trunk.
+      const crown = createEntity("a-entity", {
+        position: `0 ${height} 0`
+      }, tree);
+
+      // Eight fronds spread in different directions.
+      for (let i = 0; i < 8; i++) {
+        const angle = i * 45 + random(-10, 10);
+
+        const leaf = createEntity("a-entity", {
+          geometry: "primitive: cone",
+          position: `0.0 0.0 0.0`,
+          rotation: `${random(25, 55)} ${angle} ${random(-20, 20)}`,
+          scale: `${random(0.4, 0.65)} 1 ${random(0.4, 0.65)}`,
+          material: `color: ${choose(["#286b40", "#347b47", "#4c9052", "#1e5938"])}; roughness: 1`
+        }, crown);
+
+        // A cone tapers naturally, like a stylized palm frond.
+        // It extends upward and outward from the crown.
+        leaf.setAttribute("geometry", {
+          primitive: "cone",
+          radiusBottom: 0.75,
+          radiusTop: 0.03,
+          height: 4.5
+        });
+        leaf.setAttribute("position", "0 1.7 0");
+      }
+    }
+
+    // Tall trees at the left and right edges of the venue.
+    [
+      [-35, -20, 10],
+      [-34, 2, 9],
+      [-30, -39, 11],
+      [-18, -43, 9],
+      [35, -20, 11],
+      [34, 1, 9],
+      [30, -40, 10],
+      [18, -43, 9],
+      [-43, -5, 12],
+      [43, -5, 12]
+    ].forEach(([x, z, height]) => createPalm(x, z, height));
+
+    /* -------------------------------------------------------
+       4. FESTIVAL SPEAKER STACKS
+
+       The main stage already has speaker cabinets. These
+       additional circles look like large speaker drivers.
+    ------------------------------------------------------- */
+
+    const speakers = document.getElementById("main-speakers");
+
+    [-5, 5].forEach(x => {
+      [1.3, 2.3, 3.1].forEach(y => {
+        createEntity("a-cylinder", {
+          position: `${x} ${y} 1.53`,
+          rotation: "90 0 0",
+          radius: 0.27,
+          height: 0.07,
+          material: "color: #62616d; roughness: 0.7"
+        }, speakers);
+
+        createEntity("a-cylinder", {
+          position: `${x} ${y} 1.58`,
+          rotation: "90 0 0",
+          radius: 0.13,
+          height: 0.08,
+          material: "color: #17151d"
+        }, speakers);
+      });
+    });
+
+    /* -------------------------------------------------------
+       5. FESTIVAL FLAGS
+
+       Bright triangular flags stretch across the grounds.
+       A short line acts as the rope supporting each banner.
+    ------------------------------------------------------- */
+
+    const flags = document.getElementById("festival-flags");
+
+    const flagColors = [
+      "#ef476f",
+      "#ffd166",
+      "#06d6a0",
+      "#118ab2",
+      "#b967ff",
+      "#ff6b35"
+    ];
+
+    function createFlagLine(startX, endX, z, y) {
+      createEntity("a-entity", {
+        geometry: "primitive: cylinder",
+        position: `${(startX + endX) / 2} ${y} ${z}`,
+        rotation: "0 0 90",
+        height: Math.abs(endX - startX),
+        radius: 0.025,
+        material: "color: #443c48"
+      }, flags);
+
+      for (let x = startX; x <= endX; x += 1.5) {
+        createEntity("a-triangle", {
+          position: `${x} ${y - 0.25} ${z}`,
+          rotation: "0 0 180",
+          vertexA: "0 0.5 0",
+          vertexB: "-0.4 0 0",
+          vertexC: "0.4 0 0",
+          material: `color: ${choose(flagColors)}; side: double`
+        }, flags);
+      }
+    }
+
+    createFlagLine(-15, 15, -4, 7);
+    createFlagLine(-12, 12, -14, 8);
+
+    /* -------------------------------------------------------
+       6. FESTIVAL CROWD
+
+       These low-poly attendees use simple geometric shapes:
+       a torso, a head, legs, and arms. Clothing colors vary
+       between dark alternative styles and brighter shirts.
+    ------------------------------------------------------- */
+
+    const crowd = document.getElementById("festival-crowd");
+
+    const clothingColors = [
+      "#17151d",
+      "#28242e",
+      "#403444",
+      "#5e263e",
+      "#183747",
+      "#75452e",
+      "#6d6a78",
+      "#8c3154"
+    ];
+
+    const skinColors = [
+      "#e4b28a",
+      "#c78e68",
+      "#9e684a",
+      "#f1c8a3",
+      "#704831"
+    ];
+
+    const hairColors = [
+      "#15131a",
+      "#35221c",
+      "#8b4d2b",
+      "#bd9a55",
+      "#5d2638"
+    ];
+
+    function createPerson(x, z, scale = 1) {
+      const person = createEntity("a-entity", {
+        position: `${x} 0 ${z}`,
+        rotation: `0 ${random(0, 360)} 0`,
+        scale: `${scale} ${scale} ${scale}`
+      }, crowd);
+
+      const skin = choose(skinColors);
+      const hair = choose(hairColors);
+      const clothing = choose(clothingColors);
+
+      // Torso
+      createEntity("a-box", {
+        position: `0 1.05 0`,
+        width: 0.38,
+        height: 0.65,
+        depth: 0.23,
+        material: `color: ${clothing}; roughness: 1`
+      }, person);
+
+      // Head
+      createEntity("a-sphere", {
+        position: `0 1.62 0`,
+        radius: 0.19,
+        material: `color: ${skin}; roughness: 1`
+      }, person);
+
+      // Hair
+      createEntity("a-sphere", {
+        position: `0 1.73 -0.01`,
+        radius: 0.195,
+        thetaLength: 110,
+        material: `color: ${hair}; roughness: 1`
+      }, person);
+
+      // Two legs
+      [-0.11, 0.11].forEach(side => {
+        createEntity("a-box", {
+          position: `${side} 0.42 0`,
+          width: 0.13,
+          height: 0.48,
+          depth: 0.16,
+          material: "color: #25232c"
+        }, person);
+      });
+
+      // Two arms. Slightly angled arms help create natural poses.
+      [-1, 1].forEach(side => {
+        createEntity("a-box", {
+          position: `${side * 0.26} 1.12 0`,
+          rotation: `0 0 ${side * -12}`,
+          width: 0.12,
+          height: 0.55,
+          depth: 0.13,
+          material: `color: ${skin}`
+        }, person);
+      });
+
+      // Some fans hold one arm up like they're at a concert.
+      if (Math.random() > 0.72) {
+        const raisedArm = person.children[person.children.length - 1];
+
+        raisedArm.setAttribute("position", "0.26 1.5 0");
+        raisedArm.setAttribute("rotation", "0 0 -25");
+        raisedArm.setAttribute("height", 0.75);
+      }
+
+      // A few shirts get a small bright graphic.
+      if (Math.random() > 0.65) {
+        createEntity("a-box", {
+          position: "0 1.12 0.125",
+          width: 0.12,
+          height: 0.16,
+          depth: 0.015,
+          material: `color: ${choose(["#d34dff", "#56dfff", "#ff4f79"])}`
+        }, person);
+      }
+    }
+
+    // Place attendees in rows and clusters, leaving the middle
+    // walkway open so visitors can move between the stages.
+    for (let i = 0; i < 125; i++) {
+      let x;
+      let z;
+
+      if (i < 55) {
+        // The largest crowd gathers in front of the main stage.
+        x = random(-10, 10);
+        z = random(-17, -7);
+      } else if (i < 85) {
+        // A crowd forms near the left-hand stage.
+        x = random(-31, -19);
+        z = random(-12, 1);
+      } else {
+        // More people wander the rest of the venue.
+        x = random(-32, 32);
+        z = random(-4, 14);
+      }
+
+      createPerson(x, z, random(0.8, 1.1));
+    }
+
+    /* -------------------------------------------------------
+       7. VENDOR BOOTHS
+
+       Small tents and counters give the festival a lived-in
+       feeling, without requiring downloaded textures or assets.
+    ------------------------------------------------------- */
+
+    const booths = document.getElementById("festival-booths");
+
+    function createBooth(x, z, name, color) {
+      const booth = createEntity("a-entity", {
+        position: `${x} 0 ${z}`
+      }, booths);
+
+      createEntity("a-box", {
+        position: "0 1 0",
+        width: 4,
+        height: 2,
+        depth: 2,
+        material: `color: ${color}; roughness: 1`
+      }, booth);
+
+      createEntity("a-box", {
+        position: "0 2.2 0",
+        width: 4.5,
+        height: 0.25,
+        depth: 2.5,
+        material: "color: #24202b"
+      }, booth);
+
+      createEntity("a-box", {
+        position: "0 2.65 0",
+        width: 3.8,
+        height: 0.55,
+        depth: 0.15,
+        material: "color: #111018"
+      }, booth);
+
+      createEntity("a-text", {
+        value: name,
+        align: "center",
+        color: "#ffffff",
+        width: 5,
+        position: "0 2.55 0.11"
+      }, booth);
+
+      // A serving or merchandise counter.
+      createEntity("a-box", {
+        position: "0 0.8 1.15",
+        width: 3.2,
+        height: 0.7,
+        depth: 0.35,
+        material: "color: #a88c75"
+      }, booth);
+    }
+
+    createBooth(-17, 8, "MERCH", "#61364f");
+    createBooth(17, 8, "FOOD + DRINK", "#355c4a");
+    createBooth(0, 16, "FESTIVAL INFO", "#485579");
+
+    /* -------------------------------------------------------
+       8. SKY CLOUDS
+
+       White, fluffy clouds are made from overlapping spheres.
+       They stay high above the field and palm trees.
+    ------------------------------------------------------- */
+
+    const clouds = document.getElementById("festival-clouds");
+
+    function createCloud(x, y, z) {
+      const cloud = createEntity("a-entity", {
+        position: `${x} ${y} ${z}`
+      }, clouds);
+
+      [
+        [-1.2, 0, 0, 1.0],
+        [0, 0.3, 0, 1.3],
+        [1.2, 0, 0, 0.9],
+        [0.3, -0.2, 0.4, 1.0]
+      ].forEach(([px, py, pz, radius]) => {
+        createEntity("a-sphere", {
+          position: `${px} ${py} ${pz}`,
+          radius: radius,
+          scale: "1.4 0.7 0.8",
+          material: "color: #ffffff; roughness: 1"
+        }, cloud);
+      });
+    }
+
+    createCloud(-17, 16, -35);
+    createCloud(12, 19, -42);
+    createCloud(34, 15, -28);
+    createCloud(-38, 19, -48);
+
+    /* -------------------------------------------------------
+       9. INTERACTIVE STAGES
+
+       Clicking a stage cycles through its own list of colors.
+       The stage sign and its glow change together, and the
+       accessible status message tells visitors what happened.
+    ------------------------------------------------------- */
+
+    const stageStatus = document.getElementById("stage-status");
+
+    document.querySelectorAll(".stage-color").forEach(stage => {
+      // Read the stage name and its available colors from HTML.
+      const stageName = stage.getAttribute("data-stage-name");
+      const colors = stage.getAttribute("data-colors").split(",");
+      let colorIndex = 0;
+
+      // Make the sign behave like a button when using a mouse.
+      stage.classList.add("clickable");
+
+      stage.addEventListener("click", function () {
+        // Move to the next color. After the last one, start over.
+        colorIndex = (colorIndex + 1) % colors.length;
+        const nextColor = colors[colorIndex];
+
+        // Change both the visible material and its emitted glow.
+        stage.setAttribute("material", {
+          color: nextColor,
+          emissive: nextColor,
+          emissiveIntensity: 0.8
+        });
+
+        // Update the text description for screen-reader users.
+        stageStatus.textContent =
+          stageName + " lighting changed to " + nextColor + ".";
+
+        // Keep the status message outside the 3D canvas.
+      });
+
+      // A cursor hovering over a stage changes the pointer hint.
+      stage.addEventListener("mouseenter", function () {
+        stage.setAttribute("scale", "1.04 1.04 1");
+      });
+
+      stage.addEventListener("mouseleave", function () {
+        stage.setAttribute("scale", "1 1 1");
+      });
+    });
+
+    /* -------------------------------------------------------
+       10. RESET THE CAMERA
+
+       The reset button restores the starting position and
+       camera direction. This is useful after exploring.
+    ------------------------------------------------------- */
+
+    const camera = document.getElementById("festival-camera");
+    const player = document.getElementById("player");
+
+    document.getElementById("reset-view").addEventListener("click", () => {
+      player.setAttribute("position", "0 1.7 12");
+      player.setAttribute("rotation", "0 0 0");
+
+      camera.setAttribute("rotation", "0 0 0");
+
+      // Reset look-controls' internal rotation values too, so
+      // the next mouse movement starts from the reset direction.
+      const lookControls = camera.components["look-controls"];
+
+      if (lookControls) {
+        lookControls.pitchObject.rotation.set(0, 0, 0);
+        lookControls.yawObject.rotation.set(0, 0, 0);
+      }
+
+      stageStatus.textContent =
+        "View reset. Welcome back to the festival entrance.";
+    });
+
+    /* -------------------------------------------------------
+       11. RESPONSIVE AND BROWSER NOTES
+
+       The scene resizes to the available page width through
+       A-Frame's embedded scene layout and the CSS above.
+
+       All generated scenery is local geometry. The only
+       external dependency is the A-Frame JavaScript library.
+       An internet connection is needed to load that library.
+    ------------------------------------------------------- */
+  </script>
+
+</body>
+</html>
