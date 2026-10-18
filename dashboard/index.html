@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<!-- SheetScope v1.0 — initial build
+     Libraries:
+     1. Chart.js 4.4.8 — jsDelivr CDN
+        https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js
+        Draws the bar and line charts.
+     2. SheetJS CE 0.20.3 — SheetJS CDN
+        https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js
+        Reads Excel .xlsx and .xls files in the browser.
+     CSV files are parsed with vanilla JavaScript.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SheetScope — Spreadsheet Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+<script lang="javascript" src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
+<style>
+/* v1.0: Dark dashboard theme, responsive layout, and accessible focus styles. */
+:root {
+  color-scheme: dark;
+  --bg: #090a10;
+  --panel: #131522;
+  --border: #2c3043;
+  --text: #f4f0ff;
+  --muted: #a5a8bd;
+  --purple: #b38aff;
+  --cyan: #6de5e0;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: radial-gradient(ellipse at top left,#25183b 0,transparent 35rem),var(--bg);
+  color: var(--text);
+  font-family: Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  line-height: 1.5;
+}
+button,select { font: inherit; }
+button:focus-visible,select:focus-visible,.drop:focus-visible,
+.table-scroll:focus-visible { outline: 3px solid var(--cyan); outline-offset: 3px; }
+.shell { width: min(1400px,calc(100% - 36px)); margin: auto; padding: 30px 0 40px; }
+header { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:32px; }
+.brand { display:flex; align-items:center; gap:12px; }
+.logo {
+  width:44px;height:44px;display:grid;place-items:center;border-radius:13px;
+  color:#e2d2ff;background:#2a2040;border:1px solid #65508c;font-size:24px;
+}
+.brand strong { display:block;font-size:1.1rem; }
+.brand small { color:var(--muted);font-size:.72rem;letter-spacing:.12em; }
+.local {
+  color:#9ce8d9;border:1px solid #28534c;background:#102521;
+  border-radius:50px;padding:7px 12px;font-size:.77rem;
+}
+.intro { margin-bottom:24px; }
+.eyebrow { color:var(--purple);font-weight:800;letter-spacing:.14em;font-size:.75rem;text-transform:uppercase; }
+h1 { font-size:clamp(2rem,5vw,3.2rem);letter-spacing:-.05em;line-height:1.1;margin:8px 0; }
+.intro p { color:var(--muted);max-width:680px;margin:0; }
+.accent { color:#d4bdff; }
+.panel {
+  border:1px solid var(--border);border-radius:17px;
+  background:linear-gradient(145deg,#171927,#11131e);
+  box-shadow:0 15px 40px #0003;
+}
+.upload { padding:17px;margin-bottom:17px; }
+.drop {
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+  padding:22px;border:1px dashed #62547d;border-radius:13px;
+  background:#b38aff0a;transition:.2s;
+}
+.drop.dragging { border-color:var(--cyan);background:#6de5e012; }
+.drop-left { display:flex;align-items:center;gap:15px; }
+.upload-icon {
+  display:grid;place-items:center;width:48px;height:48px;flex-shrink:0;
+  border-radius:13px;background:#2a2040;color:#ddcaff;font-size:24px;
+}
+.drop h2 { font-size:1rem;margin:0 0 4px; }
+.drop p { color:var(--muted);font-size:.85rem;margin:0; }
+.drop .hint { font-size:.74rem;margin-top:5px; }
+.actions { display:flex;gap:9px;flex-wrap:wrap; }
+button {
+  cursor:pointer;border-radius:10px;padding:10px 15px;font-weight:750;
+  border:1px solid #39364e;background:#202233;color:var(--text);
+}
+button.primary { background:linear-gradient(135deg,#d7c2ff,#a77aff);color:#171023;border:0; }
+button:hover { filter:brightness(1.12); }
+button:disabled { opacity:.45;cursor:not-allowed; }
+#fileInput { display:none; }
+.status { color:var(--muted);font-size:.83rem;margin:12px 3px 0;min-height:24px; }
+.status.error { color:#ff9aaa; }
+.status.success { color:#8ee4c7; }
+
+.settings {
+  display:grid;grid-template-columns:1fr 1fr minmax(170px,.8fr);
+  gap:15px;align-items:end;padding:18px;margin-bottom:17px;
+}
+.field label { display:block;font-size:.8rem;font-weight:750;margin-bottom:7px; }
+.field select {
+  width:100%;min-height:44px;padding:9px 12px;border:1px solid #3b3e53;
+  border-radius:9px;background:#0d0f18;color:var(--text);
+}
+.field small { display:block;color:var(--muted);font-size:.72rem;margin-top:6px; }
+.file-meta { font-size:.77rem;color:var(--muted);overflow-wrap:anywhere;text-align:right; }
+.file-meta strong { display:block;color:var(--text);font-size:.86rem;margin-bottom:3px; }
+
+.stats { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:17px; }
+.stat { padding:19px;min-width:0; }
+.stat-label { color:var(--muted);font-size:.8rem;font-weight:700; }
+.stat-value { font-size:clamp(1.4rem,3vw,2.1rem);font-weight:850;letter-spacing:-.04em;overflow-wrap:anywhere;margin-top:9px;line-height:1.2; }
+.stat-note { color:#8589a3;font-size:.74rem;margin-top:8px;overflow-wrap:anywhere; }
+
+.charts { display:grid;grid-template-columns:1fr 1fr;gap:17px;margin-bottom:17px; }
+.chart-panel { padding:19px;min-width:0; }
+.section-heading { display:flex;justify-content:space-between;gap:10px;margin-bottom:17px; }
+.section-heading h2,.table-head h2 { margin:0;font-size:1rem; }
+.section-heading p,.table-head p { margin:4px 0 0;color:var(--muted);font-size:.78rem; }
+.tag { background:#281e3a;color:#d8c5ff;border:1px solid #45335f;border-radius:7px;padding:4px 8px;font-size:.67rem;height:max-content;white-space:nowrap; }
+.chart-wrap { height:290px;position:relative; }
+.placeholder {
+  height:100%;display:grid;place-items:center;text-align:center;padding:20px;
+  border:1px dashed #34374b;border-radius:11px;color:var(--muted);font-size:.84rem;
+}
+.table-panel { overflow:hidden; }
+.table-head { padding:19px;display:flex;justify-content:space-between;gap:15px; }
+.table-count { color:var(--muted);font-size:.76rem;white-space:nowrap; }
+.table-scroll { overflow:auto;max-height:470px;border-top:1px solid var(--border); }
+table { width:100%;border-collapse:collapse;text-align:left;font-size:.83rem; }
+thead { position:sticky;top:0;background:#202233; }
+th,td { padding:12px 16px;border-bottom:1px solid #282b3d;vertical-align:top; }
+th { color:#d8d0ee;font-size:.73rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap; }
+td { color:#c8c9d8;overflow-wrap:anywhere;max-width:360px; }
+tbody tr:hover { background:#b38aff09; }
+.numeric { font-variant-numeric:tabular-nums; }
+.empty td { padding:35px;text-align:center;color:var(--muted); }
+footer { display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;padding:19px 3px 0;color:#898da3;font-size:.76rem; }
+footer .privacy { color:#9ce8d9; }
+
+@media(max-width:900px) {
+  .stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .charts { grid-template-columns:1fr; }
+  .settings { grid-template-columns:1fr 1fr; }
+  .file-meta { text-align:left; }
+}
+@media(max-width:600px) {
+  .shell { width:calc(100% - 24px);padding-top:19px; }
+  header { align-items:flex-start;flex-direction:column;margin-bottom:25px; }
+  .drop { align-items:stretch;flex-direction:column;padding:16px; }
+  .drop-left { align-items:flex-start; }
+  .actions,.actions button { width:100%; }
+  .settings { grid-template-columns:1fr; }
+  .stat { padding:14px; }
+  .chart-panel { padding:14px; }
+  .chart-wrap { height:260px; }
+  th,td { padding:10px 12px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after { scroll-behavior:auto!important;transition:none!important; }
+}
+</style>
+</head>
+
+<body>
+<main class="shell">
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true">▥</div>
+      <div><strong>SheetScope</strong><small>SPREADSHEET ANALYTICS / V1.0</small></div>
+    </div>
+    <div class="local">● Local-only processing</div>
+  </header>
+
+  <section class="intro">
+    <div class="eyebrow">Your data, made visible</div>
+    <h1>Make your spreadsheet <span class="accent">make sense.</span></h1>
+    <p>Upload a spreadsheet, choose the columns you want, and explore the numbers in seconds.</p>
+  </section>
+
+  <section class="panel upload" aria-labelledby="uploadTitle">
+    <div class="drop" id="dropZone" tabindex="0" role="button"
+         aria-label="Choose a CSV or Excel file, or drag and drop a file here">
+      <div class="drop-left">
+        <div class="upload-icon" aria-hidden="true">↥</div>
+        <div>
+          <h2 id="uploadTitle">Drop your spreadsheet here</h2>
+          <p>Turn rows and columns into a dashboard.</p>
+          <p class="hint">CSV, Excel .xlsx, and older .xls files</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" class="primary" id="chooseButton">＋ Choose a file</button>
+        <button type="button" id="demoButton">Try sample data</button>
+      </div>
+    </div>
+    <input id="fileInput" type="file" accept=".csv,.xlsx,.xls" aria-label="Choose a spreadsheet file">
+    <p id="status" class="status" role="status" aria-live="polite">
+      Upload a spreadsheet to begin, or try the sample data.
+    </p>
+  </section>
+
+  <section class="panel settings" aria-label="Chart settings">
+    <div class="field">
+      <label for="labelColumn">Labels column</label>
+      <select id="labelColumn" disabled><option>Load a spreadsheet first</option></select>
+      <small>Used for chart labels and the highest-value name.</small>
+    </div>
+    <div class="field">
+      <label for="numberColumn">Numbers column</label>
+      <select id="numberColumn" disabled><option>Load a spreadsheet first</option></select>
+      <small>Choose the column whose numbers you want to chart.</small>
+    </div>
+    <div class="file-meta" id="fileMeta" aria-live="polite">
+      <strong>No file loaded</strong>Your spreadsheet will appear here.
+    </div>
+  </section>
+
+  <section class="stats" aria-label="Summary statistics">
+    <article class="panel stat">
+      <div class="stat-label">▤ Data rows</div>
+      <div class="stat-value" id="rowCount">—</div>
+      <div class="stat-note">Rows with valid numeric values</div>
+    </article>
+    <article class="panel stat">
+      <div class="stat-label">∑ Total</div>
+      <div class="stat-value" id="totalValue">—</div>
+      <div class="stat-note">Sum of selected numbers</div>
+    </article>
+    <article class="panel stat">
+      <div class="stat-label">≈ Average</div>
+      <div class="stat-value" id="averageValue">—</div>
+      <div class="stat-note">Mean of selected numbers</div>
+    </article>
+    <article class="panel stat">
+      <div class="stat-label">↗ Highest value</div>
+      <div class="stat-value" id="highestValue">—</div>
+      <div class="stat-note" id="highestLabel">Label will appear here</div>
+    </article>
+  </section>
+
+  <section class="charts" aria-label="Charts">
+    <article class="panel chart-panel">
+      <div class="section-heading">
+        <div><h2>Value by label</h2><p>Compare values across labels.</p></div>
+        <span class="tag">BAR CHART</span>
+      </div>
+      <div class="chart-wrap" id="barWrap">
+        <div class="placeholder">Your bar chart will appear here after you load data.</div>
+      </div>
+    </article>
+    <article class="panel chart-panel">
+      <div class="section-heading">
+        <div><h2>Trend across rows</h2><p>Follow values from row to row.</p></div>
+        <span class="tag">LINE CHART</span>
+      </div>
+      <div class="chart-wrap" id="lineWrap">
+        <div class="placeholder">Your line chart will appear here after you load data.</div>
+      </div>
+    </article>
+  </section>
+
+  <section class="panel table-panel" aria-labelledby="tableTitle">
+    <div class="table-head">
+      <div><h2 id="tableTitle">Spreadsheet data</h2><p>Preview of your original rows and columns.</p></div>
+      <div id="tableCount" class="table-count">0 rows</div>
+    </div>
+    <div class="table-scroll" role="region" aria-label="Spreadsheet data table" tabindex="0">
+      <table id="dataTable">
+        <thead><tr><th scope="col">Data</th></tr></thead>
+        <tbody><tr class="empty"><td>Load a spreadsheet to see its contents here.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <span class="privacy">● Your file never leaves this computer. All processing happens in your browser.</span>
+    <span>SheetScope · v1.0</span>
+  </footer>
+</main>
+
+<script>
+/*
+  SheetScope v1.0 — dashboard JavaScript.
+
+  Privacy: this code does not upload files or send spreadsheet contents anywhere.
+  It reads local files through the browser's File API and renders results on this page.
+*/
+
+// Keep the loaded sheet in memory so dropdown changes can update the charts instantly.
+let headers = [];
+let rows = [];
+let barChart = null;
+let lineChart = null;
+
+// Cache important page elements so the code below is easier to follow.
+const fileInput = document.getElementById("fileInput");
+const dropZone = document.getElementById("dropZone");
+const chooseButton = document.getElementById("chooseButton");
+const demoButton = document.getElementById("demoButton");
+const labelColumn = document.getElementById("labelColumn");
+const numberColumn = document.getElementById("numberColumn");
+const statusBox = document.getElementById("status");
+const fileMeta = document.getElementById("fileMeta");
+const dataTable = document.getElementById("dataTable");
+const tableCount = document.getElementById("tableCount");
+
+// Show an accessible status message when a file is loaded or a problem occurs.
+function setStatus(message, type = "") {
+  statusBox.textContent = message;
+  statusBox.className = "status" + (type ? " " + type : "");
+}
+
+// Convert a spreadsheet cell to a readable string.
+function cellText(value) {
+  if (value === null || value === undefined) return "";
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toLocaleDateString();
+  }
+  return String(value).trim();
+}
+
+// Interpret common spreadsheet number formats. For example, "$1,200" becomes 1200,
+// "(25)" becomes -25, and "35%" becomes 35. Percentages remain in their written units.
+function parseNumber(value) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (value === null || value === undefined || typeof value === "boolean") return null;
+
+  let text = String(value).trim();
+  if (!text) return null;
+
+  const negative = /^\(.*\)$/.test(text);
+  text = text.replace(/^\((.*)\)$/, "$1").replace(/[$£€¥,\s%]/g, "");
+
+  // Reject cells that are words, dates, or mixed text rather than valid numbers.
+  if (!/^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i.test(text)) return null;
+
+  let number = Number(text);
+  if (negative) number = -Math.abs(number);
+  return Number.isFinite(number) ? number : null;
+}
+
+// Parse CSV data, including quoted commas, escaped quotation marks, and newlines in cells.
+function parseCSV(text) {
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+
+  const result = [];
+  let row = [];
+  let cell = "";
+  let quoted = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+
+    if (quoted) {
+      if (char === '"') {
+        if (text[i + 1] === '"') {
+          cell += '"';
+          i++;
+        } else {
+          quoted = false;
+        }
+      } else {
+        cell += char;
+      }
+    } else if (char === '"' && cell.length === 0) {
+      quoted = true;
+    } else if (char === ",") {
+      row.push(cell);
+      cell = "";
+    } else if (char === "\n" || char === "\r") {
+      if (char === "\r" && text[i + 1] === "\n") i++;
+      row.push(cell);
+      result.push(row);
+      row = [];
+      cell = "";
+    } else {
+      cell += char;
+    }
+  }
+
+  // Include the last row even if the file does not end with a newline.
+  if (cell.length || row.length) {
+    row.push(cell);
+    result.push(row);
+  }
+
+  // Remove blank rows at the end of the file.
+  while (result.length && result[result.length - 1].every(v => String(v).trim() === "")) {
+    result.pop();
+  }
+  return result;
+}
+
+// Create useful unique header names when columns have blank or duplicate headers.
+function makeHeaders(rawHeaders) {
+  const seen = new Map();
+  return rawHeaders.map((header, index) => {
+    const name = cellText(header) || `Column ${index + 1}`;
+    const count = (seen.get(name) || 0) + 1;
+    seen.set(name, count);
+    return count === 1 ? name : `${name} (${count})`;
+  });
+}
+
+// Load rows from either CSV or Excel, fill short rows, and rebuild the dropdowns and dashboard.
+function loadSpreadsheet(rawRows, fileName) {
+  if (!rawRows || !rawRows.length) throw new Error("This file appears to be empty.");
+
+  const columnCount = Math.max(...rawRows.map(row => Array.isArray(row) ? row.length : 0));
+  if (!columnCount) throw new Error("No columns were found in this file.");
+
+  const padded = rawRows.map(row => {
+    const copy = Array.isArray(row) ? row.slice() : [];
+    while (copy.length < columnCount) copy.push("");
+    return copy;
+  });
+
+  headers = makeHeaders(padded[0]);
+  rows = padded.slice(1).filter(row => row.some(value => cellText(value) !== ""));
+
+  buildDropdowns();
+
+  // Use textContent for the file name rather than injecting it into HTML.
+  fileMeta.replaceChildren();
+  const strong = document.createElement("strong");
+  strong.textContent = fileName;
+  const detail = document.createElement("span");
+  detail.textContent = `${rows.length.toLocaleString()} data rows · ${headers.length} columns`;
+  fileMeta.append(strong, detail);
+
+  labelColumn.disabled = false;
+  numberColumn.disabled = false;
+  refreshDashboard();
+  setStatus(`Loaded ${fileName} successfully. Choose columns to explore your data.`, "success");
+}
+
+// Populate the two dropdowns and try to choose a sensible label column and numeric column.
+function buildDropdowns() {
+  labelColumn.replaceChildren();
+  numberColumn.replaceChildren();
+
+  headers.forEach((header, index) => {
+    const labelOption = new Option(header, String(index));
+    const numberOption = new Option(header, String(index));
+    labelColumn.add(labelOption);
+    numberColumn.add(numberOption);
+  });
+
+  let bestLabel = 0;
+  let bestLabelCount = -1;
+  let bestNumber = 0;
+  let bestNumberCount = -1;
+
+  headers.forEach((_, columnIndex) => {
+    let textCount = 0;
+    let numberCount = 0;
+
+    rows.forEach(row => {
+      const value = row[columnIndex];
+      if (parseNumber(value) !== null) numberCount++;
+      else if (cellText(value) !== "") textCount++;
+    });
+
+    if (textCount > bestLabelCount) {
+      bestLabelCount = textCount;
+      bestLabel = columnIndex;
+    }
+    if (numberCount > bestNumberCount) {
+      bestNumberCount = numberCount;
+      bestNumber = columnIndex;
+    }
+  });
+
+  labelColumn.value = String(bestLabel);
+  if (bestNumber === bestLabel && headers.length > 1) {
+    // If possible, default the number selector to a different column from the label selector.
+    bestNumber = headers.findIndex((_, i) => i !== bestLabel && rows.some(row => parseNumber(row[i]) !== null));
+    if (bestNumber < 0) bestNumber = bestLabel === 0 ? 1 : 0;
+  }
+  numberColumn.value = String(bestNumber);
+}
+
+// Format numbers with thousands separators and up to four decimal places.
+function formatNumber(number) {
+  if (!Number.isFinite(number)) return "—";
+  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 4 }).format(number);
+}
+
+// Collect usable label/value pairs from the selected columns.
+function selectedPoints() {
+  const labelIndex = Number(labelColumn.value);
+  const numberIndex = Number(numberColumn.value);
+  const points = [];
+
+  rows.forEach((row, rowIndex) => {
+    const value = parseNumber(row[numberIndex]);
+    if (value === null) return;
+
+    const label = cellText(row[labelIndex]) || `Row ${rowIndex + 1}`;
+    points.push({ label, value });
+  });
+  return points;
+}
+
+// Update the four summary cards: count, total, average, and maximum plus its label.
+function updateStatistics(points) {
+  const values = points.map(point => point.value);
+  const total = values.reduce((sum, value) => sum + value, 0);
+  const average = values.length ? total / values.length : null;
+  const highest = points.length
+    ? points.reduce((best, point) => point.value > best.value ? point : best)
+    : null;
+
+  document.getElementById("rowCount").textContent = values.length.toLocaleString();
+  document.getElementById("totalValue").textContent = formatNumber(total);
+  document.getElementById("averageValue").textContent = average === null ? "—" : formatNumber(average);
+  document.getElementById("highestValue").textContent = highest ? formatNumber(highest.value) : "—";
+  document.getElementById("highestLabel").textContent = highest ? `Label: ${highest.label}` : "No numeric values found";
+}
+
+// Shared chart options keep both charts legible, responsive, and consistent.
+function getChartOptions(numberName) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: "index", intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: "#202235",
+        titleColor: "#f4f0ff",
+        bodyColor: "#ded8ef",
+        borderColor: "#514568",
+        borderWidth: 1,
+        callbacks: {
+          label: context => `${numberName}: ${formatNumber(context.parsed.y)}`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { color: "#a5a8bd", maxRotation: 45, autoSkip: true, maxTicksLimit: 12 },
+        border: { color: "#303347" }
+      },
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: numberName, color: "#a5a8bd" },
+        ticks: { color: "#a5a8bd", callback: value => formatNumber(Number(value)) },
+        grid: { color: "rgba(165,168,189,.13)" },
+        border: { display: false }
+      }
+    }
+  };
+}
+
+// Safely replace a chart container with an accessible canvas.
+function createCanvas(container, id, description) {
+  container.replaceChildren();
+  const canvas = document.createElement("canvas");
+  canvas.id = id;
+  canvas.setAttribute("role", "img");
+  canvas.setAttribute("aria-label", description);
+  container.appendChild(canvas);
+  return canvas;
+}
+
+// Destroy old charts before drawing new ones so changing a dropdown never stacks charts.
+function updateCharts(points) {
+  if (barChart) { barChart.destroy(); barChart = null; }
+  if (lineChart) { lineChart.destroy(); lineChart = null; }
+
+  const barWrap = document.getElementById("barWrap");
+  const lineWrap = document.getElementById("lineWrap");
+  const labelName = headers[Number(labelColumn.value)] || "Label";
+  const numberName = headers[Number(numberColumn.value)] || "Value";
+
+  if (!points.length) {
+    barWrap.innerHTML = '<div class="placeholder">No numeric values found. Try a different numbers column.</div>';
+    lineWrap.innerHTML = '<div class="placeholder">Choose a column containing numbers to draw the line chart.</div>';
+    return;
+  }
+
+  const labels = points.map(point => point.label);
+  const values = points.map(point => point.value);
+
+  // Draw the bar chart. Each bar represents one label and its numeric value.
+  const barCanvas = createCanvas(barWrap, "barCanvas", `Bar chart of ${numberName} by ${labelName}`);
+  const barContext = barCanvas.getContext("2d");
+  const gradient = barContext.createLinearGradient(0, 0, 0, 300);
+  gradient.addColorStop(0, "rgba(179,138,255,.95)");
+  gradient.addColorStop(1, "rgba(105,69,168,.45)");
+
+  barChart = new Chart(barContext, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: numberName,
+        data: values,
+        backgroundColor: gradient,
+        borderColor: "#b38aff",
+        borderWidth: 1,
+        borderRadius: 5,
+        maxBarThickness: 44
+      }]
+    },
+    options: getChartOptions(numberName)
+  });
+
+  // Draw the line chart in the same row order to make changes over time or sequence visible.
+  const lineCanvas = createCanvas(lineWrap, "lineCanvas", `Line chart of ${numberName} by ${labelName}`);
+  const lineContext = lineCanvas.getContext("2d");
+  const areaGradient = lineContext.createLinearGradient(0, 0, 0, 290);
+  areaGradient.addColorStop(0, "rgba(109,229,224,.23)");
+  areaGradient.addColorStop(1, "rgba(109,229,224,0)");
+
+  lineChart = new Chart(lineContext, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: numberName,
+        data: values,
+        borderColor: "#6de5e0",
+        backgroundColor: areaGradient,
+        fill: true,
+        tension: 0.3,
+        borderWidth: 2.5,
+        pointRadius: points.length > 80 ? 0 : 3,
+        pointHoverRadius: 5,
+        pointBackgroundColor: "#b7fff3"
+      }]
+    },
+    options: getChartOptions(numberName)
+  });
+}
+
+// Render all original columns in a plain semantic HTML table.
+// Using textContent prevents spreadsheet cell contents from being interpreted as HTML.
+function updateTable() {
+  const thead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+
+  headers.forEach(header => {
+    const th = document.createElement("th");
+    th.scope = "col";
+    th.textContent = header;
+    headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+
+  const tbody = document.createElement("tbody");
+  const previewLimit = 5000;
+
+  rows.slice(0, previewLimit).forEach(row => {
+    const tr = document.createElement("tr");
+
+    headers.forEach((_, index) => {
+      const td = document.createElement("td");
+      td.textContent = cellText(row[index]);
+      if (parseNumber(row[index]) !== null) td.classList.add("numeric");
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+
+  if (!rows.length) {
+    const tr = document.createElement("tr");
+    tr.className = "empty";
+    const td = document.createElement("td");
+    td.colSpan = Math.max(headers.length, 1);
+    td.textContent = "This spreadsheet contains headers but no data rows.";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+  }
+
+  dataTable.replaceChildren(thead, tbody);
+  tableCount.textContent = `${rows.length.toLocaleString()} rows${rows.length > previewLimit ? ` · showing first ${previewLimit.toLocaleString()}` : ""}`;
+}
+
+// Refresh the entire dashboard after loading data or changing a column.
+function refreshDashboard() {
+  const points = selectedPoints();
+  updateStatistics(points);
+  updateCharts(points);
+  updateTable();
+}
+
+// Read a file with the browser's local File API. No spreadsheet data is sent to a server.
+async function handleFile(file) {
+  if (!file) return;
+
+  const extension = file.name.split(".").pop().toLowerCase();
+
+  try {
+    setStatus(`Reading ${file.name}…`);
+    let rawRows;
+
+    if (extension === "csv") {
+      rawRows = parseCSV(await file.text());
+    } else if (extension === "xlsx" || extension === "xls") {
+      if (typeof XLSX === "undefined") {
+        throw new Error("The Excel library did not load. Check your internet connection and refresh this page.");
+      }
+
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
+      if (!workbook.SheetNames.length) throw new Error("No worksheets were found in this workbook.");
+
+      // Use the first worksheet by default. All its columns are available in the dropdowns.
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      rawRows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: "", raw: true });
+    } else {
+      throw new Error("Please choose a CSV, XLSX, or XLS file.");
+    }
+
+    loadSpreadsheet(rawRows, file.name);
+  } catch (error) {
+    setStatus(error.message || "This file could not be read.", "error");
+  } finally {
+    // Clearing the input allows the same file to be selected again.
+    fileInput.value = "";
+  }
+}
+
+// Open the file picker from the upload button.
+chooseButton.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", event => handleFile(event.target.files[0]));
+
+// Make the drop area usable with a mouse, keyboard, or drag-and-drop.
+dropZone.addEventListener("click", event => {
+  if (!event.target.closest("button")) fileInput.click();
+});
+dropZone.addEventListener("keydown", event => {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    fileInput.click();
+  }
+});
+
+["dragenter", "dragover"].forEach(eventName => {
+  dropZone.addEventListener(eventName, event => {
+    event.preventDefault();
+    dropZone.classList.add("dragging");
+  });
+});
+["dragleave", "drop"].forEach(eventName => {
+  dropZone.addEventListener(eventName, event => {
+    event.preventDefault();
+    dropZone.classList.remove("dragging");
+  });
+});
+dropZone.addEventListener("drop", event => {
+  const file = event.dataTransfer && event.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+
+// Changing either dropdown recalculates the statistics and redraws the charts.
+labelColumn.addEventListener("change", refreshDashboard);
+numberColumn.addEventListener("change", refreshDashboard);
+
+// Sample data makes it possible to test the dashboard without preparing a file.
+demoButton.addEventListener("click", () => {
+  const sample = [
+    ["Month", "Concerts", "Tickets Sold", "Spend ($)"],
+    ["January", 1, 120, 45.50],
+    ["February", 2, 245, 82.00],
+    ["March", 1, 95, 36.75],
+    ["April", 3, 380, 140.00],
+    ["May", 2, 290, 105.25],
+    ["June", 4, 510, 210.00],
+    ["July", 3, 430, 175.50],
+    ["August", 2, 315, 119.99],
+    ["September", 5, 680, 260.00],
+    ["October", 4, 590, 235.75]
+  ];
+
+  loadSpreadsheet(sample, "sample-concert-data.csv");
+  setStatus("Sample data loaded. Change either dropdown to explore different columns.", "success");
+});
+</script>
+</body>
+</html>

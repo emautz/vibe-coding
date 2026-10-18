@@ -1,0 +1,46 @@
+```python
+import pandas as pd
+import numpy as np
+
+# Set seed for reproducibility
+np.random.seed(42)
+
+months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+]
+
+# Simulate realistic seasonal sales numbers
+# Higher in late spring / summer (May-Aug), lower in winter (Jan-Feb)
+seasonality = np.array([0.7, 0.75, 0.9, 1.1, 1.3, 1.4, 1.45, 1.35, 1.15, 1.0, 0.8, 0.85])
+
+tacos = (np.random.normal(3500, 200, 12) * seasonality).astype(int)
+burritos = (np.random.normal(2800, 180, 12) * seasonality).astype(int)
+drinks = (np.random.normal(1500, 100, 12) * seasonality).astype(int)
+
+# Tips usually scale with total sales (~10-15% of total revenue assuming avg item price around $3-$8)
+# Let's model tips directly as realistic dollar values (e.g. $800 - $1800 per month)
+tips = (np.random.normal(1100, 80, 12) * seasonality).round(2)
+
+df = pd.DataFrame({
+    "Month": months,
+    "Tacos": tacos,
+    "Burritos": burritos,
+    "Drinks": drinks,
+    "Tips": tips
+})
+
+csv_filename = "food_truck_sales.csv"
+df.to_csv(csv_filename, index=False)
+print(f"Generated {csv_filename}")
+
+
+```
+
+```text
+Generated food_truck_sales.csv
+
+
+```
+
+Your CSV file is ready:
