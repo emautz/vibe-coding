@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#17172b">
+<title>Googly Eyes Camera</title>
+
+<!--
+LIBRARIES:
+1. MediaPipe Tasks Vision v0.10.14
+   Source: https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/
+   Purpose: Detects facial landmarks in real time in the browser.
+
+2. Face Landmarker Model
+   Source: https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task
+   Purpose: Identifies face and eye landmarks.
+
+VERSION HISTORY:
+v1.0 - Initial build with camera controls, face tracking,
+       mirrored video, animated googly eyes, and responsive design.
+
+PRIVACY:
+Video and face tracking are processed in the browser.
+The application does not upload camera footage to a server.
+-->
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #11111f;
+  --panel: #1c1c31;
+  --ink: #f6f4ff;
+  --muted: #c4c0dd;
+  --accent: #a89bff;
+  --border: #393653;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background:
+    radial-gradient(ellipse at 20% 0%, #302750, transparent 44%),
+    radial-gradient(ellipse at 100% 100%, #1d3150, transparent 40%),
+    var(--bg);
+  color: var(--ink);
+  font-family: system-ui, Arial, sans-serif;
+}
+
+main {
+  width: min(100%, 900px);
+}
+
+header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: clamp(2rem, 5vw, 3rem);
+  letter-spacing: -1px;
+}
+
+.intro {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.camera-card {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--panel);
+  box-shadow: 0 24px 70px #0005;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #090912;
+}
+
+video,
+canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+canvas {
+  pointer-events: none;
+}
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 10px;
+  padding: 20px;
+  text-align: center;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.emoji {
+  font-size: 56px;
+}
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 4px 4px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #88849f;
+}
+
+.status-dot.active {
+  background: #8de5b0;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+button {
+  min-height: 48px;
+  padding: 12px 24px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #17142b;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+button:focus-visible {
+  outline: 3px solid white;
+  outline-offset: 3px;
+}
+
+button.secondary {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--ink);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.privacy {
+  margin-top: 18px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.error {
+  color: #ffb8bd;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 520px) {
+  body {
+    padding: 12px;
+    align-items: flex-start;
+  }
+
+  .stage {
+    aspect-ratio: 3 / 4;
+    max-height: 65vh;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  button {
+    width: 100%;
+  }
+
+  .status-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main>
+  <header>
+    <h1>Googly Eyes 👀</h1>
+    <p class="intro">
+      Turn on your camera and watch oversized googly eyes follow
+      your face. Your camera stays off until you press Start.
+    </p>
+  </header>
+
+  <section class="camera-card" aria-label="Googly eyes camera">
+    <div class="stage">
+      <video
+        id="video"
+        autoplay
+        playsinline
+        muted
+        aria-label="Mirrored camera preview">
+      </video>
+
+      <canvas id="overlay" aria-hidden="true"></canvas>
+
+      <div class="placeholder" id="placeholder">
+        <span class="emoji" aria-hidden="true">📷</span>
+        <strong>Your camera is off</strong>
+        <span>Press "Start camera" when you're ready.</span>
+      </div>
+    </div>
+
+    <div class="status-row">
+      <div class="status-indicator" role="status" aria-live="polite">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Camera is off</span>
+      </div>
+
+      <span id="privacyState">Nothing is recording.</span>
+    </div>
+
+    <div class="controls">
+      <button id="startButton" type="button">
+        Start camera
+      </button>
+
+      <button id="stopButton" class="secondary" type="button" disabled>
+        Stop camera
+      </button>
+    </div>
+  </section>
+
+  <p class="privacy">
+    Your face is tracked locally in your browser.
+    This app does not record or upload your video.
+    Camera access usually requires HTTPS or localhost.
+  </p>
+</main>
+
+<script type="module">
+// ============================================================
+// GO OGLY EYES CAMERA — VERSION 1.0
+// All application logic is written in vanilla JavaScript.
+// MediaPipe handles face detection and landmark tracking.
+// ============================================================
+
+import {
+  FaceLandmarker,
+  FilesetResolver
+} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+
+// Official model URL and pinned MediaPipe runtime version.
+const WASM_URL =
+  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
+
+const MODEL_URL =
+  "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
+
+// Find the HTML elements that the JavaScript needs to control.
+const video = document.getElementById("video");
+const canvas = document.getElementById("overlay");
+const ctx = canvas.getContext("2d");
+
+const placeholder = document.getElementById("placeholder");
+const startButton = document.getElementById("startButton");
+const stopButton = document.getElementById("stopButton");
+
+const statusText = document.getElementById("statusText");
+const statusDot = document.getElementById("statusDot");
+const privacyState = document.getElementById("privacyState");
+
+// Keep track of the camera, detector, and animation state.
+let cameraStream = null;
+let faceLandmarker = null;
+let animationFrameId = null;
+let isRunning = false;
+let lastVideoTime = -1;
+
+let previousFaceCenter = null;
+let previousTime = 0;
+
+// MediaPipe eye landmarks.
+// Each eye is defined by its corners and upper/lower eyelids.
+const EYE_GROUPS = [
+  {
+    corners: [33, 133],
+    upper: [159, 158, 157],
+    lower: [145, 153, 154]
+  },
+  {
+    corners: [362, 263],
+    upper: [386, 387, 388],
+    lower: [374, 380, 381]
+  }
+];
+
+// ------------------------------------------------------------
+// STATUS DISPLAY
+// Update the message and visual indicator together.
+// ------------------------------------------------------------
+
+function setStatus(message, active = false, isError = false) {
+  statusText.textContent = message;
+
+  statusText.classList.toggle("error", isError);
+  statusDot.classList.toggle("active", active);
+
+  privacyState.textContent = active
+    ? "Camera is on · Not recording"
+    : "Nothing is recording.";
+}
+
+// ------------------------------------------------------------
+// CANVAS SIZE
+// Keep the drawing canvas aligned with the camera resolution.
+// A higher pixel density helps make the eyes look sharper.
+// ------------------------------------------------------------
+
+function resizeCanvas() {
+  const width = video.videoWidth || 640;
+  const height = video.videoHeight || 480;
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  canvas.width = Math.round(width * dpr);
+  canvas.height = Math.round(height * dpr);
+
+  // Use CSS pixels as the drawing coordinate system.
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+// ------------------------------------------------------------
+// LOAD MEDIAPIPE
+// Download and initialize the face tracker only when needed.
+// The detector is reused if the user restarts the camera.
+// ------------------------------------------------------------
+
+async function getFaceLandmarker() {
+  if (faceLandmarker) {
+    return faceLandmarker;
+  }
+
+  setStatus("Loading face tracker…");
+
+  const vision = await FilesetResolver.forVisionTasks(WASM_URL);
+
+  faceLandmarker = await FaceLandmarker.createFromOptions(
+    vision,
+    {
+      baseOptions: {
+        modelAssetPath: MODEL_URL,
+        delegate: "GPU"
+      },
+
+      runningMode: "VIDEO",
+      numFaces: 1,
+
+      outputFaceBlendshapes: false,
+      outputFacialTransformationMatrixes: false
+    }
+  );
+
+  return faceLandmarker;
+}
+
+// ------------------------------------------------------------
+// START CAMERA
+// This function is called only when the Start camera button
+// is pressed. No camera permission is requested on page load.
+// ------------------------------------------------------------
+
+async function startCamera() {
+  if (isRunning) return;
+
+  startButton.disabled = true;
+
+  setStatus("Requesting camera permission…");
+
+  try {
+    // Camera access requires a secure context in most browsers.
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error(
+        "Camera access is unavailable. Open this page using HTTPS or localhost."
+      );
+    }
+
+    // Request video only. We do not request microphone access.
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+
+      video: {
+        facingMode: "user",
+        width: { ideal: 1280 },
+        height: { ideal: 960 }
+      }
+    });
+
+    // Connect the camera stream to the video element.
+    video.srcObject = cameraStream;
+
+    // Wait for the camera's dimensions to become available.
+    await new Promise((resolve, reject) => {
+      video.onloadedmetadata = resolve;
+
+      video.onerror = () => {
+        reject(new Error("The camera preview could not be opened."));
+      };
+    });
+
+    await video.play();
+
+    resizeCanvas();
+
+    // Prepare the detector before starting the tracking loop.
+    await getFaceLandmarker();
+
+    // Initialize tracking state for this camera session.
+    isRunning = true;
+    lastVideoTime = -1;
+    previousFaceCenter = null;
+    previousTime = 0;
+
+    placeholder.hidden = true;
+
+    startButton.disabled = true;
+    stopButton.disabled = false;
+
+    setStatus("Looking for a face…", true);
+
+    // Start processing camera frames.
+    animationFrameId = requestAnimationFrame(trackFace);
+
+  } catch (error) {
+    // If startup fails, stop any camera tracks that already exist.
+    stopCamera(false);
+
+    startButton.disabled = false;
+
+    let message = error.message || "Could not start the camera.";
+
+    if (error.name === "NotAllowedError") {
+      message =
+        "Camera permission was denied. Allow camera access and try again.";
+    } else if (error.name === "NotFoundError") {
+      message = "No camera was found on this device.";
+    }
+
+    setStatus(message, false, true);
+  }
+}
+
+// ------------------------------------------------------------
+// STOP CAMERA
+// Cancel animation, stop all camera tracks, clear the preview,
+// and remove the googly eyes from the screen.
+// ------------------------------------------------------------
+
+function stopCamera(updateMessage = true) {
+  isRunning = false;
+
+  if (animationFrameId !== null) {
+    cancelAnimationFrame(animationFrameId);
+  }
+
+  animationFrameId = null;
+
+  // Stopping the tracks releases the camera hardware.
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+  }
+
+  video.pause();
+  video.srcObject = null;
+
+  // Clear any remaining drawing.
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  placeholder.innerHTML = `
+    <span class="emoji" aria-hidden="true">📷</span>
+    <strong>Your camera is off</strong>
+    <span>Press "Start camera" when you're ready.</span>
+  `;
+
+  placeholder.hidden = false;
+
+  startButton.disabled = false;
+  stopButton.disabled = true;
+
+  previousFaceCenter = null;
+  previousTime = 0;
+
+  if (updateMessage) {
+    setStatus("Camera is off");
+  }
+}
+
+// ------------------------------------------------------------
+// MEASURE EACH EYE
+// Read MediaPipe's landmarks and estimate the eye's center,
+// width, and height in camera-video coordinates.
+// ------------------------------------------------------------
+
+function measureEye(landmarks, group, width, height) {
+  // Convert a normalized landmark into video pixel coordinates.
+  const point = index => ({
+    x: landmarks[index].x * width,
+    y: landmarks[index].y * height
+  });
+
+  const a = point(group.corners[0]);
+  const b = point(group.corners[1]);
+
+  const upper = group.upper.map(point);
+  const lower = group.lower.map(point);
+
+  // Estimate the center from the eye corners and eyelid positions.
+  const center = {
+    x: (a.x + b.x) / 2,
+
+    y: (
+      upper.reduce((sum, p) => sum + p.y, 0) / upper.length +
+      lower.reduce((sum, p) => sum + p.y, 0) / lower.length
+    ) / 2
+  };
+
+  // Calculate the distance between the eye corners.
+  const eyeWidth = Math.hypot(
+    b.x - a.x,
+    b.y - a.y
+  );
+
+  const upperY = Math.min(...upper.map(p => p.y));
+  const lowerY = Math.max(...lower.map(p => p.y));
+
+  const eyeHeight = Math.max(
+    lowerY - upperY,
+    eyeWidth * 0.22
+  );
+
+  return {
+    center,
+    width: eyeWidth,
+    height: eyeHeight
+  };
+}
+
+// ------------------------------------------------------------
+// DRAW A GOOGLY EYE
+// Draw an oversized white eyeball and a black pupil.
+// The pupil wobbles continuously and swings with head movement.
+// ------------------------------------------------------------
+
+function drawGooglyEye(eye, movement, time, side) {
+  const { center, width, height } = eye;
+
+  // Make the eyes substantially larger than the natural eyes.
+  const radiusX = Math.max(width * 0.72, 10);
+  const radiusY = Math.max(height * 1.45, radiusX * 0.78);
+
+  // Use sine and cosine to create a continuous playful wobble.
+  const wobbleX =
+    Math.sin(time / 105 + side * 1.7) * radiusX * 0.10;
+
+  const wobbleY =
+    Math.cos(time / 135 + side * 1.2) * radiusY * 0.08;
+
+  // Head movement makes the pupils swing in the opposite direction.
+  const pupilX = center.x + Math.max(
+    -radiusX * 0.38,
+    Math.min(
+      radiusX * 0.38,
+      -movement.x * 0.75 + wobbleX
+    )
+  );
+
+  const pupilY = center.y + Math.max(
+    -radiusY * 0.34,
+    Math.min(
+      radiusY * 0.34,
+      -movement.y * 0.65 + wobbleY
+    )
+  );
+
+  const pupilRadius = Math.max(radiusX * 0.34, 5);
+
+  // Draw a soft shadow and the white eyeball.
+  ctx.save();
+
+  ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
+  ctx.shadowBlur = Math.max(3, radiusX * 0.12);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.strokeStyle = "#252333";
+  ctx.lineWidth = Math.max(2, radiusX * 0.09);
+
+  ctx.beginPath();
+
+  ctx.ellipse(
+    center.x,
+    center.y,
+    radiusX,
+    radiusY,
+    0,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.restore();
+
+  // Clip the pupil to the white eyeball so it stays inside.
+  ctx.save();
+
+  ctx.beginPath();
+
+  ctx.ellipse(
+    center.x,
+    center.y,
+    radiusX * 0.91,
+    radiusY * 0.91,
+    0,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.clip();
+
+  // Draw the black pupil.
+  ctx.fillStyle = "#101018";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    pupilX,
+    pupilY,
+    pupilRadius,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.fill();
+
+  // Add two small white highlights for a shiny, cartoon look.
+  ctx.fillStyle = "#ffffff";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    pupilX - pupilRadius * 0.28,
+    pupilY - pupilRadius * 0.32,
+    pupilRadius * 0.20,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.fill();
+
+  ctx.beginPath();
+
+  ctx.arc(
+    pupilX + pupilRadius * 0.30,
+    pupilY + pupilRadius * 0.18,
+    pupilRadius * 0.09,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// ------------------------------------------------------------
+// FACE TRACKING LOOP
+// Process each new video frame, detect the face, measure both
+// eyes, and redraw the googly eyes in their new positions.
+// ------------------------------------------------------------
+
+function trackFace(now) {
+  if (!isRunning) return;
+
+  // Schedule the next frame while the camera remains active.
+  animationFrameId = requestAnimationFrame(trackFace);
+
+  // Avoid processing the same video frame multiple times.
+  if (
+    video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA ||
+    video.currentTime === lastVideoTime
+  ) {
+    return;
+  }
+
+  lastVideoTime = video.currentTime;
+
+  const width = video.videoWidth;
+  const height = video.videoHeight;
+
+  if (!width || !height) return;
+
+  // Ask MediaPipe to find facial landmarks in this video frame.
+  const result = faceLandmarker.detectForVideo(video, now);
+
+  // Remove the previous frame's drawings before drawing new eyes.
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const landmarks = result.faceLandmarks?.[0];
+
+  // If no face is visible, show the requested status message.
+  if (!landmarks) {
+    previousFaceCenter = null;
+    previousTime = 0;
+
+    setStatus("Looking for a face…", true);
+
+    return;
+  }
+
+  setStatus("Face found — make a silly face!", true);
+
+  // Measure the left and right eyes using facial landmarks.
+  const eyes = EYE_GROUPS.map(group =>
+    measureEye(landmarks, group, width, height)
+  );
+
+  // Use landmarks around the middle of the face to estimate movement.
+  const faceCenter = {
+    x: (landmarks[1].x + landmarks[168].x) * width / 2,
+    y: (landmarks[1].y + landmarks[168].y) * height / 2
+  };
+
+  let movement = { x: 0, y: 0 };
+
+  // Compare the current face position with the previous frame.
+  // This produces a simple estimate of head movement speed.
+  if (previousFaceCenter && previousTime) {
+    const elapsed = Math.max(16, now - previousTime);
+
+    movement = {
+      x: Math.max(
+        -18,
+        Math.min(
+          18,
+          (faceCenter.x - previousFaceCenter.x) * 100 / elapsed
+        )
+      ),
+
+      y: Math.max(
+        -18,
+        Math.min(
+          18,
+          (faceCenter.y - previousFaceCenter.y) * 100 / elapsed
+        )
+      )
+    };
+  }
+
+  previousFaceCenter = faceCenter;
+  previousTime = now;
+
+  // The video and overlay are both mirrored with CSS.
+  // Drawing in the original video coordinates keeps the eyes aligned.
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  ctx.save();
+
+  ctx.scale(
+    canvas.width / dpr / width,
+    canvas.height / dpr / height
+  );
+
+  // Draw one googly eye over each real eye.
+  drawGooglyEye(eyes[0], movement, now, 0);
+  drawGooglyEye(eyes[1], movement, now, 1);
+
+  ctx.restore();
+}
+
+// ------------------------------------------------------------
+// BUTTONS AND PAGE EVENTS
+// Start is the only action that requests camera permission.
+// Stop shuts down the stream. Resizing keeps the canvas sharp.
+// ------------------------------------------------------------
+
+startButton.addEventListener("click", startCamera);
+
+stopButton.addEventListener("click", () => {
+  stopCamera(true);
+});
+
+window.addEventListener("resize", () => {
+  if (video.videoWidth && video.videoHeight) {
+    resizeCanvas();
+  }
+});
+
+// Release the camera if the user leaves or closes the page.
+window.addEventListener("pagehide", () => {
+  stopCamera(false);
+});
+
+// The camera remains off when the page first loads.
+setStatus("Camera is off");
+</script>
+</body>
+</html>
