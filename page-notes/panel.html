@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!-- panel.html - v1.0 - initial build. Markup and styling only; all behaviour is in panel.js -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page counter</title>
+  <style>
+    /* Follow the browser's light or dark setting using built-in system colours,
+       so text always has proper contrast without picking colours by hand. */
+    :root {
+      color-scheme: light dark;
+      font: 100%/1.5 system-ui, sans-serif;
+    }
+    body {
+      margin: 0;
+      padding: 1rem;
+    }
+    h1 {
+      font-size: 1.25rem;
+      margin: 0 0 1rem;
+    }
+    h2 {
+      font-size: 1rem;
+      margin: 1.5rem 0 0.5rem;
+    }
+    /* Long web addresses must wrap instead of forcing a sideways scrollbar. */
+    p {
+      margin: 0 0 0.5rem;
+      overflow-wrap: anywhere;
+    }
+    #page-title {
+      font-weight: 600;
+    }
+    /* Each count is a label on the left and its number on the right. */
+    dl {
+      margin: 0;
+    }
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.375rem 0;
+      border-bottom: 1px solid GrayText;
+    }
+    dt, dd {
+      margin: 0;
+    }
+    dd {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+    textarea {
+      box-sizing: border-box;
+      width: 100%;
+      min-height: 8rem;
+      font: inherit;
+      resize: vertical;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Page counter</h1>
+
+    <!-- Spoken aloud by screen readers whenever its text changes. -->
+    <p id="status" role="status">Click the toolbar icon on a page to count it.</p>
+
+    <section aria-labelledby="page-heading">
+      <h2 id="page-heading">Page</h2>
+      <p id="page-title">–</p>
+      <p id="page-url">–</p>
+    </section>
+
+    <section aria-labelledby="counts-heading">
+      <h2 id="counts-heading">Counts</h2>
+      <dl>
+        <div class="stat"><dt>Words</dt><dd id="stat-words">–</dd></div>
+        <div class="stat"><dt>Estimated reading time</dt><dd id="stat-time">–</dd></div>
+        <div class="stat"><dt>Links</dt><dd id="stat-links">–</dd></div>
+        <div class="stat"><dt>Images</dt><dd id="stat-images">–</dd></div>
+        <div class="stat"><dt>Images with no alt attribute</dt><dd id="stat-no-alt">–</dd></div>
+      </dl>
+    </section>
+
+    <section aria-labelledby="note-heading">
+      <h2 id="note-heading">Note</h2>
+      <label for="note">Note about this page</label>
+      <textarea id="note" rows="8" disabled aria-describedby="note-help note-error"></textarea>
+      <p id="note-help">Saved automatically as you type, separately for each page.</p>
+      <!-- Stays empty unless saving fails; role="alert" makes it announce at once. -->
+      <p id="note-error" role="alert"></p>
+    </section>
+  </main>
+
+  <script src="panel.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Page Counter Panel",
+  "version": "1.0",
+  "description": "Counts words, links and images on the page in front of you, in a side panel, with a note for each page.",
+  "minimum_chrome_version": "116",
+  "permissions": ["activeTab", "scripting", "sidePanel"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Count this page and open the side panel"
+  },
+  "side_panel": {
+    "default_path": "panel.html"
+  }
+}
