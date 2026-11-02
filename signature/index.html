@@ -1,0 +1,1226 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Signature Pad</title>
+
+<!--
+========================================================
+SIGNATURE PAD
+Version: 1.0
+========================================================
+
+Libraries:
+- None.
+- Built entirely with vanilla JavaScript and HTML Canvas.
+
+Features:
+- Mouse, touch, and stylus drawing
+- Pointer Events API
+- Smooth signature strokes
+- High-DPI / Retina support
+- Undo and Clear
+- Custom ink color and pen width
+- Transparent PNG export
+- Automatic signature cropping
+- Responsive design
+- Accessible controls
+- No server communication
+
+Version history:
+v1.0 - Initial build
+
+========================================================
+-->
+
+<style>
+
+/* ==========================================
+   1. GLOBAL PAGE STYLING
+   ========================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 30px 16px;
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #171717;
+    color: #eeeeee;
+}
+
+.container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+h1 {
+    margin-bottom: 8px;
+    font-size: clamp(25px, 5vw, 36px);
+}
+
+.description {
+    color: #aaaaaa;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+/* ==========================================
+   2. SIGNATURE PAD CONTAINER
+   ========================================== */
+
+.signature-wrapper {
+    width: 100%;
+    overflow: hidden;
+    border: 2px solid #444444;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+/*
+   Checkerboard pattern.
+
+   This is CSS only, not part of the canvas.
+   Therefore, it will NOT appear in the exported PNG.
+*/
+
+.canvas-background {
+    width: 100%;
+    height: 350px;
+
+    background-color: #ffffff;
+
+    background-image:
+        linear-gradient(45deg, #dddddd 25%, transparent 25%),
+        linear-gradient(-45deg, #dddddd 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #dddddd 75%),
+        linear-gradient(-45deg, transparent 75%, #dddddd 75%);
+
+    background-size: 24px 24px;
+
+    background-position:
+        0 0,
+        0 12px,
+        12px -12px,
+        -12px 0;
+
+    position: relative;
+}
+
+/*
+   Canvas fills the entire signing area.
+
+   touch-action: none prevents the page from scrolling
+   when someone signs using their finger.
+
+   The canvas itself remains transparent.
+*/
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+
+    cursor: crosshair;
+
+    touch-action: none;
+
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* ==========================================
+   3. CONTROL PANEL
+   ========================================== */
+
+.controls {
+    margin-top: 20px;
+    padding: 20px;
+    background: #222222;
+    border: 1px solid #383838;
+    border-radius: 12px;
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 18px;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+label {
+    font-size: 13px;
+    font-weight: bold;
+    color: #cccccc;
+}
+
+input[type="color"] {
+    width: 55px;
+    height: 40px;
+    padding: 3px;
+    border: 1px solid #555555;
+    border-radius: 6px;
+    background: #333333;
+    cursor: pointer;
+}
+
+input[type="range"] {
+    width: 150px;
+    accent-color: #b83250;
+    cursor: pointer;
+}
+
+.width-display {
+    color: #aaaaaa;
+    font-size: 12px;
+}
+
+/* ==========================================
+   4. BUTTONS
+   ========================================== */
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-left: auto;
+    align-items: center;
+}
+
+button {
+    border: none;
+    border-radius: 7px;
+    padding: 12px 19px;
+
+    font-size: 14px;
+    font-weight: bold;
+
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+}
+
+button:hover:not(:disabled) {
+    transform: translateY(-2px);
+}
+
+button:focus-visible,
+input:focus-visible {
+    outline: 3px solid #e66b89;
+    outline-offset: 3px;
+}
+
+button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.undo-button {
+    background: #444444;
+    color: white;
+}
+
+.undo-button:hover:not(:disabled) {
+    background: #555555;
+}
+
+.clear-button {
+    background: #713040;
+    color: white;
+}
+
+.clear-button:hover {
+    background: #914057;
+}
+
+.save-button {
+    background: #b83250;
+    color: white;
+}
+
+.save-button:hover {
+    background: #d14363;
+}
+
+/* ==========================================
+   5. FOOTER / HELPER TEXT
+   ========================================== */
+
+.instructions {
+    margin-top: 15px;
+    color: #999999;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.status {
+    min-height: 22px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: #e58ba0;
+}
+
+/* ==========================================
+   6. MOBILE RESPONSIVENESS
+   ========================================== */
+
+@media (max-width: 650px) {
+
+    body {
+        padding: 20px 12px;
+    }
+
+    .canvas-background {
+        height: 280px;
+    }
+
+    .controls {
+        gap: 16px;
+    }
+
+    .button-group {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .button-group button {
+        flex: 1;
+        padding: 12px 10px;
+    }
+
+    input[type="range"] {
+        width: 125px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<main class="container">
+
+    <h1>✍️ Signature Pad</h1>
+
+    <p class="description">
+        Sign in the box below using your mouse, finger, or stylus.
+        Your signature stays on this device.
+    </p>
+
+    <!-- ======================================
+         SIGNING AREA
+         ====================================== -->
+
+    <section
+        class="signature-wrapper"
+        aria-label="Signature drawing area"
+    >
+
+        <div class="canvas-background">
+
+            <canvas
+                id="signatureCanvas"
+                aria-label="Draw your signature here using a mouse, finger, or stylus"
+                role="img"
+            ></canvas>
+
+        </div>
+
+    </section>
+
+    <!-- ======================================
+         SIGNATURE CONTROLS
+         ====================================== -->
+
+    <section class="controls" aria-label="Signature settings">
+
+        <!-- Ink color -->
+
+        <div class="control-group">
+
+            <label for="inkColor">Ink Color</label>
+
+            <input
+                type="color"
+                id="inkColor"
+                value="#111111"
+                aria-label="Choose signature ink color"
+            >
+
+        </div>
+
+        <!-- Pen width -->
+
+        <div class="control-group">
+
+            <label for="penWidth">Pen Width</label>
+
+            <input
+                type="range"
+                id="penWidth"
+                min="1"
+                max="15"
+                value="3"
+                step="0.5"
+                aria-label="Adjust pen thickness"
+            >
+
+            <span class="width-display" id="widthDisplay">
+                3 px
+            </span>
+
+        </div>
+
+        <!-- Buttons -->
+
+        <div class="button-group">
+
+            <button
+                class="undo-button"
+                id="undoButton"
+                type="button"
+                disabled
+                aria-label="Undo last signature stroke"
+            >
+                ↶ Undo
+            </button>
+
+            <button
+                class="clear-button"
+                id="clearButton"
+                type="button"
+                aria-label="Clear entire signature"
+            >
+                Clear
+            </button>
+
+            <button
+                class="save-button"
+                id="saveButton"
+                type="button"
+                aria-label="Download signature as transparent PNG"
+            >
+                ↓ Save as PNG
+            </button>
+
+        </div>
+
+    </section>
+
+    <p class="instructions">
+        Tip: The checkerboard represents transparency.
+        It will not appear in your downloaded image.
+        Use Undo to remove your last stroke.
+    </p>
+
+    <p
+        class="status"
+        id="statusMessage"
+        role="status"
+        aria-live="polite"
+    ></p>
+
+</main>
+
+<script>
+
+/* ==================================================
+   1. GET HTML ELEMENTS
+   ==================================================
+
+   Store references to all the elements we need.
+
+   This makes it easier to work with the canvas,
+   buttons, and customization controls.
+
+================================================== */
+
+const canvas = document.getElementById("signatureCanvas");
+
+const ctx = canvas.getContext("2d");
+
+const inkColor = document.getElementById("inkColor");
+
+const penWidth = document.getElementById("penWidth");
+
+const widthDisplay = document.getElementById("widthDisplay");
+
+const undoButton = document.getElementById("undoButton");
+
+const clearButton = document.getElementById("clearButton");
+
+const saveButton = document.getElementById("saveButton");
+
+const statusMessage = document.getElementById("statusMessage");
+
+
+/* ==================================================
+   2. SIGNATURE DATA
+   ==================================================
+
+   Instead of permanently drawing everything without
+   keeping track of it, we store each stroke.
+
+   This lets us:
+   - Undo individual strokes.
+   - Redraw the signature after resizing.
+   - Keep the signature looking sharp.
+
+   Each stroke stores:
+   - Its points.
+   - Its ink color.
+   - Its pen width.
+
+================================================== */
+
+let strokes = [];
+
+let currentStroke = null;
+
+let isDrawing = false;
+
+let activePointerId = null;
+
+let canvasWidth = 0;
+
+let canvasHeight = 0;
+
+let pixelRatio = 1;
+
+
+/* ==================================================
+   3. SET UP THE CANVAS
+   ==================================================
+
+   Modern phones have high-density screens.
+
+   We increase the internal canvas resolution using
+   devicePixelRatio so the signature looks sharp
+   instead of blurry or pixelated.
+
+   The CSS size stays the same. Only the internal
+   drawing resolution changes.
+
+================================================== */
+
+function resizeCanvas() {
+
+    const rect = canvas.getBoundingClientRect();
+
+    // Remember the visible canvas dimensions.
+    canvasWidth = rect.width;
+
+    canvasHeight = rect.height;
+
+    // Detect the screen's pixel density.
+    pixelRatio = Math.max(1, window.devicePixelRatio || 1);
+
+    // Set the actual internal canvas resolution.
+    canvas.width = Math.round(canvasWidth * pixelRatio);
+
+    canvas.height = Math.round(canvasHeight * pixelRatio);
+
+    // Make drawing coordinates match CSS pixels.
+    ctx.setTransform(
+        pixelRatio,
+        0,
+        0,
+        pixelRatio,
+        0,
+        0
+    );
+
+    // Use smooth line rendering.
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    // Redraw existing strokes after resizing.
+    redrawSignature();
+
+}
+
+
+/* ==================================================
+   4. GET POINTER POSITION
+   ==================================================
+
+   Pointer Events work with:
+   - Mouse
+   - Touch
+   - Stylus
+
+   We convert the pointer position into coordinates
+   relative to the canvas.
+
+   Normalized coordinates allow us to redraw the
+   signature correctly if the screen changes size.
+
+================================================== */
+
+function getPointerPosition(event) {
+
+    const rect = canvas.getBoundingClientRect();
+
+    return {
+
+        x: (event.clientX - rect.left) / rect.width,
+
+        y: (event.clientY - rect.top) / rect.height
+
+    };
+
+}
+
+
+/* ==================================================
+   5. DRAW A SMOOTH STROKE
+   ==================================================
+
+   We use quadratic Bézier curves rather than simply
+   connecting every point with straight lines.
+
+   The midpoint between consecutive points becomes
+   the endpoint of a smooth curve.
+
+   This creates much smoother signatures.
+
+================================================== */
+
+function drawStroke(stroke) {
+
+    if (!stroke || stroke.points.length === 0) {
+        return;
+    }
+
+    const points = stroke.points;
+
+    // Apply the stroke's saved color and thickness.
+    ctx.strokeStyle = stroke.color;
+
+    ctx.fillStyle = stroke.color;
+
+    ctx.lineWidth = stroke.width;
+
+    ctx.lineCap = "round";
+
+    ctx.lineJoin = "round";
+
+    // Convert normalized points into canvas coordinates.
+    const firstPoint = points[0];
+
+    const firstX = firstPoint.x * canvasWidth;
+
+    const firstY = firstPoint.y * canvasHeight;
+
+    // A single point should still produce a visible dot.
+    if (points.length === 1) {
+
+        ctx.beginPath();
+
+        ctx.arc(
+            firstX,
+            firstY,
+            stroke.width / 2,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+        return;
+    }
+
+    // Start a new smooth path.
+    ctx.beginPath();
+
+    ctx.moveTo(firstX, firstY);
+
+    /*
+       Draw quadratic curves through the stored points.
+
+       Each point acts as a control point, and the
+       midpoint becomes the next curve endpoint.
+    */
+
+    for (let i = 1; i < points.length; i++) {
+
+        const previous = points[i - 1];
+
+        const current = points[i];
+
+        const midX =
+            ((previous.x + current.x) / 2) * canvasWidth;
+
+        const midY =
+            ((previous.y + current.y) / 2) * canvasHeight;
+
+        ctx.quadraticCurveTo(
+            previous.x * canvasWidth,
+            previous.y * canvasHeight,
+            midX,
+            midY
+        );
+
+    }
+
+    // Finish the curve at the final point.
+    const lastPoint = points[points.length - 1];
+
+    ctx.lineTo(
+        lastPoint.x * canvasWidth,
+        lastPoint.y * canvasHeight
+    );
+
+    ctx.stroke();
+
+}
+
+
+/* ==================================================
+   6. REDRAW THE ENTIRE SIGNATURE
+   ==================================================
+
+   Clears the canvas and replays every saved stroke.
+
+   This function is used by:
+   - Undo
+   - Clear
+   - Canvas resizing
+
+   Notice that we never paint a white background.
+   The canvas remains transparent.
+
+================================================== */
+
+function redrawSignature() {
+
+    ctx.clearRect(
+        0,
+        0,
+        canvasWidth,
+        canvasHeight
+    );
+
+    // Draw every saved stroke in order.
+    strokes.forEach(function(stroke) {
+
+        drawStroke(stroke);
+
+    });
+
+    updateUndoButton();
+
+}
+
+
+/* ==================================================
+   7. UPDATE UNDO BUTTON
+   ==================================================
+
+   Undo should only be available when there is
+   something to undo.
+
+================================================== */
+
+function updateUndoButton() {
+
+    undoButton.disabled = strokes.length === 0;
+
+}
+
+
+/* ==================================================
+   8. POINTER DOWN
+   ==================================================
+
+   This happens when someone starts signing.
+
+   We:
+   - Capture the pointer.
+   - Remember the current ink color.
+   - Remember the current pen width.
+   - Start a new stroke.
+
+================================================== */
+
+canvas.addEventListener("pointerdown", function(event) {
+
+    // Prevent browser defaults such as touch gestures.
+    event.preventDefault();
+
+    // Ignore another pointer while a stroke is active.
+    if (isDrawing) {
+        return;
+    }
+
+    isDrawing = true;
+
+    activePointerId = event.pointerId;
+
+    // Keep receiving pointer events even if the pointer
+    // briefly moves outside the canvas.
+    canvas.setPointerCapture(event.pointerId);
+
+    // Create a new stroke with its own settings.
+    currentStroke = {
+
+        color: inkColor.value,
+
+        width: Number(penWidth.value),
+
+        points: []
+
+    };
+
+    // Record the first position.
+    currentStroke.points.push(
+        getPointerPosition(event)
+    );
+
+    // Add the stroke to the signature history.
+    strokes.push(currentStroke);
+
+    // Draw the initial dot immediately.
+    redrawSignature();
+
+});
+
+
+/* ==================================================
+   9. POINTER MOVE
+   ==================================================
+
+   This happens while someone is signing.
+
+   We collect the pointer positions and redraw the
+   active stroke to create smooth lines.
+
+   Pointer events may contain multiple coalesced
+   samples, especially with styluses.
+
+================================================== */
+
+canvas.addEventListener("pointermove", function(event) {
+
+    if (!isDrawing || event.pointerId !== activePointerId) {
+        return;
+    }
+
+    event.preventDefault();
+
+    // Get all available pointer samples when supported.
+    const events = typeof event.getCoalescedEvents === "function"
+        ? event.getCoalescedEvents()
+        : [event];
+
+    events.forEach(function(pointerEvent) {
+
+        currentStroke.points.push(
+            getPointerPosition(pointerEvent)
+        );
+
+    });
+
+    // Redraw the signature with the new points.
+    redrawSignature();
+
+});
+
+
+/* ==================================================
+   10. END THE STROKE
+   ==================================================
+
+   A stroke can finish when:
+   - The mouse button is released.
+   - A finger is lifted.
+   - A stylus is lifted.
+   - The browser cancels pointer interaction.
+
+================================================== */
+
+function endStroke(event) {
+
+    if (!isDrawing || event.pointerId !== activePointerId) {
+        return;
+    }
+
+    isDrawing = false;
+
+    currentStroke = null;
+
+    activePointerId = null;
+
+    updateUndoButton();
+
+}
+
+canvas.addEventListener("pointerup", endStroke);
+
+canvas.addEventListener("pointercancel", endStroke);
+
+canvas.addEventListener("lostpointercapture", function(event) {
+
+    // If pointer capture is unexpectedly lost,
+    // make sure drawing is no longer marked as active.
+    if (event.pointerId === activePointerId) {
+
+        isDrawing = false;
+
+        currentStroke = null;
+
+        activePointerId = null;
+
+        updateUndoButton();
+
+    }
+
+});
+
+
+/* ==================================================
+   11. UNDO BUTTON
+   ==================================================
+
+   Remove the most recently completed or active stroke.
+
+   Then redraw everything that remains.
+
+================================================== */
+
+undoButton.addEventListener("click", function() {
+
+    if (strokes.length === 0) {
+        return;
+    }
+
+    // Stop an active stroke before removing it.
+    if (isDrawing) {
+
+        if (activePointerId !== null &&
+            canvas.hasPointerCapture(activePointerId)) {
+
+            canvas.releasePointerCapture(activePointerId);
+
+        }
+
+        isDrawing = false;
+
+        currentStroke = null;
+
+        activePointerId = null;
+
+    }
+
+    // Remove the last stroke.
+    strokes.pop();
+
+    redrawSignature();
+
+    statusMessage.textContent = "Last stroke undone.";
+
+});
+
+
+/* ==================================================
+   12. CLEAR BUTTON
+   ==================================================
+
+   Completely removes the signature.
+
+================================================== */
+
+clearButton.addEventListener("click", function() {
+
+    if (isDrawing) {
+
+        if (activePointerId !== null &&
+            canvas.hasPointerCapture(activePointerId)) {
+
+            canvas.releasePointerCapture(activePointerId);
+
+        }
+
+        isDrawing = false;
+
+        currentStroke = null;
+
+        activePointerId = null;
+
+    }
+
+    strokes = [];
+
+    redrawSignature();
+
+    statusMessage.textContent = "Signature cleared.";
+
+});
+
+
+/* ==================================================
+   13. PEN WIDTH DISPLAY
+   ==================================================
+
+   Update the displayed number whenever the slider
+   changes.
+
+================================================== */
+
+penWidth.addEventListener("input", function() {
+
+    widthDisplay.textContent = penWidth.value + " px";
+
+});
+
+
+/* ==================================================
+   14. EXPORT SIGNATURE AS TRANSPARENT PNG
+   ==================================================
+
+   This is one of the most important features.
+
+   We:
+   1. Read the canvas pixel data.
+   2. Find the smallest rectangle containing ink.
+   3. Add a little transparent padding.
+   4. Copy those pixels to a temporary canvas.
+   5. Download the result as a PNG.
+
+   Because the checkerboard is CSS, it is never
+   included in the exported image.
+
+================================================== */
+
+function saveSignature() {
+
+    // Don't save an empty canvas.
+    if (strokes.length === 0) {
+
+        statusMessage.textContent =
+            "Please draw a signature before saving.";
+
+        return;
+
+    }
+
+    // Get all canvas pixel information.
+    const imageData = ctx.getImageData(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    const pixels = imageData.data;
+
+    const width = canvas.width;
+
+    const height = canvas.height;
+
+    // Start with bounds outside the image.
+    let minX = width;
+
+    let minY = height;
+
+    let maxX = -1;
+
+    let maxY = -1;
+
+    /*
+       Each pixel has four values:
+
+       Red, Green, Blue, Alpha.
+
+       Alpha tells us whether the pixel is transparent.
+
+       We only include pixels that contain visible ink.
+    */
+
+    for (let y = 0; y < height; y++) {
+
+        for (let x = 0; x < width; x++) {
+
+            const index = (y * width + x) * 4;
+
+            const alpha = pixels[index + 3];
+
+            if (alpha > 0) {
+
+                if (x < minX) minX = x;
+
+                if (y < minY) minY = y;
+
+                if (x > maxX) maxX = x;
+
+                if (y > maxY) maxY = y;
+
+            }
+
+        }
+
+    }
+
+    // No visible pixels were found.
+    if (maxX === -1) {
+
+        statusMessage.textContent =
+            "No visible signature found.";
+
+        return;
+
+    }
+
+    /*
+       Add a little breathing room around the signature.
+
+       The padding is measured in actual image pixels.
+    */
+
+    const padding = Math.round(12 * pixelRatio);
+
+    const cropX = Math.max(0, minX - padding);
+
+    const cropY = Math.max(0, minY - padding);
+
+    const cropRight = Math.min(
+        width,
+        maxX + padding + 1
+    );
+
+    const cropBottom = Math.min(
+        height,
+        maxY + padding + 1
+    );
+
+    const cropWidth = cropRight - cropX;
+
+    const cropHeight = cropBottom - cropY;
+
+    // Create a temporary canvas for the cropped image.
+    const exportCanvas = document.createElement("canvas");
+
+    exportCanvas.width = cropWidth;
+
+    exportCanvas.height = cropHeight;
+
+    const exportContext = exportCanvas.getContext("2d");
+
+    /*
+       Copy the signature pixels directly.
+
+       The new canvas starts transparent, so the exported
+       PNG keeps its transparent background.
+    */
+
+    exportContext.putImageData(
+
+        ctx.getImageData(
+            cropX,
+            cropY,
+            cropWidth,
+            cropHeight
+        ),
+
+        0,
+        0
+
+    );
+
+    // Convert the temporary canvas into a PNG file.
+    exportCanvas.toBlob(function(blob) {
+
+        if (!blob) {
+
+            statusMessage.textContent =
+                "Unable to create PNG. Please try again.";
+
+            return;
+
+        }
+
+        // Create a temporary download URL.
+        const downloadURL = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+
+        link.href = downloadURL;
+
+        link.download = "my-signature.png";
+
+        // Trigger the download.
+        document.body.appendChild(link);
+
+        link.click();
+
+        link.remove();
+
+        // Release the temporary URL.
+        setTimeout(function() {
+
+            URL.revokeObjectURL(downloadURL);
+
+        }, 1000);
+
+        statusMessage.textContent =
+            "Your transparent PNG signature has been saved!";
+
+    }, "image/png");
+
+}
+
+
+/* ==================================================
+   15. CONNECT SAVE BUTTON
+   ================================================== */
+
+saveButton.addEventListener("click", saveSignature);
+
+
+/* ==================================================
+   16. HANDLE SCREEN RESIZING
+   ==================================================
+
+   If the user rotates their phone, resizes their
+   browser, or changes screen size, we resize the
+   canvas and redraw the saved signature.
+
+   This preserves the signature instead of deleting it.
+
+================================================== */
+
+const resizeObserver = new ResizeObserver(function() {
+
+    resizeCanvas();
+
+});
+
+resizeObserver.observe(canvas);
+
+
+/* ==================================================
+   17. INITIALIZE THE SIGNATURE PAD
+   ==================================================
+
+   Set up the canvas when the page first loads.
+
+================================================== */
+
+resizeCanvas();
+
+updateUndoButton();
+
+</script>
+
+</body>
+</html>
