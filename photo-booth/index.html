@@ -1,0 +1,1283 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Midnight Photo Booth</title>
+
+<!--
+MIDNIGHT PHOTO BOOTH — v1.0
+Libraries: None.
+Vanilla HTML, CSS and JavaScript only.
+All camera processing happens locally in the browser.
+No photos or camera data are sent to a server.
+-->
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #100e13;
+  --panel: #1b1720;
+  --accent: #d33d61;
+  --ink: #f7f1f6;
+  --muted: #b8aeba;
+  --line: #453744;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 28px 16px 48px;
+  background: radial-gradient(ellipse at 50% -20%, #492437, transparent 55%), var(--bg);
+  color: var(--ink);
+  font-family: system-ui, sans-serif;
+}
+
+button, a { font: inherit; }
+
+button {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 16px;
+  color: var(--ink);
+  background: #241e29;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: #352330;
+}
+
+button:focus-visible, a:focus-visible {
+  outline: 3px solid #ffd0dc;
+  outline-offset: 3px;
+}
+
+button:disabled {
+  opacity: .48;
+  cursor: not-allowed;
+}
+
+.page {
+  width: min(100%, 1000px);
+  margin: auto;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  color: #f08aa4;
+  font-size: .76rem;
+  font-weight: 800;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-family: Georgia, serif;
+  font-size: clamp(2.3rem, 7vw, 4.3rem);
+}
+
+header p { color: var(--muted); }
+
+.booth-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, .8fr);
+  gap: 20px;
+}
+
+.panel {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(160deg, #211a25, #17141b);
+  box-shadow: 0 18px 50px #0005;
+}
+
+.panel h2 {
+  margin: 0 0 14px;
+  font-size: 1.08rem;
+}
+
+.camera-frame {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  min-height: 240px;
+  aspect-ratio: 4 / 3;
+  border: 1px solid #5a4051;
+  border-radius: 13px;
+  background: radial-gradient(circle, #352b39, #17131b);
+}
+
+#cameraCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.camera-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 8px;
+  padding: 20px;
+  color: var(--muted);
+  text-align: center;
+  pointer-events: none;
+}
+
+.camera-placeholder strong { color: var(--ink); }
+
+.camera-icon { font-size: 2.7rem; }
+
+.flash {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.flash.flash-on {
+  animation: camera-flash .18s ease-out;
+}
+
+@keyframes camera-flash {
+  0% { opacity: .98; }
+  100% { opacity: 0; }
+}
+
+.countdown {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-size: clamp(5rem, 18vw, 10rem);
+  font-weight: 900;
+  text-shadow: 0 5px 30px #000b;
+  pointer-events: none;
+}
+
+.countdown[hidden] { display: none; }
+
+.control-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.primary {
+  border-color: transparent;
+  background: var(--accent);
+  color: white;
+  font-weight: 750;
+}
+
+.primary:hover:not(:disabled) { background: #f05278; }
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.filter-button {
+  padding-inline: 8px;
+  font-size: .9rem;
+}
+
+.filter-button[aria-pressed="true"] {
+  border-color: #ff8aa8;
+  background: #5a293e;
+  box-shadow: inset 0 0 0 1px #ff8aa8;
+}
+
+.section-label {
+  display: block;
+  margin: 20px 0 9px;
+  color: #e9c4d0;
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.hint, .privacy-note {
+  color: var(--muted);
+  font-size: .88rem;
+  line-height: 1.5;
+}
+
+.status {
+  min-height: 1.5em;
+  margin-top: 12px;
+  color: #f2c6d3;
+  font-size: .9rem;
+}
+
+.permission-help {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #79536a;
+  border-radius: 12px;
+  background: #2a1d29;
+  color: #f3dce5;
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+.permission-help[hidden] { display: none; }
+
+.permission-help ol { padding-left: 22px; }
+
+.strip-panel { margin-top: 20px; }
+
+.strip-area {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+}
+
+#stripCanvas {
+  display: block;
+  width: min(100%, 320px);
+  height: auto;
+  border: 1px solid #604b5b;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 12px 32px #0007;
+}
+
+.empty-strip {
+  width: min(100%, 320px);
+  min-height: 120px;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  border: 1px dashed #6b5264;
+  border-radius: 10px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.download-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: white;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.download-link[hidden] { display: none; }
+
+footer {
+  margin-top: 22px;
+  color: #958996;
+  text-align: center;
+  font-size: .78rem;
+}
+
+@media (max-width: 720px) {
+  body { padding: 20px 12px 36px; }
+  .booth-layout { grid-template-columns: 1fr; }
+  .panel { padding: 14px; }
+  .camera-frame { min-height: 200px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="page">
+
+<header>
+  <p class="eyebrow">A little midnight magic</p>
+  <h1>Photo Booth</h1>
+  <p>Get your pose ready. Four snapshots, one classic photo strip.</p>
+</header>
+
+<div class="booth-layout">
+
+<section class="panel" aria-labelledby="camera-heading">
+
+<h2 id="camera-heading">Your camera</h2>
+
+<div class="camera-frame">
+
+  <canvas id="cameraCanvas"
+    width="640"
+    height="480"
+    role="img"
+    aria-label="Mirrored live camera preview">
+  </canvas>
+
+  <div class="camera-placeholder" id="cameraPlaceholder">
+    <span class="camera-icon" aria-hidden="true">✦</span>
+    <strong>Your mirror is waiting</strong>
+    <span>Press Start camera when you're ready.</span>
+  </div>
+
+  <div class="countdown" id="countdown" aria-hidden="true" hidden></div>
+  <div class="flash" id="flash" aria-hidden="true"></div>
+
+</div>
+
+<div class="control-row">
+  <button class="primary" id="startButton">Start camera</button>
+  <button id="stopButton" disabled>Stop camera</button>
+</div>
+
+<p class="section-label">Choose a filter</p>
+
+<div class="filters" role="group" aria-label="Photo filters">
+  <button class="filter-button" data-filter="none" aria-pressed="true">None</button>
+  <button class="filter-button" data-filter="bw" aria-pressed="false">Black &amp; White</button>
+  <button class="filter-button" data-filter="old" aria-pressed="false">Old photo</button>
+  <button class="filter-button" data-filter="pop" aria-pressed="false">Pop art</button>
+  <button class="filter-button" data-filter="negative" aria-pressed="false">Negative</button>
+</div>
+
+<div class="control-row">
+  <button class="primary" id="takeButton" disabled>Take 4 photos</button>
+</div>
+
+<p class="hint">The camera stays off until you start it. You can stop it at any time.</p>
+
+<p class="status" id="status" role="status" aria-live="polite">
+  Camera is off.
+</p>
+
+<div class="permission-help" id="permissionHelp" role="note" hidden>
+  <strong>Camera permission was blocked.</strong>
+  <p>To turn it back on:</p>
+  <ol>
+    <li>Click the site-settings icon beside the address in your browser.</li>
+    <li>Find Camera and change it to Allow.</li>
+    <li>Make sure the correct camera is selected, then press Start camera again.</li>
+  </ol>
+  <p>If you don't see the camera setting, open browser Settings → Privacy and security → Site settings → Camera.</p>
+  <p>This page usually needs HTTPS or localhost to use a camera.</p>
+</div>
+
+<p class="privacy-note">
+  🔒 Private by design: your camera feed and photos stay on this device.
+  Nothing is uploaded.
+</p>
+
+</section>
+
+<aside class="panel">
+
+<h2>The booth rules</h2>
+
+<p class="hint">1. Start the camera when you're ready.</p>
+<p class="hint">2. Pick a filter. It applies to the preview and all four pictures.</p>
+<p class="hint">3. Press Take 4 photos. A big countdown appears before every shot.</p>
+<p class="hint">4. Your finished strip appears below. Save it as a PNG.</p>
+<p class="hint">Tip: Find some good light, look toward the camera, and try a different pose for each shot.</p>
+
+</aside>
+</div>
+
+<section class="panel strip-panel">
+
+<h2>Your photo strip</h2>
+
+<div class="strip-area">
+
+  <div class="empty-strip" id="emptyStrip">
+    Your four-photo strip will appear here.
+  </div>
+
+  <canvas id="stripCanvas"
+    width="640"
+    height="1760"
+    role="img"
+    aria-label="Your four-photo strip"
+    hidden>
+  </canvas>
+
+  <a class="download-link"
+    id="downloadLink"
+    href="#"
+    download="midnight-photo-strip.png"
+    hidden>
+    Download photo strip PNG
+  </a>
+
+</div>
+</section>
+
+<footer>Made for silly faces, dramatic poses, and memories. ♡</footer>
+
+</main>
+
+<script>
+"use strict";
+
+/*
+  VERSION 1.0
+
+  1. COLLECT PAGE ELEMENTS
+
+  Get references to the HTML elements we need.
+  The video element is created with JavaScript and is never
+  directly displayed on the page.
+*/
+
+const video = document.createElement("video");
+video.autoplay = true;
+video.playsInline = true;
+video.muted = true;
+
+const cameraCanvas = document.getElementById("cameraCanvas");
+const cameraContext = cameraCanvas.getContext("2d", {
+  willReadFrequently: true
+});
+
+const workCanvas = document.createElement("canvas");
+const workContext = workCanvas.getContext("2d", {
+  willReadFrequently: true
+});
+
+const startButton = document.getElementById("startButton");
+const stopButton = document.getElementById("stopButton");
+const takeButton = document.getElementById("takeButton");
+
+const statusText = document.getElementById("status");
+const placeholder = document.getElementById("cameraPlaceholder");
+const permissionHelp = document.getElementById("permissionHelp");
+
+const countdownElement = document.getElementById("countdown");
+const flashElement = document.getElementById("flash");
+
+const stripCanvas = document.getElementById("stripCanvas");
+const stripContext = stripCanvas.getContext("2d");
+
+const emptyStrip = document.getElementById("emptyStrip");
+const downloadLink = document.getElementById("downloadLink");
+
+const filterButtons = [
+  ...document.querySelectorAll(".filter-button")
+];
+
+
+/*
+  2. APPLICATION VARIABLES
+
+  Keep track of whether the camera is running,
+  which filter is selected, and whether photos are being taken.
+*/
+
+let cameraStream = null;
+let currentFilter = "none";
+let animationFrame = null;
+let lastPreviewTime = 0;
+let isTakingPhotos = false;
+let sequenceNumber = 0;
+let capturedPhotos = [];
+
+const reducedMotion = window.matchMedia(
+  "(prefers-reduced-motion: reduce)"
+);
+
+
+/*
+  3. PIXEL FILTERS
+
+  These filters modify the actual red, green, and blue
+  values of each pixel. They do not use CSS filters.
+*/
+
+function applyPixelFilter(imageData, filterName) {
+
+  const pixels = imageData.data;
+
+  for (let i = 0; i < pixels.length; i += 4) {
+
+    let red = pixels[i];
+    let green = pixels[i + 1];
+    let blue = pixels[i + 2];
+
+    // BLACK AND WHITE
+    if (filterName === "bw") {
+
+      const gray =
+        0.299 * red +
+        0.587 * green +
+        0.114 * blue;
+
+      red = gray;
+      green = gray;
+      blue = gray;
+
+    }
+
+    // OLD PHOTO / SEPIA
+    else if (filterName === "old") {
+
+      const oldRed =
+        0.393 * red +
+        0.769 * green +
+        0.189 * blue;
+
+      const oldGreen =
+        0.349 * red +
+        0.686 * green +
+        0.168 * blue;
+
+      const oldBlue =
+        0.272 * red +
+        0.534 * green +
+        0.131 * blue;
+
+      const grain = ((i * 17) % 13) - 6;
+
+      red = oldRed + grain;
+      green = oldGreen + grain;
+      blue = oldBlue + grain;
+
+    }
+
+    // POP ART
+    else if (filterName === "pop") {
+
+      const posterize = value =>
+        Math.round(value / 64) * 85;
+
+      red = Math.min(255, posterize(red) * 1.12);
+      green = Math.min(255, posterize(green) * 1.08);
+      blue = Math.min(255, posterize(blue) * 1.18);
+
+    }
+
+    // NEGATIVE
+    else if (filterName === "negative") {
+
+      red = 255 - red;
+      green = 255 - green;
+      blue = 255 - blue;
+
+    }
+
+    // Keep color values between 0 and 255.
+    pixels[i] = Math.max(0, Math.min(255, red));
+    pixels[i + 1] = Math.max(0, Math.min(255, green));
+    pixels[i + 2] = Math.max(0, Math.min(255, blue));
+
+  }
+
+  return imageData;
+}
+
+
+/*
+  4. DRAW THE MIRRORED CAMERA
+
+  Draw the camera onto a hidden canvas.
+  Flip the image horizontally to create a mirror effect.
+  Apply the selected pixel filter.
+  Copy the finished image onto the visible canvas.
+*/
+
+function drawMirroredFrame() {
+
+  if (
+    !cameraStream ||
+    video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA
+  ) {
+    return;
+  }
+
+  const width = cameraCanvas.width;
+  const height = cameraCanvas.height;
+
+  workCanvas.width = width;
+  workCanvas.height = height;
+
+  workContext.save();
+
+  workContext.clearRect(0, 0, width, height);
+
+  // Flip the camera image horizontally.
+  workContext.translate(width, 0);
+  workContext.scale(-1, 1);
+
+  workContext.drawImage(video, 0, 0, width, height);
+
+  workContext.restore();
+
+  try {
+
+    // Read the image's individual pixels.
+    const frame = workContext.getImageData(
+      0, 0, width, height
+    );
+
+    // Apply the selected filter.
+    applyPixelFilter(frame, currentFilter);
+
+    // Put the modified pixels back onto the canvas.
+    workContext.putImageData(frame, 0, 0);
+
+    cameraContext.clearRect(0, 0, width, height);
+    cameraContext.drawImage(workCanvas, 0, 0);
+
+  } catch (error) {
+
+    // Fallback: draw the mirrored image without a filter.
+    cameraContext.save();
+    cameraContext.translate(width, 0);
+    cameraContext.scale(-1, 1);
+
+    cameraContext.drawImage(video, 0, 0, width, height);
+
+    cameraContext.restore();
+
+  }
+}
+
+
+/*
+  5. LIVE PREVIEW LOOP
+
+  Refresh the camera preview continuously.
+  Limit processing to approximately 22 frames per second
+  to help performance on phones and older computers.
+*/
+
+function previewLoop(timestamp) {
+
+  if (!cameraStream) return;
+
+  if (timestamp - lastPreviewTime >= 45) {
+
+    drawMirroredFrame();
+    lastPreviewTime = timestamp;
+
+  }
+
+  animationFrame = requestAnimationFrame(previewLoop);
+}
+
+
+/*
+  6. START CAMERA
+
+  The camera is only requested after the user presses
+  the Start camera button.
+
+  If permission is denied, show instructions explaining
+  how to allow camera access again.
+*/
+
+async function startCamera() {
+
+  if (cameraStream) return;
+
+  permissionHelp.hidden = true;
+  statusText.textContent =
+    "Asking your browser for camera access…";
+
+  startButton.disabled = true;
+
+  if (
+    !navigator.mediaDevices ||
+    !navigator.mediaDevices.getUserMedia
+  ) {
+
+    statusText.textContent =
+      "Camera access is unavailable in this browser or page context.";
+
+    permissionHelp.hidden = false;
+    startButton.disabled = false;
+
+    return;
+  }
+
+  try {
+
+    cameraStream =
+      await navigator.mediaDevices.getUserMedia({
+
+        audio: false,
+
+        video: {
+          facingMode: "user",
+          width: { ideal: 1280 },
+          height: { ideal: 960 }
+        }
+
+      });
+
+    video.srcObject = cameraStream;
+
+    await video.play();
+
+    placeholder.hidden = true;
+
+    startButton.disabled = true;
+    stopButton.disabled = false;
+    takeButton.disabled = false;
+
+    statusText.textContent =
+      "Camera is on. Strike a pose!";
+
+    lastPreviewTime = 0;
+
+    animationFrame = requestAnimationFrame(previewLoop);
+
+  } catch (error) {
+
+    cameraStream = null;
+
+    startButton.disabled = false;
+    stopButton.disabled = true;
+    takeButton.disabled = true;
+
+    permissionHelp.hidden = false;
+
+    if (
+      error &&
+      (
+        error.name === "NotAllowedError" ||
+        error.name === "PermissionDeniedError"
+      )
+    ) {
+
+      statusText.textContent =
+        "Camera permission was denied. Follow the instructions below and try again.";
+
+    } else if (
+      error &&
+      error.name === "NotFoundError"
+    ) {
+
+      statusText.textContent =
+        "No camera was found. Connect or enable a camera and try again.";
+
+    } else {
+
+      statusText.textContent =
+        "The camera could not start. Check your browser permissions and try again.";
+
+    }
+
+  }
+
+}
+
+
+/*
+  7. STOP CAMERA
+
+  Stop every camera track.
+  This releases the camera hardware and turns off
+  the camera activity light when no other application
+  is using the camera.
+
+  Also cancel any photo countdown currently running.
+*/
+
+function stopCamera() {
+
+  sequenceNumber++;
+  isTakingPhotos = false;
+
+  if (animationFrame !== null) {
+
+    cancelAnimationFrame(animationFrame);
+    animationFrame = null;
+
+  }
+
+  if (cameraStream) {
+
+    cameraStream.getTracks().forEach(track => {
+      track.stop();
+    });
+
+    cameraStream = null;
+
+  }
+
+  video.pause();
+  video.srcObject = null;
+
+  cameraContext.clearRect(
+    0, 0,
+    cameraCanvas.width,
+    cameraCanvas.height
+  );
+
+  placeholder.hidden = false;
+  countdownElement.hidden = true;
+
+  flashElement.classList.remove("flash-on");
+
+  startButton.disabled = false;
+  stopButton.disabled = true;
+  takeButton.disabled = true;
+
+  statusText.textContent = "Camera is off.";
+
+}
+
+
+/*
+  8. SELECT FILTER
+
+  Update the selected filter and highlight
+  the active filter button.
+*/
+
+function chooseFilter(filterName) {
+
+  currentFilter = filterName;
+
+  filterButtons.forEach(button => {
+
+    const selected =
+      button.dataset.filter === filterName;
+
+    button.setAttribute(
+      "aria-pressed",
+      String(selected)
+    );
+
+  });
+
+  if (cameraStream) {
+    drawMirroredFrame();
+  }
+
+}
+
+
+/*
+  9. CAPTURE A PHOTO
+
+  Take a snapshot from the visible mirrored canvas.
+  This ensures the photo has the same filter
+  and mirror direction as the live preview.
+*/
+
+function captureCurrentPhoto() {
+
+  return new Promise((resolve, reject) => {
+
+    if (
+      !cameraStream ||
+      video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA
+    ) {
+
+      reject(new Error("Camera is not ready."));
+      return;
+
+    }
+
+    drawMirroredFrame();
+
+    const photoCanvas =
+      document.createElement("canvas");
+
+    photoCanvas.width = cameraCanvas.width;
+    photoCanvas.height = cameraCanvas.height;
+
+    photoCanvas
+      .getContext("2d")
+      .drawImage(cameraCanvas, 0, 0);
+
+    resolve(photoCanvas);
+
+  });
+
+}
+
+
+/*
+  10. WAIT HELPER
+
+  Used for countdowns and pauses between photos.
+
+  The sequence number lets the Stop button cancel
+  the sequence without an old timer continuing.
+*/
+
+function wait(milliseconds, token) {
+
+  return new Promise(resolve => {
+
+    window.setTimeout(() => {
+
+      resolve(token === sequenceNumber);
+
+    }, milliseconds);
+
+  });
+
+}
+
+
+/*
+  11. SCREEN READER ANNOUNCEMENTS
+
+  Create a dedicated accessible announcement area.
+  The countdown numbers are also displayed visually
+  in the center of the camera preview.
+*/
+
+const announcement = document.createElement("div");
+
+announcement.setAttribute("aria-live", "assertive");
+announcement.setAttribute("aria-atomic", "true");
+
+announcement.style.position = "absolute";
+announcement.style.width = "1px";
+announcement.style.height = "1px";
+announcement.style.padding = "0";
+announcement.style.margin = "-1px";
+announcement.style.overflow = "hidden";
+announcement.style.clip = "rect(0, 0, 0, 0)";
+announcement.style.whiteSpace = "nowrap";
+
+document.body.appendChild(announcement);
+
+
+/*
+  12. COUNTDOWN
+
+  Display 3, 2, 1 before each photo.
+  Announce each number to screen readers.
+*/
+
+async function runCountdown(token) {
+
+  for (let number = 3; number >= 1; number--) {
+
+    if (token !== sequenceNumber || !cameraStream) {
+      return false;
+    }
+
+    countdownElement.textContent = String(number);
+    countdownElement.hidden = false;
+
+    announcement.textContent = String(number);
+
+    statusText.textContent =
+      `Photo countdown: ${number}`;
+
+    const stillActive = await wait(1000, token);
+
+    if (!stillActive) return false;
+
+  }
+
+  countdownElement.hidden = true;
+  announcement.textContent = "Photo!";
+
+  return token === sequenceNumber && Boolean(cameraStream);
+
+}
+
+
+/*
+  13. CAMERA FLASH
+
+  Display a quick white flash when a photo is taken.
+
+  If the user has requested reduced motion through
+  their operating system, skip the flash entirely.
+*/
+
+async function showFlash(token) {
+
+  if (reducedMotion.matches) {
+    return true;
+  }
+
+  flashElement.classList.remove("flash-on");
+
+  // Restart the animation for every photograph.
+  void flashElement.offsetWidth;
+
+  flashElement.classList.add("flash-on");
+
+  const stillActive = await wait(190, token);
+
+  flashElement.classList.remove("flash-on");
+
+  return stillActive;
+
+}
+
+
+/*
+  14. CREATE THE PHOTO STRIP
+
+  Arrange four pictures vertically on a white background.
+  Add spacing and a small photo booth caption.
+*/
+
+function createPhotoStrip(photos) {
+
+  const width = 640;
+  const photoHeight = 480;
+
+  const outerPadding = 28;
+  const gap = 18;
+  const topBottom = 30;
+
+  stripCanvas.width = width;
+
+  stripCanvas.height =
+    topBottom * 2 +
+    photos.length * photoHeight +
+    (photos.length - 1) * gap;
+
+  stripContext.fillStyle = "#fffdfb";
+
+  stripContext.fillRect(
+    0, 0,
+    stripCanvas.width,
+    stripCanvas.height
+  );
+
+  photos.forEach((photo, index) => {
+
+    const x = outerPadding;
+
+    const y =
+      topBottom +
+      index * (photoHeight + gap);
+
+    const photoWidth =
+      width - outerPadding * 2;
+
+    stripContext.fillStyle = "#eee8e8";
+
+    stripContext.fillRect(
+      x - 3,
+      y - 3,
+      photoWidth + 6,
+      photoHeight + 6
+    );
+
+    stripContext.drawImage(
+      photo,
+      x, y,
+      photoWidth,
+      photoHeight
+    );
+
+  });
+
+  // Add a decorative caption.
+  stripContext.fillStyle = "#44323e";
+  stripContext.font = "bold 19px Georgia, serif";
+  stripContext.textAlign = "center";
+
+  stripContext.fillText(
+    "MIDNIGHT PHOTO BOOTH",
+    width / 2,
+    stripCanvas.height - 8
+  );
+
+  stripCanvas.hidden = false;
+  emptyStrip.hidden = true;
+
+  // Convert the canvas into a downloadable PNG.
+  downloadLink.href =
+    stripCanvas.toDataURL("image/png");
+
+  downloadLink.hidden = false;
+
+}
+
+
+/*
+  15. TAKE FOUR PHOTOS
+
+  This is the main photo booth sequence.
+
+  For each picture:
+  - Display the 3, 2, 1 countdown.
+  - Capture the current camera image.
+  - Show the white flash.
+  - Prepare for the next photo.
+
+  Once all four pictures are captured,
+  combine them into one photo strip.
+*/
+
+async function takeFourPhotos() {
+
+  if (!cameraStream || isTakingPhotos) return;
+
+  isTakingPhotos = true;
+
+  takeButton.disabled = true;
+  startButton.disabled = true;
+
+  capturedPhotos = [];
+
+  const token = ++sequenceNumber;
+
+  try {
+
+    for (
+      let photoNumber = 1;
+      photoNumber <= 4;
+      photoNumber++
+    ) {
+
+      statusText.textContent =
+        `Getting ready for photo ${photoNumber} of 4…`;
+
+      // Countdown before the picture.
+      const countdownFinished =
+        await runCountdown(token);
+
+      if (!countdownFinished) return;
+
+      // Capture the picture.
+      const photo = await captureCurrentPhoto();
+
+      capturedPhotos.push(photo);
+
+      // Show the camera flash.
+      const flashFinished =
+        await showFlash(token);
+
+      if (!flashFinished) return;
+
+      statusText.textContent =
+        `Captured photo ${photoNumber} of 4.`;
+
+      // Small pause before the next countdown.
+      if (photoNumber < 4) {
+
+        const pauseFinished =
+          await wait(350, token);
+
+        if (!pauseFinished) return;
+
+      }
+
+    }
+
+    // Only create the strip if all four pictures exist.
+    if (
+      token === sequenceNumber &&
+      capturedPhotos.length === 4
+    ) {
+
+      createPhotoStrip(capturedPhotos);
+
+      statusText.textContent =
+        "All four photos are ready! Your strip is below.";
+
+      announcement.textContent =
+        "All four photos captured. Your photo strip is ready to download.";
+
+    }
+
+  } catch (error) {
+
+    statusText.textContent =
+      "Something went wrong while taking photos. Please try again.";
+
+  } finally {
+
+    if (token === sequenceNumber) {
+
+      isTakingPhotos = false;
+
+      takeButton.disabled = !cameraStream;
+      startButton.disabled = Boolean(cameraStream);
+
+      countdownElement.hidden = true;
+
+    }
+
+  }
+
+}
+
+
+/*
+  16. BUTTON EVENT LISTENERS
+
+  Connect the buttons to their corresponding functions.
+*/
+
+startButton.addEventListener("click", startCamera);
+
+stopButton.addEventListener("click", stopCamera);
+
+takeButton.addEventListener("click", takeFourPhotos);
+
+filterButtons.forEach(button => {
+
+  button.addEventListener("click", () => {
+
+    chooseFilter(button.dataset.filter);
+
+  });
+
+});
+
+
+/*
+  17. SAFETY CLEANUP
+
+  If the user closes the page or navigates away,
+  release the camera hardware automatically.
+*/
+
+window.addEventListener("pagehide", () => {
+
+  if (cameraStream) {
+
+    cameraStream.getTracks().forEach(track => {
+      track.stop();
+    });
+
+  }
+
+});
+
+</script>
+</body>
+</html>
