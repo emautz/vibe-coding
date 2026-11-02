@@ -1,0 +1,989 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meme Maker</title>
+
+<!--
+  MEME MAKER v1.0
+  Built with HTML5, CSS3 and Vanilla JavaScript.
+
+  Libraries:
+  None. This project uses native browser APIs only.
+
+  Privacy:
+  All images and meme processing happen locally.
+  No uploads, servers, tracking, or external requests.
+
+  Version history:
+  v1.0 - Initial build.
+  - Image upload and drag-and-drop.
+  - Live meme text preview.
+  - Automatic text fitting.
+  - Text size adjustment.
+  - PNG download.
+  - Responsive and accessible layout.
+-->
+
+<style>
+/* =========================================
+   1. GLOBAL STYLES
+   ========================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #101014;
+    color: #f5f5f5;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+button, input {
+    font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+.drop-zone:focus-visible {
+    outline: 3px solid #ff365d;
+    outline-offset: 4px;
+}
+
+.app {
+    max-width: 1250px;
+    margin: auto;
+    padding: 30px 20px 50px;
+}
+
+/* =========================================
+   2. HEADER
+   ========================================= */
+
+header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+header h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    margin: 0 0 10px;
+    font-weight: 900;
+    letter-spacing: -2px;
+}
+
+header h1 span {
+    color: #ff365d;
+}
+
+header p {
+    color: #aaa;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* =========================================
+   3. MAIN LAYOUT
+   ========================================= */
+
+.workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 350px;
+    gap: 25px;
+    align-items: start;
+}
+
+.preview-panel,
+.controls-panel {
+    background: #1b1b22;
+    border: 1px solid #30303a;
+    border-radius: 16px;
+    padding: 22px;
+}
+
+.section-title {
+    font-size: 1.05rem;
+    font-weight: bold;
+    margin: 0 0 18px;
+}
+
+/* =========================================
+   4. IMAGE DROP ZONE
+   ========================================= */
+
+.drop-zone {
+    border: 2px dashed #555560;
+    border-radius: 12px;
+    padding: 22px;
+    text-align: center;
+    margin-bottom: 20px;
+    background: #15151a;
+    transition: 0.2s ease;
+}
+
+.drop-zone.drag-over {
+    border-color: #ff365d;
+    background: #291820;
+}
+
+.drop-zone p {
+    margin: 0 0 12px;
+    color: #bbb;
+    font-size: 0.9rem;
+}
+
+.upload-button {
+    display: inline-block;
+    padding: 11px 20px;
+    border-radius: 8px;
+    background: #ff365d;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+}
+
+.upload-button:hover {
+    background: #e6254c;
+}
+
+#fileInput {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* =========================================
+   5. MEME CANVAS
+   ========================================= */
+
+.canvas-wrapper {
+    width: 100%;
+    min-height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background-color: #09090c;
+    border-radius: 10px;
+    border: 1px solid #333;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 75vh;
+    object-fit: contain;
+}
+
+.preview-note {
+    text-align: center;
+    color: #777;
+    font-size: 0.78rem;
+    margin-top: 12px;
+}
+
+/* =========================================
+   6. CONTROLS
+   ========================================= */
+
+.control-group {
+    margin-bottom: 23px;
+}
+
+.control-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-bottom: 9px;
+}
+
+.control-group input[type="text"] {
+    width: 100%;
+    padding: 13px;
+    background: #111116;
+    border: 1px solid #41414c;
+    border-radius: 8px;
+    color: white;
+    font-size: 0.95rem;
+}
+
+.control-group input[type="text"]:focus {
+    border-color: #ff365d;
+    outline: none;
+}
+
+.control-group input[type="range"] {
+    width: 100%;
+    accent-color: #ff365d;
+    cursor: pointer;
+}
+
+.range-info {
+    display: flex;
+    justify-content: space-between;
+    color: #aaa;
+    font-size: 0.8rem;
+    margin-top: 8px;
+}
+
+.text-preview {
+    color: #ff7890;
+    font-size: 0.75rem;
+    margin-top: 7px;
+}
+
+/* =========================================
+   7. BUTTONS
+   ========================================= */
+
+.button {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.download-button {
+    background: #ff365d;
+    color: white;
+    font-size: 1rem;
+    margin-top: 5px;
+}
+
+.download-button:hover {
+    background: #e6254c;
+    transform: translateY(-1px);
+}
+
+.secondary-button {
+    background: #30303a;
+    color: white;
+    margin-top: 10px;
+}
+
+.secondary-button:hover {
+    background: #41414c;
+}
+
+.button:active {
+    transform: scale(0.98);
+}
+
+/* =========================================
+   8. PRIVACY NOTICE
+   ========================================= */
+
+.privacy {
+    margin-top: 22px;
+    padding: 14px;
+    border-radius: 9px;
+    background: #17251e;
+    border: 1px solid #294936;
+    color: #a5dcb8;
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+.privacy strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+/* =========================================
+   9. RESPONSIVE DESIGN
+   ========================================= */
+
+@media (max-width: 850px) {
+    .workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .controls-panel {
+        order: 2;
+    }
+
+    .preview-panel {
+        order: 1;
+    }
+}
+
+@media (max-width: 500px) {
+    .app {
+        padding: 20px 12px 35px;
+    }
+
+    .preview-panel,
+    .controls-panel {
+        padding: 15px;
+    }
+
+    header {
+        margin-bottom: 25px;
+    }
+
+    .drop-zone {
+        padding: 18px 10px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- HEADER -->
+    <header>
+        <h1>MEME <span>MAKER.</span></h1>
+        <p>Create something ridiculous. Download it. Share it.</p>
+    </header>
+
+    <main class="workspace">
+
+        <!-- =================================
+             LEFT: IMAGE PREVIEW
+             ================================= -->
+
+        <section class="preview-panel" aria-label="Meme preview">
+
+            <h2 class="section-title">Your masterpiece</h2>
+
+            <!-- Upload and drag-and-drop area -->
+            <div
+                class="drop-zone"
+                id="dropZone"
+                role="region"
+                aria-label="Image upload area"
+                tabindex="0"
+            >
+                <p>Drag and drop an image here</p>
+                <p>or choose a photo from your computer</p>
+
+                <label for="fileInput" class="upload-button">
+                    Choose a photo
+                </label>
+
+                <input
+                    type="file"
+                    id="fileInput"
+                    accept="image/*"
+                    aria-label="Choose an image from your computer"
+                >
+            </div>
+
+            <!-- Canvas where the meme is actually drawn -->
+            <div class="canvas-wrapper">
+                <canvas
+                    id="memeCanvas"
+                    width="1200"
+                    height="900"
+                    role="img"
+                    aria-label="Live meme preview with top and bottom text"
+                ></canvas>
+            </div>
+
+            <p class="preview-note">
+                Your meme updates automatically as you type.
+            </p>
+
+        </section>
+
+        <!-- =================================
+             RIGHT: EDITING CONTROLS
+             ================================= -->
+
+        <aside class="controls-panel">
+
+            <h2 class="section-title">Customize your meme</h2>
+
+            <!-- Top text -->
+            <div class="control-group">
+
+                <label for="topText">Top text</label>
+
+                <input
+                    type="text"
+                    id="topText"
+                    placeholder="WHEN YOU FINALLY..."
+                    maxlength="150"
+                    autocomplete="off"
+                >
+
+                <div class="text-preview">
+                    Appears at the top of your image.
+                </div>
+
+            </div>
+
+            <!-- Bottom text -->
+            <div class="control-group">
+
+                <label for="bottomText">Bottom text</label>
+
+                <input
+                    type="text"
+                    id="bottomText"
+                    placeholder="BUT THEN..."
+                    maxlength="150"
+                    autocomplete="off"
+                >
+
+                <div class="text-preview">
+                    Appears at the bottom of your image.
+                </div>
+
+            </div>
+
+            <!-- Font size slider -->
+            <div class="control-group">
+
+                <label for="fontSize">
+                    Text size
+                </label>
+
+                <input
+                    type="range"
+                    id="fontSize"
+                    min="3"
+                    max="12"
+                    value="8"
+                    step="0.5"
+                    aria-label="Adjust meme text size"
+                >
+
+                <div class="range-info">
+                    <span>Smaller</span>
+                    <strong id="sizeValue">8%</strong>
+                    <span>Larger</span>
+                </div>
+
+            </div>
+
+            <!-- Download -->
+            <button
+                class="button download-button"
+                id="downloadButton"
+                type="button"
+            >
+                ↓ Download Meme PNG
+            </button>
+
+            <!-- Reset -->
+            <button
+                class="button secondary-button"
+                id="resetButton"
+                type="button"
+            >
+                Reset Text
+            </button>
+
+            <!-- Privacy -->
+            <div class="privacy">
+                <strong>🔒 Your photos stay private.</strong>
+                Images are processed entirely inside your browser.
+                Nothing is uploaded to a server or shared with anyone.
+            </div>
+
+        </aside>
+
+    </main>
+
+</div>
+
+<script>
+
+/* =============================================
+   1. GET REFERENCES TO PAGE ELEMENTS
+   ============================================= */
+
+// Store references to the canvas and controls.
+// This makes it easier to access them throughout
+// the rest of the JavaScript.
+
+const canvas = document.getElementById("memeCanvas");
+const ctx = canvas.getContext("2d");
+
+const topTextInput = document.getElementById("topText");
+const bottomTextInput = document.getElementById("bottomText");
+
+const fontSizeSlider = document.getElementById("fontSize");
+const sizeValue = document.getElementById("sizeValue");
+
+const fileInput = document.getElementById("fileInput");
+const dropZone = document.getElementById("dropZone");
+
+const downloadButton = document.getElementById("downloadButton");
+const resetButton = document.getElementById("resetButton");
+
+// This variable stores the currently selected image.
+// It begins as null because no uploaded image exists yet.
+
+let currentImage = null;
+
+
+/* =============================================
+   2. CREATE A SAMPLE IMAGE
+   ============================================= */
+
+// Draw a sample image directly using Canvas.
+// This means users can try the meme maker immediately
+// without needing to upload an image first.
+
+function createSampleImage() {
+
+    canvas.width = 1200;
+    canvas.height = 900;
+
+    // Create a dark gradient background.
+    const gradient = ctx.createLinearGradient(
+        0, 0, 1200, 900
+    );
+
+    gradient.addColorStop(0, "#342044");
+    gradient.addColorStop(0.5, "#a04c65");
+    gradient.addColorStop(1, "#171323");
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 1200, 900);
+
+    // Draw a large moon.
+    ctx.beginPath();
+    ctx.arc(600, 380, 210, 0, Math.PI * 2);
+    ctx.fillStyle = "#e8d9dc";
+    ctx.fill();
+
+    // Draw a moon shadow.
+    ctx.beginPath();
+    ctx.arc(680, 340, 195, 0, Math.PI * 2);
+    ctx.fillStyle = "#b89cae";
+    ctx.fill();
+
+    // Add some decorative stars.
+    for (let i = 0; i < 65; i++) {
+
+        const x = Math.random() * 1200;
+        const y = Math.random() * 900;
+        const radius = Math.random() * 3 + 1;
+
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+    }
+
+    // Draw a simple spooky mountain silhouette.
+    ctx.fillStyle = "#171321";
+    ctx.beginPath();
+    ctx.moveTo(0, 800);
+    ctx.lineTo(200, 570);
+    ctx.lineTo(400, 780);
+    ctx.lineTo(620, 600);
+    ctx.lineTo(850, 790);
+    ctx.lineTo(1030, 590);
+    ctx.lineTo(1200, 770);
+    ctx.lineTo(1200, 900);
+    ctx.lineTo(0, 900);
+    ctx.closePath();
+    ctx.fill();
+
+    // Draw a little spooky house.
+    ctx.fillStyle = "#09090e";
+    ctx.fillRect(460, 690, 270, 180);
+
+    ctx.beginPath();
+    ctx.moveTo(420, 690);
+    ctx.lineTo(595, 545);
+    ctx.lineTo(770, 690);
+    ctx.closePath();
+    ctx.fill();
+
+    // Glowing windows.
+    ctx.fillStyle = "#ffbd68";
+    ctx.fillRect(500, 730, 55, 65);
+    ctx.fillRect(635, 730, 55, 65);
+
+    // Door.
+    ctx.fillStyle = "#08080c";
+    ctx.fillRect(565, 785, 65, 85);
+
+    // The sample image is now ready.
+    currentImage = null;
+
+    // Draw the initial meme text.
+    renderMeme();
+}
+
+
+/* =============================================
+   3. LOAD AN UPLOADED IMAGE
+   ============================================= */
+
+// Read a photo selected from the computer.
+// FileReader and local object URLs keep the image
+// inside the browser. Nothing is sent anywhere.
+
+function loadImage(file) {
+
+    if (!file) return;
+
+    // Only accept actual image files.
+    if (!file.type.startsWith("image/")) {
+        alert("Please choose a valid image file.");
+        return;
+    }
+
+    const imageURL = URL.createObjectURL(file);
+
+    const image = new Image();
+
+    image.onload = function() {
+
+        // Store the selected image.
+        currentImage = image;
+
+        // Scale large images down to a manageable size.
+        // This helps avoid unnecessarily huge canvas files.
+        const maxDimension = 2400;
+
+        const scale = Math.min(
+            1,
+            maxDimension / Math.max(image.width, image.height)
+        );
+
+        canvas.width = Math.round(image.width * scale);
+        canvas.height = Math.round(image.height * scale);
+
+        // Draw the new image and overlay the text.
+        renderMeme();
+
+        // Release the temporary browser URL.
+        URL.revokeObjectURL(imageURL);
+    };
+
+    image.onerror = function() {
+        URL.revokeObjectURL(imageURL);
+        alert("Sorry, this image could not be opened.");
+    };
+
+    image.src = imageURL;
+}
+
+
+/* =============================================
+   4. FILE UPLOAD BUTTON
+   ============================================= */
+
+// When someone chooses a photo, pass it to loadImage().
+
+fileInput.addEventListener("change", function(event) {
+
+    const file = event.target.files[0];
+
+    if (file) {
+        loadImage(file);
+    }
+
+    // Allow choosing the same file again later.
+    fileInput.value = "";
+
+});
+
+
+/* =============================================
+   5. DRAG AND DROP
+   ============================================= */
+
+// Prevent the browser from opening an image when
+// someone accidentally drops it onto the page.
+
+["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
+
+    document.addEventListener(eventName, function(event) {
+        event.preventDefault();
+    });
+
+});
+
+// Highlight the upload area when a photo is dragged over it.
+
+dropZone.addEventListener("dragover", function() {
+    dropZone.classList.add("drag-over");
+});
+
+dropZone.addEventListener("dragleave", function() {
+    dropZone.classList.remove("drag-over");
+});
+
+dropZone.addEventListener("drop", function(event) {
+
+    dropZone.classList.remove("drag-over");
+
+    const files = event.dataTransfer.files;
+
+    if (files.length > 0) {
+        loadImage(files[0]);
+    }
+
+});
+
+// Also support keyboard activation of the upload area.
+dropZone.addEventListener("keydown", function(event) {
+
+    if (event.key === "Enter" || event.key === " ") {
+
+        event.preventDefault();
+        fileInput.click();
+
+    }
+
+});
+
+
+/* =============================================
+   6. DRAW THE IMAGE
+   ============================================= */
+
+// Draw the selected photo or the sample background.
+// Then draw the meme text over it.
+
+function renderMeme() {
+
+    // Clear the previous canvas.
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw the uploaded photo if one exists.
+    if (currentImage) {
+
+        ctx.drawImage(
+            currentImage,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+    }
+
+    // If no uploaded photo exists, the sample image
+    // has already been drawn by createSampleImage().
+
+    drawMemeText();
+}
+
+
+/* =============================================
+   7. DRAW CLASSIC MEME TEXT
+   ============================================= */
+
+// Draw the top and bottom text in the traditional
+// meme style: uppercase white letters with a thick
+// black outline.
+
+function drawMemeText() {
+
+    const topText = topTextInput.value.toUpperCase();
+    const bottomText = bottomTextInput.value.toUpperCase();
+
+    // Get the selected font size from the slider.
+    const percentage = Number(fontSizeSlider.value);
+
+    // Calculate the starting font size based on
+    // the height of the image.
+    const baseSize = canvas.height * (percentage / 100);
+
+    // Configure classic meme lettering.
+    ctx.font = `900 ${baseSize}px Impact, "Arial Black", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineJoin = "round";
+
+    // Thick black outline.
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = Math.max(3, baseSize * 0.10);
+
+    // White letters.
+    ctx.fillStyle = "#ffffff";
+
+    // Keep text away from the edges.
+    const maxWidth = canvas.width * 0.94;
+
+    // Draw top text.
+    if (topText.trim() !== "") {
+
+        drawFittedText(
+            topText,
+            canvas.width / 2,
+            canvas.height * 0.09,
+            baseSize,
+            maxWidth
+        );
+
+    }
+
+    // Draw bottom text.
+    if (bottomText.trim() !== "") {
+
+        drawFittedText(
+            bottomText,
+            canvas.width / 2,
+            canvas.height * 0.91,
+            baseSize,
+            maxWidth
+        );
+
+    }
+
+}
+
+
+/* =============================================
+   8. AUTOMATIC TEXT FITTING
+   ============================================= */
+
+// This function checks how wide the text is.
+// If the text is too wide, it gradually reduces
+// the font size until everything fits.
+//
+// This allows short and long captions to work
+// without going outside the image.
+
+function drawFittedText(text, x, y, startingSize, maxWidth) {
+
+    let fontSize = startingSize;
+
+    // Keep reducing the font until it fits.
+    while (fontSize > 8) {
+
+        ctx.font = `900 ${fontSize}px Impact, "Arial Black", sans-serif`;
+
+        const textWidth = ctx.measureText(text).width;
+
+        if (textWidth <= maxWidth) {
+            break;
+        }
+
+        fontSize -= 2;
+    }
+
+    // Draw the black outline first.
+    ctx.font = `900 ${fontSize}px Impact, "Arial Black", sans-serif`;
+
+    ctx.strokeText(
+        text,
+        x,
+        y,
+        maxWidth
+    );
+
+    // Draw white text on top of the outline.
+    ctx.fillText(
+        text,
+        x,
+        y,
+        maxWidth
+    );
+
+}
+
+
+/* =============================================
+   9. LIVE TEXT UPDATES
+   ============================================= */
+
+// Every time the user types something, redraw
+// the canvas immediately.
+
+topTextInput.addEventListener("input", renderMeme);
+
+bottomTextInput.addEventListener("input", renderMeme);
+
+
+/* =============================================
+   10. TEXT SIZE SLIDER
+   ============================================= */
+
+// Update the displayed percentage and redraw
+// the meme whenever the slider moves.
+
+fontSizeSlider.addEventListener("input", function() {
+
+    sizeValue.textContent = fontSizeSlider.value + "%";
+
+    renderMeme();
+
+});
+
+
+/* =============================================
+   11. DOWNLOAD MEME AS PNG
+   ============================================= */
+
+// Convert the canvas into a PNG image.
+// The browser creates a local download.
+// No server is involved.
+
+downloadButton.addEventListener("click", function() {
+
+    const image = canvas.toDataURL("image/png");
+
+    const link = document.createElement("a");
+
+    link.href = image;
+    link.download = "my-meme.png";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+});
+
+
+/* =============================================
+   12. RESET TEXT
+   ============================================= */
+
+// Clear the captions and return the font size
+// to its original setting.
+
+resetButton.addEventListener("click", function() {
+
+    topTextInput.value = "";
+    bottomTextInput.value = "";
+
+    fontSizeSlider.value = 8;
+    sizeValue.textContent = "8%";
+
+    renderMeme();
+
+});
+
+
+/* =============================================
+   13. START THE APPLICATION
+   ============================================= */
+
+// Create the sample picture when the page first opens.
+// Users can immediately experiment without uploading
+// a photograph.
+
+createSampleImage();
+
+</script>
+
+</body>
+</html>
