@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creatures of the Chorus</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;padding:14px;background:radial-gradient(ellipse at 50% 20%,#35101d,#10080d 55%,#030203);
+ color:#eee;font-family:Georgia,serif
+}
+.wrapper{max-width:850px;margin:auto}
+header{text-align:center;padding:10px}
+.symbol{color:#bd1740;font-size:24px;letter-spacing:12px;text-shadow:0 0 15px red}
+.eyebrow{font-size:10px;letter-spacing:5px;color:#bd2949;margin-top:8px}
+h1{font-size:clamp(26px,6vw,50px);letter-spacing:3px;text-transform:uppercase;text-shadow:0 0 12px #a0002c,0 0 35px #71001e;margin:10px 0}
+.subtitle{font-size:10px;letter-spacing:4px;color:#98828b}
+.divider{color:#9e2140;margin:15px}
+.hud{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
+.stat{background:linear-gradient(145deg,#211118,#090609);border:1px solid #59202f;padding:10px;text-align:center}
+.stat-label{font-size:9px;letter-spacing:2px;color:#a38b94}
+.stat-value{font-family:monospace;font-size:24px;color:#f04462;margin-top:5px;text-shadow:0 0 12px #a50030}
+.game-area{position:relative;overflow:hidden;border:2px solid #762138;box-shadow:0 0 15px #c0003440,0 0 45px #73001e30;background:#080507}
+canvas{width:100%;height:auto;display:block;aspect-ratio:4/5;touch-action:none}
+.overlay{position:absolute;inset:0;z-index:5;background:#080507ed;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
+.overlay.hidden{display:none}
+.overlay-content{max-width:440px}
+.overlay-symbol{font-size:48px;color:#b20d38;text-shadow:0 0 20px red}
+.overlay h2{font-size:clamp(25px,6vw,40px);letter-spacing:3px;text-shadow:0 0 20px #b00037}
+.overlay p{font:12px/2 monospace;color:#b3a4aa}
+.small{font:10px monospace!important;letter-spacing:2px;color:#76646c!important}
+button{cursor:pointer;border:1px solid #b12646;background:linear-gradient(135deg,#720c27,#290812);color:#fff0f3;padding:13px 22px;margin:5px;letter-spacing:2px;font-size:11px;font-weight:bold}
+button:hover{background:linear-gradient(135deg,#c01740,#650d29);box-shadow:0 0 18px #d000403d}
+.secondary{background:#100a0d;border-color:#58303b}
+.controls{display:flex;justify-content:center;flex-wrap:wrap;margin:12px 0}
+.instructions{text-align:center;font:11px/2 monospace;color:#8c7c83}
+.instructions strong{color:#e33b5c}
+.footer{text-align:center;font-size:9px;letter-spacing:3px;color:#67535b;margin:20px}
+@media(max-width:500px){
+ body{padding:7px}.stat{padding:8px 3px}.stat-label{letter-spacing:1px}
+ .instructions{font-size:9px}button{padding:11px 13px;font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="wrapper">
+<header>
+ <div class="symbol">✝ † ✝</div>
+ <div class="eyebrow">WELCOME TO THE CHURCH OF THE CREATURES</div>
+ <h1>Creatures of the Chorus</h1>
+ <div class="subtitle">THE STAGE IS YOURS. THE MUSIC IS YOUR SALVATION.</div>
+ <div class="divider">✦</div>
+</header>
+
+<section class="hud">
+ <div class="stat"><div class="stat-label">SOULS COLLECTED</div><div class="stat-value" id="score">0000</div></div>
+ <div class="stat"><div class="stat-label">LIVES REMAINING</div><div class="stat-value" id="lives">♥ ♥ ♥ ♥ ♥</div></div>
+ <div class="stat"><div class="stat-label">CHAOS LEVEL</div><div class="stat-value" id="level">01</div></div>
+</section>
+
+<div class="game-area">
+ <canvas id="game" width="800" height="1000"></canvas>
+
+ <div class="overlay" id="startScreen">
+  <div class="overlay-content">
+   <div class="overlay-symbol">☠</div>
+   <div class="eyebrow">THE NIGHTMARE BEGINS</div>
+   <h2>THE SHOW MUST GO ON</h2>
+   <p>The cathedral doors have opened.<br>The music has summoned something.<br><br>Catch the falling notes.<br>Keep the guitar screaming.<br>Don't let your souls disappear.</p>
+   <button id="start">✝ ENTER THE STAGE ✝</button>
+   <p class="small">ARROWS / A / D TO MOVE<br>MOUSE OR FINGER TO CONTROL</p>
+  </div>
+ </div>
+
+ <div class="overlay hidden" id="pauseScreen">
+  <div class="overlay-content">
+   <div class="overlay-symbol">†</div>
+   <div class="eyebrow">THE CHURCH IS SILENT</div>
+   <h2>REST IN DARKNESS</h2>
+   <p>The performance is temporarily suspended.<br>The creatures are waiting.</p>
+   <button id="resume">RESUME THE SHOW</button>
+  </div>
+ </div>
+
+ <div class="overlay hidden" id="gameOverScreen">
+  <div class="overlay-content">
+   <div class="overlay-symbol">☠</div>
+   <div class="eyebrow">THE FINAL ENCORE</div>
+   <h2>THE MUSIC HAS DIED</h2>
+   <p>Your soul has left the stage.</p>
+   <h2 id="finalScore">0000</h2>
+   <p class="small">FINAL SOUL COUNT</p>
+   <button id="restart">✝ RETURN FROM THE DEAD ✝</button>
+  </div>
+ </div>
+</div>
+
+<div class="controls">
+ <button class="secondary" id="pause">Ⅱ PAUSE (P)</button>
+ <button class="secondary" id="mute">♫ SOUND ON</button>
+</div>
+<div class="instructions">
+ <strong>KEYBOARD:</strong> ← → / A / D &nbsp; | &nbsp; <strong>PAUSE:</strong> P<br>
+ <strong>TOUCH:</strong> DRAG YOUR FINGER TO MOVE<br>
+ Catch the falling notes. You have five lives.
+</div>
+<div class="footer">A GOTHIC MUSIC FAN GAME · INSPIRED BY MOTIONLESS IN WHITE</div>
+</main>
+
+<script>
+"use strict";
+
+/* GAME SETTINGS */
+const W=800,H=1000;
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+const $=id=>document.getElementById(id);
+
+const SETTINGS={
+ playerSpeed:680,
+ playerWidth:100,
+ playerHeight:155,
+ noteSize:26,
+ startingFallSpeed:210,
+ maximumFallSpeed:620,
+ speedIncrease:12,
+ spawnInterval:.9,
+ minimumSpawnInterval:.32,
+ startingLives:5,
+ catchDistance:65,
+ scorePerNote:10,
+ guitarVolume:.14
+};
+
+/* GAME STATE */
+let state="start";
+let score=0,lives=5,level=1;
+let notes=[],embers=[],fog=[],effects=[];
+let lastTime=0,spawnTimer=0,shake=0;
+let muted=false,audioContext=null;
+let left=false,right=false;
+let pointerActive=false,pointerX=W/2;
+let reducedMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const player={
+ x:W/2,
+ y:H-145,
+ width:SETTINGS.playerWidth,
+ height:SETTINGS.playerHeight
+};
+
+/* ATMOSPHERIC PARTICLES */
+for(let i=0;i<35;i++){
+ embers.push({
+  x:Math.random()*W,y:Math.random()*H,
+  size:Math.random()*3+1,
+  speed:Math.random()*35+12,
+  alpha:Math.random()*.65+.15,
+  drift:Math.random()*2-1
+ });
+}
+for(let i=0;i<5;i++){
+ fog.push({
+  x:Math.random()*W,y:300+Math.random()*550,
+  width:180+Math.random()*220,
+  speed:5+Math.random()*9
+ });
+}
+
+/* ELECTRIC GUITAR SOUND */
+function initializeAudio(){
+ if(muted)return;
+ if(!audioContext){
+  const AudioClass=window.AudioContext||window.webkitAudioContext;
+  if(!AudioClass)return;
+  audioContext=new AudioClass();
+ }
+ if(audioContext.state==="suspended")audioContext.resume();
+}
+
+function playMetalcoreCatch(){
+ if(muted)return;
+ initializeAudio();
+ if(!audioContext||audioContext.state!=="running")return;
+
+ const now=audioContext.currentTime;
+ const duration=.48;
+ const oscillator=audioContext.createOscillator();
+ const distortion=audioContext.createWaveShaper();
+ const filter=audioContext.createBiquadFilter();
+ const gain=audioContext.createGain();
+
+ const samples=44100;
+ const curve=new Float32Array(samples);
+ for(let i=0;i<samples;i++){
+  const x=i*2/samples-1;
+  curve[i]=Math.tanh(x*18);
+ }
+ distortion.curve=curve;
+ distortion.oversample="4x";
+
+ oscillator.type="sawtooth";
+ oscillator.frequency.setValueAtTime(82.41,now);
+ oscillator.frequency.exponentialRampToValueAtTime(73.42,now+duration);
+
+ filter.type="lowpass";
+ filter.frequency.setValueAtTime(2400,now);
+ filter.frequency.exponentialRampToValueAtTime(850,now+duration);
+ filter.Q.value=1.4;
+
+ gain.gain.setValueAtTime(.0001,now);
+ gain.gain.linearRampToValueAtTime(SETTINGS.guitarVolume*3.2,now+.012);
+ gain.gain.setValueAtTime(SETTINGS.guitarVolume*2.1,now+.08);
+ gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
+
+ oscillator.connect(distortion);
+ distortion.connect(filter);
+ filter.connect(gain);
+ gain.connect(audioContext.destination);
+ oscillator.start(now);
+ oscillator.stop(now+duration+.02);
+}
+
+/* SPAWN NOTES */
+function spawnNote(){
+ const margin=65;
+ const speed=Math.min(
+  SETTINGS.maximumFallSpeed,
+  SETTINGS.startingFallSpeed+(level-1)*SETTINGS.speedIncrease
+ );
+ notes.push({
+  x:margin+Math.random()*(W-margin*2),
+  y:-SETTINGS.noteSize,
+  speed,
+  size:SETTINGS.noteSize,
+  rotation:Math.random()*Math.PI*2,
+  rotationSpeed:(Math.random()-.5)*2
+ });
+}
+
+/* DRAW A FALLING MUSIC NOTE */
+function drawNote(note){
+ ctx.save();
+ ctx.translate(note.x,note.y);
+ ctx.rotate(note.rotation);
+ ctx.shadowColor="#ff174d";
+ ctx.shadowBlur=22;
+ ctx.fillStyle="#d81743";
+ ctx.beginPath();
+ ctx.ellipse(0,8,note.size*.48,note.size*.34,-.35,0,Math.PI*2);
+ ctx.fill();
+ ctx.strokeStyle="#ed365b";
+ ctx.lineWidth=5;
+ ctx.beginPath();
+ ctx.moveTo(note.size*.35,5);
+ ctx.lineTo(note.size*.35,-note.size*1.6);
+ ctx.stroke();
+ ctx.fillStyle="#ed365b";
+ ctx.beginPath();
+ ctx.moveTo(note.size*.35,-note.size*1.6);
+ ctx.quadraticCurveTo(note.size*1.2,-note.size*1.35,note.size*.75,-note.size*.75);
+ ctx.quadraticCurveTo(note.size*1.05,-note.size*1.45,note.size*.35,-note.size*1.35);
+ ctx.fill();
+ ctx.restore();
+}
+
+/* BACKGROUND */
+function drawBackground(dt){
+ const gradient=ctx.createRadialGradient(W/2,H*.35,20,W/2,H*.5,H*.8);
+ gradient.addColorStop(0,"#32101c");
+ gradient.addColorStop(.45,"#150a10");
+ gradient.addColorStop(1,"#030203");
+ ctx.fillStyle=gradient;
+ ctx.fillRect(0,0,W,H);
+ drawFog(dt);
+ drawEmbers(dt);
+}
+
+/* FOG */
+function drawFog(dt){
+ ctx.save();
+ ctx.globalAlpha=.12;
+ fog.forEach(cloud=>{
+  cloud.x+=cloud.speed*dt;
+  if(cloud.x-cloud.width>W){
+   cloud.x=-cloud.width;
+   cloud.y=300+Math.random()*550;
+  }
+  const g=ctx.createRadialGradient(cloud.x,cloud.y,5,cloud.x,cloud.y,cloud.width);
+  g.addColorStop(0,"#b7a0aa");
+  g.addColorStop(1,"transparent");
+  ctx.fillStyle=g;
+  ctx.beginPath();
+  ctx.ellipse(cloud.x,cloud.y,cloud.width,cloud.width*.28,0,0,Math.PI*2);
+  ctx.fill();
+ });
+ ctx.restore();
+}
+
+/* EMBERS */
+function drawEmbers(dt){
+ ctx.save();
+ embers.forEach(e=>{
+  e.y-=e.speed*dt;
+  e.x+=e.drift*dt*10;
+  if(e.y<-10){e.y=H+10;e.x=Math.random()*W}
+  if(e.x<0)e.x=W;
+  if(e.x>W)e.x=0;
+  ctx.globalAlpha=e.alpha;
+  ctx.fillStyle="#ed3556";
+  ctx.shadowColor="#ff174d";
+  ctx.shadowBlur=12;
+  ctx.beginPath();
+  ctx.arc(e.x,e.y,e.size,0,Math.PI*2);
+  ctx.fill();
+ });
+ ctx.restore();
+}
+
+/* CATHEDRAL BACKGROUND */
+function drawStageDetails(){
+ ctx.save();
+ ctx.strokeStyle="#4c1a2b";
+ ctx.lineWidth=8;
+ ctx.globalAlpha=.65;
+
+ for(let i=0;i<5;i++){
+  const x=80+i*160;
+  ctx.beginPath();
+  ctx.moveTo(x-65,540);
+  ctx.lineTo(x-65,180);
+  ctx.quadraticCurveTo(x,45,x+65,180);
+  ctx.lineTo(x+65,540);
+  ctx.stroke();
+
+  ctx.strokeStyle="#702039";
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(x-42,540);
+  ctx.lineTo(x-42,185);
+  ctx.quadraticCurveTo(x,100,x+42,185);
+  ctx.lineTo(x+42,540);
+  ctx.stroke();
+
+  ctx.strokeStyle="#4c1a2b";
+  ctx.lineWidth=8;
+ }
+
+ ctx.globalAlpha=.35;
+ ctx.strokeStyle="#a21b3e";
+ ctx.lineWidth=3;
+ for(let i=0;i<5;i++){
+  const x=80+i*160;
+  ctx.beginPath();
+  ctx.moveTo(x,105);
+  ctx.lineTo(x,250);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x-35,180);
+  ctx.lineTo(x+35,180);
+  ctx.stroke();
+ }
+
+ const floor=ctx.createLinearGradient(0,H-180,0,H);
+ floor.addColorStop(0,"#1c0a12");
+ floor.addColorStop(1,"#050304");
+ ctx.fillStyle=floor;
+ ctx.fillRect(0,H-180,W,180);
+
+ ctx.strokeStyle="#74213a";
+ ctx.lineWidth=3;
+ ctx.beginPath();
+ ctx.moveTo(0,H-180);
+ ctx.lineTo(W,H-180);
+ ctx.stroke();
+
+ for(let i=0;i<4;i++){
+  const x=100+i*200;
+  const light=ctx.createRadialGradient(x,80,5,x,80,150);
+  light.addColorStop(0,"#a5163a35");
+  light.addColorStop(1,"transparent");
+  ctx.fillStyle=light;
+  ctx.fillRect(x-150,0,300,400);
+ }
+ ctx.restore();
+}
+
+/* DRAW THE GOTHIC MUSICIAN */
+function drawMusician(){
+ const x=player.x;
+ const y=player.y;
+
+ ctx.save();
+ ctx.translate(x,y);
+
+ // Shadow beneath the musician.
+ ctx.fillStyle="#000";
+ ctx.beginPath();
+ ctx.ellipse(0,8,75,13,0,0,Math.PI*2);
+ ctx.fill();
+
+ // Long black coat.
+ ctx.fillStyle="#090609";
+ ctx.strokeStyle="#541426";
+ ctx.lineWidth=3;
+ ctx.beginPath();
+ ctx.moveTo(-34,-100);
+ ctx.lineTo(34,-100);
+ ctx.lineTo(47,0);
+ ctx.lineTo(22,-10);
+ ctx.lineTo(0,7);
+ ctx.lineTo(-22,-10);
+ ctx.lineTo(-47,0);
+ ctx.closePath();
+ ctx.fill();
+ ctx.stroke();
+
+ // Coat panels.
+ ctx.fillStyle="#1b1016";
+ ctx.beginPath();
+ ctx.moveTo(-22,-92);
+ ctx.lineTo(-7,-20);
+ ctx.lineTo(-20,-8);
+ ctx.lineTo(-34,-94);
+ ctx.closePath();
+ ctx.fill();
+
+ ctx.beginPath();
+ ctx.moveTo(22,-92);
+ ctx.lineTo(7,-20);
+ ctx.lineTo(20,-8);
+ ctx.lineTo(34,-94);
+ ctx.closePath();
+ ctx.fill();
+
+ // Red shirt.
+ ctx.fillStyle="#85102e";
+ ctx.beginPath();
+ ctx.moveTo(-13,-97);
+ ctx.lineTo(13,-97);
+ ctx.lineTo(9,-46);
+ ctx.lineTo(0,-37);
+ ctx.lineTo(-9,-46);
+ ctx.closePath();
+ ctx.fill();
+
+ // Neck.
+ ctx.fillStyle="#c49a9b";
+ ctx.fillRect(-8,-120,16,25);
+
+ // Head.
+ ctx.fillStyle="#d2b4b2";
+ ctx.beginPath();
+ ctx.ellipse(0,-137,23,29,0,0,Math.PI*2);
+ ctx.fill();
+
+ // Hair.
+ ctx.fillStyle="#080609";
+ ctx.beginPath();
+ ctx.moveTo(-24,-137);
+ ctx.quadraticCurveTo(-29,-177,0,-174);
+ ctx.quadraticCurveTo(29,-177,25,-135);
+ ctx.lineTo(18,-116);
+ ctx.lineTo(13,-146);
+ ctx.lineTo(2,-126);
+ ctx.lineTo(-3,-153);
+ ctx.lineTo(-18,-119);
+ ctx.closePath();
+ ctx.fill();
+
+ // Red hair streak.
+ ctx.strokeStyle="#a60c35";
+ ctx.lineWidth=5;
+ ctx.beginPath();
+ ctx.moveTo(9,-169);
+ ctx.quadraticCurveTo(19,-151,10,-132);
+ ctx.stroke();
+
+ // Eyes.
+ ctx.strokeStyle="#16070d";
+ ctx.lineWidth=3;
+ ctx.beginPath();
+ ctx.moveTo(-16,-140);
+ ctx.lineTo(-6,-138);
+ ctx.moveTo(6,-138);
+ ctx.lineTo(16,-140);
+ ctx.stroke();
+
+ // Guitar strap.
+ ctx.strokeStyle="#9b1d3a";
+ ctx.lineWidth=5;
+ ctx.beginPath();
+ ctx.moveTo(-17,-104);
+ ctx.lineTo(24,-38);
+ ctx.stroke();
+
+ // Electric guitar body.
+ ctx.save();
+ ctx.translate(21,-47);
+ ctx.rotate(-.28);
+ ctx.fillStyle="#160b12";
+ ctx.strokeStyle="#b32648";
+ ctx.lineWidth=3;
+ ctx.beginPath();
+ ctx.moveTo(-24,-15);
+ ctx.quadraticCurveTo(-44,-35,-30,-46);
+ ctx.quadraticCurveTo(-14,-57,0,-42);
+ ctx.quadraticCurveTo(18,-57,31,-43);
+ ctx.quadraticCurveTo(43,-27,24,-12);
+ ctx.lineTo(19,16);
+ ctx.quadraticCurveTo(0,32,-19,16);
+ ctx.closePath();
+ ctx.fill();
+ ctx.stroke();
+
+ // Guitar neck.
+ ctx.fillStyle="#3b2029";
+ ctx.fillRect(-5,-100,10,76);
+ ctx.strokeStyle="#c2a9ae";
+ ctx.lineWidth=1;
+ for(let i=0;i<6;i++){
+  ctx.beginPath();
+  ctx.moveTo(-5,-91+i*11);
+  ctx.lineTo(5,-91+i*11);
+  ctx.stroke();
+ }
+ ctx.restore();
+
+ // Boots.
+ ctx.fillStyle="#080609";
+ ctx.strokeStyle="#6e2034";
+ ctx.lineWidth=2;
+ ctx.fillRect(-35,-12,23,18);
+ ctx.fillRect(12,-12,23,18);
+ ctx.strokeRect(-35,-12,23,18);
+ ctx.strokeRect(12,-12,23,18);
+
+ // Boot soles.
+ ctx.fillStyle="#a21a3d";
+ ctx.fillRect(-39,3,31,5);
+ ctx.fillRect(8,3,31,5);
+
+ ctx.restore();
+}
+
+/* CATCH EFFECT */
+function createCatchEffect(x,y){
+ for(let i=0;i<13;i++){
+  const angle=Math.random()*Math.PI*2;
+  const speed=80+Math.random()*200;
+  effects.push({
+   x,y,
+   vx:Math.cos(angle)*speed,
+   vy:Math.sin(angle)*speed,
+   life:.5+Math.random()*.35,
+   maxLife:.85,
+   size:2+Math.random()*4
+  });
+ }
+}
+
+/* UPDATE AND DRAW EFFECTS */
+function updateEffects(dt){
+ ctx.save();
+ effects.forEach(p=>{
+  p.x+=p.vx*dt;
+  p.y+=p.vy*dt;
+  p.vy+=150*dt;
+  p.life-=dt;
+  ctx.globalAlpha=Math.max(0,p.life/p.maxLife);
+  ctx.fillStyle="#f02b50";
+  ctx.shadowColor="#ff174d";
+  ctx.shadowBlur=12;
+  ctx.beginPath();
+  ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+  ctx.fill();
+ });
+ ctx.restore();
+ effects=effects.filter(p=>p.life>0);
+}
+
+/* PLAYER MOVEMENT */
+function updatePlayer(dt){
+ let direction=0;
+ if(left)direction--;
+ if(right)direction++;
+
+ player.x+=direction*SETTINGS.playerSpeed*dt;
+
+ if(pointerActive){
+  const difference=pointerX-player.x;
+  const movement=SETTINGS.playerSpeed*dt;
+  player.x+=Math.max(-movement,Math.min(movement,difference));
+ }
+
+ const half=player.width/2;
+ player.x=Math.max(half,Math.min(W-half,player.x));
+}
+
+/* NOTE COLLISIONS */
+function updateNotes(dt){
+ for(let i=notes.length-1;i>=0;i--){
+  const note=notes[i];
+  note.y+=note.speed*dt;
+  note.rotation+=note.rotationSpeed*dt;
+
+  const dx=Math.abs(note.x-player.x);
+  const dy=Math.abs(note.y-(player.y-20));
+
+  if(dx<SETTINGS.catchDistance&&dy<65){
+   score+=SETTINGS.scorePerNote;
+   playMetalcoreCatch();
+   createCatchEffect(note.x,note.y);
+   notes.splice(i,1);
+   level=Math.floor(score/100)+1;
+   updateHUD();
+   continue;
+  }
+
+  if(note.y>H-90){
+   lives--;
+   notes.splice(i,1);
+   if(!reducedMotion)shake=8;
+   updateHUD();
+   if(lives<=0){
+    endGame();
+    return;
+   }
+  }
+ }
+}
+
+/* UPDATE SCORE AND LIVES */
+function updateHUD(){
+ $("score").textContent=String(score).padStart(4,"0");
+ $("lives").textContent=Array.from(
+  {length:SETTINGS.startingLives},
+  (_,i)=>i<lives?"♥":"♡"
+ ).join(" ");
+ $("level").textContent=String(level).padStart(2,"0");
+}
+
+/* MAIN UPDATE */
+function update(dt){
+ if(state!=="playing")return;
+
+ updatePlayer(dt);
+ spawnTimer+=dt;
+
+ const interval=Math.max(
+  SETTINGS.minimumSpawnInterval,
+  SETTINGS.spawnInterval-(level-1)*.045
+ );
+
+ if(spawnTimer>=interval){
+  spawnNote();
+  spawnTimer=0;
+ }
+
+ updateNotes(dt);
+}
+
+/* DRAW FRAME */
+function draw(){
+ ctx.save();
+
+ if(!reducedMotion&&shake>0){
+  ctx.translate(
+   (Math.random()-.5)*shake,
+   (Math.random()-.5)*shake
+  );
+  shake*=.85;
+  if(shake<.2)shake=0;
+ }
+
+ drawBackground(frameDelta);
+ drawStageDetails();
+ notes.forEach(drawNote);
+ drawMusician();
+ updateEffects(state==="playing"?frameDelta:0);
+
+ ctx.restore();
+}
+
+/* ANIMATION LOOP */
+let frameDelta=0;
+function gameLoop(timestamp){
+ if(!lastTime)lastTime=timestamp;
+ let dt=(timestamp-lastTime)/1000;
+ dt=Math.min(dt,.05);
+ lastTime=timestamp;
+ frameDelta=dt;
+ update(dt);
+ draw();
+ requestAnimationFrame(gameLoop);
+}
+requestAnimationFrame(gameLoop);
+
+/* START OR RESTART */
+function startGame(){
+ initializeAudio();
+ score=0;
+ lives=SETTINGS.startingLives;
+ level=1;
+ notes=[];
+ effects=[];
+ spawnTimer=0;
+ shake=0;
+ player.x=W/2;
+ left=false;
+ right=false;
+ pointerActive=false;
+ state="playing";
+
+ $("startScreen").classList.add("hidden");
+ $("pauseScreen").classList.add("hidden");
+ $("gameOverScreen").classList.add("hidden");
+ $("pause").textContent="Ⅱ PAUSE (P)";
+
+ updateHUD();
+ lastTime=0;
+}
+
+/* PAUSE */
+function pauseGame(){
+ if(state!=="playing")return;
+ state="paused";
+ left=false;
+ right=false;
+ pointerActive=false;
+ $("pauseScreen").classList.remove("hidden");
+ $("pause").textContent="▶ RESUME";
+}
+
+function resumeGame(){
+ if(state!=="paused")return;
+ initializeAudio();
+ state="playing";
+ lastTime=0;
+ $("pauseScreen").classList.add("hidden");
+ $("pause").textContent="Ⅱ PAUSE (P)";
+}
+
+function togglePause(){
+ if(state==="playing")pauseGame();
+ else if(state==="paused")resumeGame();
+}
+
+/* GAME OVER */
+function endGame(){
+ state="gameover";
+ left=false;
+ right=false;
+ pointerActive=false;
+ $("finalScore").textContent=String(score).padStart(4,"0");
+ $("gameOverScreen").classList.remove("hidden");
+ $("pause").textContent="Ⅱ PAUSE (P)";
+}
+
+/* KEYBOARD */
+document.addEventListener("keydown",event=>{
+ const key=event.key.toLowerCase();
+
+ if(["arrowleft","arrowright"," "].includes(key)){
+  event.preventDefault();
+ }
+
+ if(key==="arrowleft"||key==="a")left=true;
+ if(key==="arrowright"||key==="d")right=true;
+ if(key==="p"&&!event.repeat)togglePause();
+
+ if(key==="enter"&&(state==="start"||state==="gameover")){
+  startGame();
+ }
+});
+
+document.addEventListener("keyup",event=>{
+ const key=event.key.toLowerCase();
+ if(key==="arrowleft"||key==="a")left=false;
+ if(key==="arrowright"||key==="d")right=false;
+});
+
+window.addEventListener("blur",()=>{
+ left=false;
+ right=false;
+ pointerActive=false;
+});
+
+/* MOUSE AND TOUCH */
+function getCanvasX(event){
+ const rect=canvas.getBoundingClientRect();
+ return (event.clientX-rect.left)*(W/rect.width);
+}
+
+canvas.addEventListener("pointerdown",event=>{
+ if(state!=="playing")return;
+ pointerActive=true;
+ pointerX=getCanvasX(event);
+ try{canvas.setPointerCapture(event.pointerId)}catch(e){}
+});
+
+canvas.addEventListener("pointermove",event=>{
+ if(!pointerActive||state!=="playing")return;
+ pointerX=getCanvasX(event);
+});
+
+canvas.addEventListener("pointerup",()=>pointerActive=false);
+canvas.addEventListener("pointercancel",()=>pointerActive=false);
+canvas.addEventListener("lostpointercapture",()=>pointerActive=false);
+
+/* AUTOMATIC PAUSE WHEN TAB IS HIDDEN */
+document.addEventListener("visibilitychange",()=>{
+ if(document.hidden&&state==="playing")pauseGame();
+});
+
+/* BUTTONS */
+$("start").addEventListener("click",startGame);
+$("restart").addEventListener("click",startGame);
+$("resume").addEventListener("click",resumeGame);
+$("pause").addEventListener("click",togglePause);
+
+$("mute").addEventListener("click",()=>{
+ muted=!muted;
+ $("mute").textContent=muted?"♫ SOUND OFF":"♫ SOUND ON";
+ $("mute").setAttribute("aria-pressed",String(muted));
+ if(!muted)initializeAudio();
+});
+
+/* INITIALIZE */
+updateHUD();
+draw();
+</script>
+</body>
+</html>
