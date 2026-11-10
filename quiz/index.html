@@ -1,0 +1,823 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metalcore Mayhem | Trivia Quiz</title>
+
+<!--
+METALCORE MAYHEM v1.0
+Libraries: None.
+Built with vanilla HTML, CSS, and JavaScript.
+Runs entirely in the browser. No data is sent to a server.
+-->
+
+<style>
+:root {
+  --bg: #100d12;
+  --panel: #1b161e;
+  --red: #c32645;
+  --pink: #ff8297;
+  --text: #f5eef6;
+  --muted: #b9aebb;
+  --green: #54d69a;
+  --wrong: #ff7182;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 25px 15px;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  background:
+    radial-gradient(ellipse at top, #351522, transparent 55%),
+    var(--bg);
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  width: min(100%, 720px);
+  margin: auto;
+}
+
+.eyebrow {
+  color: var(--pink);
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 10px 0;
+  text-align: center;
+  font-size: clamp(38px, 8vw, 65px);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: -3px;
+}
+
+.subtitle {
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+
+.quiz-card {
+  overflow: hidden;
+  border: 1px solid #453542;
+  border-radius: 20px;
+  background: var(--panel);
+  box-shadow: 0 20px 60px #0008;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 18px;
+  border-bottom: 1px solid #453542;
+  color: var(--muted);
+}
+
+.score {
+  color: var(--pink);
+  font-weight: bold;
+}
+
+.progress {
+  height: 5px;
+  background: #352936;
+}
+
+.progress-fill {
+  width: 0%;
+  height: 100%;
+  background: var(--red);
+  transition: width .3s;
+}
+
+.quiz-content {
+  padding: 30px;
+}
+
+.question-number {
+  color: var(--pink);
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+h2 {
+  font-size: clamp(21px, 4vw, 28px);
+  line-height: 1.4;
+  margin: 15px 0 25px;
+}
+
+.answers {
+  display: grid;
+  gap: 12px;
+}
+
+.answer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 58px;
+  padding: 13px;
+  border: 1px solid #51404f;
+  border-radius: 12px;
+  color: var(--text);
+  background: #ffffff08;
+  text-align: left;
+  font-size: 16px;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.answer:hover:not(:disabled) {
+  border-color: var(--pink);
+  background: #c3264520;
+}
+
+.answer:focus-visible,
+.primary:focus-visible {
+  outline: 3px solid #ffd166;
+  outline-offset: 4px;
+}
+
+.answer:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.letter {
+  display: grid;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid #76576a;
+  border-radius: 8px;
+  color: var(--pink);
+  font-weight: bold;
+}
+
+.correct {
+  border-color: var(--green);
+  background: #54d69a20;
+}
+
+.correct .letter {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+.incorrect {
+  border-color: var(--wrong);
+  background: #ff718220;
+}
+
+.incorrect .letter {
+  color: var(--wrong);
+  border-color: var(--wrong);
+}
+
+.feedback {
+  min-height: 28px;
+  margin-top: 20px;
+  font-weight: bold;
+  line-height: 1.5;
+}
+
+.good { color: var(--green); }
+.bad { color: var(--wrong); }
+
+.controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.primary {
+  padding: 14px 22px;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  background: linear-gradient(135deg, #c32645, #8e1837);
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.primary:hover {
+  filter: brightness(1.2);
+}
+
+.keyboard-hint {
+  margin-top: 20px;
+  color: #9f919f;
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.results {
+  padding: 40px 25px;
+  text-align: center;
+}
+
+.results[hidden],
+.quiz-view[hidden] {
+  display: none;
+}
+
+.result-icon {
+  font-size: 55px;
+  margin-bottom: 15px;
+}
+
+.final-score {
+  color: var(--pink);
+  font-size: 65px;
+  font-weight: bold;
+  margin: 15px 0;
+}
+
+.result-message {
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 25px;
+}
+
+@media (max-width: 480px) {
+  .quiz-content {
+    padding: 20px;
+  }
+
+  .answer {
+    font-size: 14px;
+  }
+
+  .controls .primary {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: .01ms !important;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<main class="container">
+
+  <p class="eyebrow">Five Questions · One Pit · No Mercy</p>
+
+  <h1>Metalcore<br>Mayhem</h1>
+
+  <p class="subtitle">
+    Think you know your breakdowns, bands, and heavy music trivia?
+    Prove it.
+  </p>
+
+  <section class="quiz-card" aria-label="Metalcore trivia quiz">
+
+    <div class="top-bar">
+      <span id="progress-label">Question 1 of 5</span>
+      <span class="score" id="score-label">Score: 0</span>
+    </div>
+
+    <div class="progress"
+         role="progressbar"
+         aria-label="Quiz progress"
+         aria-valuemin="0"
+         aria-valuemax="5"
+         aria-valuenow="0"
+         id="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+
+    <div class="quiz-view" id="quiz-view">
+
+      <div class="quiz-content">
+
+        <p class="question-number" id="question-count">
+          QUESTION 01 / 05
+        </p>
+
+        <h2 id="question-text"></h2>
+
+        <div class="answers" id="answers"
+             role="group"
+             aria-label="Answer choices">
+        </div>
+
+        <p class="feedback" id="feedback"
+           role="status"
+           aria-live="polite"></p>
+
+        <div class="controls">
+          <button class="primary"
+                  id="next-button"
+                  type="button"
+                  hidden>
+            Next Question →
+          </button>
+        </div>
+
+        <p class="keyboard-hint">
+          Keyboard: Press <strong>1–4</strong> to answer.
+          Press <strong>Enter</strong> to continue.
+        </p>
+
+      </div>
+    </div>
+
+    <div class="results" id="results" hidden>
+
+      <div class="result-icon">✦</div>
+
+      <p class="question-number">QUIZ COMPLETE</p>
+
+      <h2 id="result-title">You survived the pit!</h2>
+
+      <div class="final-score" id="final-score">0 / 5</div>
+
+      <p class="result-message" id="result-message"></p>
+
+      <button class="primary"
+              id="restart-button"
+              type="button">
+        Play Again ↻
+      </button>
+
+      <p class="keyboard-hint">
+        Press Enter or Space to play again.
+      </p>
+
+    </div>
+
+  </section>
+
+  <p class="keyboard-hint">
+    Made for the love of loud guitars and questionable volume levels.
+  </p>
+
+</main>
+
+<script>
+
+// ==========================================
+// 1. QUIZ QUESTIONS AND ANSWERS
+// ==========================================
+
+// Each question contains four answers.
+// The correct number represents the answer position:
+// 0 = A, 1 = B, 2 = C, 3 = D.
+
+const questions = [
+
+  {
+    question: 'Which band has a song called "Can You Feel My Heart"?',
+    answers: [
+      "Deftones",
+      "Bullet For My Valentine",
+      "Bring Me The Horizon",
+      "Paleface Swiss"
+    ],
+    correct: 2
+  },
+
+  {
+    question: "Which band has a pumpkin in their logo?",
+    answers: [
+      "A Day to Remember",
+      "Falling in Reverse",
+      "Black Veil Brides",
+      "Motionless in White"
+    ],
+    correct: 3
+  },
+
+  {
+    question: "Which band had a song in Terrifier 3 and Scream 7?",
+    answers: [
+      "Ice Nine Kills",
+      "Nine Inch Nails",
+      "Motionless in White",
+      "Breaking Benjamin"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "Which of these groups is an Australian metalcore band?",
+    answers: [
+      "Blessthefall",
+      "The Amity Affliction",
+      "Orthodox",
+      "Slipknot"
+    ],
+    correct: 1
+  },
+
+  {
+    question: "Which of these bands is from Orlando, Florida?",
+    answers: [
+      "Spiritbox",
+      "Colorblind",
+      "Polaris",
+      "Dark Divine"
+    ],
+    correct: 3
+  }
+
+];
+
+
+// ==========================================
+// 2. QUIZ VARIABLES
+// ==========================================
+
+// These variables keep track of the player's progress.
+
+let currentQuestion = 0;
+let score = 0;
+let hasAnswered = false;
+
+
+// ==========================================
+// 3. HTML ELEMENT REFERENCES
+// ==========================================
+
+// Store references to the HTML elements we need to update.
+
+const progressLabel = document.getElementById("progress-label");
+const scoreLabel = document.getElementById("score-label");
+const progressBar = document.getElementById("progress-bar");
+const progressFill = document.getElementById("progress-fill");
+
+const questionCount = document.getElementById("question-count");
+const questionText = document.getElementById("question-text");
+const answersContainer = document.getElementById("answers");
+const feedback = document.getElementById("feedback");
+
+const nextButton = document.getElementById("next-button");
+
+const quizView = document.getElementById("quiz-view");
+const resultsView = document.getElementById("results");
+
+const finalScore = document.getElementById("final-score");
+const resultTitle = document.getElementById("result-title");
+const resultMessage = document.getElementById("result-message");
+
+const restartButton = document.getElementById("restart-button");
+
+
+// ==========================================
+// 4. DISPLAY THE CURRENT QUESTION
+// ==========================================
+
+function renderQuestion() {
+
+  const item = questions[currentQuestion];
+
+  hasAnswered = false;
+
+  progressLabel.textContent =
+    `Question ${currentQuestion + 1} of ${questions.length}`;
+
+  questionCount.textContent =
+    `QUESTION ${String(currentQuestion + 1).padStart(2, "0")} / 05`;
+
+  questionText.textContent = item.question;
+
+  scoreLabel.textContent = `Score: ${score}`;
+
+  progressFill.style.width =
+    `${(currentQuestion / questions.length) * 100}%`;
+
+  progressBar.setAttribute(
+    "aria-valuenow",
+    currentQuestion
+  );
+
+  feedback.textContent = "";
+  feedback.className = "feedback";
+
+  nextButton.hidden = true;
+
+  nextButton.textContent =
+    currentQuestion === questions.length - 1
+      ? "See My Score →"
+      : "Next Question →";
+
+  // Clear previous answers.
+  answersContainer.replaceChildren();
+
+  // Create four answer buttons.
+  item.answers.forEach((answer, index) => {
+
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.className = "answer";
+
+    button.setAttribute(
+      "aria-label",
+      `Option ${String.fromCharCode(65 + index)}: ${answer}`
+    );
+
+    const letter = document.createElement("span");
+
+    letter.className = "letter";
+    letter.textContent =
+      String.fromCharCode(65 + index);
+
+    letter.setAttribute("aria-hidden", "true");
+
+    const text = document.createElement("span");
+
+    text.textContent = answer;
+
+    button.append(letter, text);
+
+    button.addEventListener("click", () => {
+      chooseAnswer(index);
+    });
+
+    answersContainer.appendChild(button);
+
+  });
+
+  // Automatically focus the first answer.
+  answersContainer.querySelector("button").focus();
+
+}
+
+
+// ==========================================
+// 5. CHECK THE PLAYER'S ANSWER
+// ==========================================
+
+function chooseAnswer(selectedIndex) {
+
+  // Prevent selecting multiple answers.
+  if (hasAnswered) return;
+
+  hasAnswered = true;
+
+  const item = questions[currentQuestion];
+
+  const buttons =
+    [...answersContainer.querySelectorAll("button")];
+
+  const isCorrect =
+    selectedIndex === item.correct;
+
+  if (isCorrect) {
+
+    score++;
+
+    feedback.textContent =
+      "Correct! You know your metalcore. 🤘";
+
+    feedback.classList.add("good");
+
+  } else {
+
+    const correctLetter =
+      String.fromCharCode(65 + item.correct);
+
+    feedback.textContent =
+      `Not quite! The correct answer is ${correctLetter}) ${item.answers[item.correct]}.`;
+
+    feedback.classList.add("bad");
+
+  }
+
+  // Highlight the correct answer.
+  // Also highlight the player's wrong choice if applicable.
+
+  buttons.forEach((button, index) => {
+
+    button.disabled = true;
+
+    if (index === item.correct) {
+      button.classList.add("correct");
+    }
+
+    if (index === selectedIndex && !isCorrect) {
+      button.classList.add("incorrect");
+    }
+
+  });
+
+  scoreLabel.textContent = `Score: ${score}`;
+
+  progressFill.style.width =
+    `${((currentQuestion + 1) / questions.length) * 100}%`;
+
+  progressBar.setAttribute(
+    "aria-valuenow",
+    currentQuestion + 1
+  );
+
+  // Show the next question button.
+  nextButton.hidden = false;
+  nextButton.focus();
+
+}
+
+
+// ==========================================
+// 6. MOVE TO THE NEXT QUESTION
+// ==========================================
+
+function goToNextQuestion() {
+
+  if (!hasAnswered) return;
+
+  currentQuestion++;
+
+  if (currentQuestion < questions.length) {
+
+    renderQuestion();
+
+  } else {
+
+    showResults();
+
+  }
+
+}
+
+
+// ==========================================
+// 7. DISPLAY FINAL RESULTS
+// ==========================================
+
+function showResults() {
+
+  quizView.hidden = true;
+  resultsView.hidden = false;
+
+  progressLabel.textContent = "Quiz Complete";
+
+  scoreLabel.textContent = `Score: ${score}`;
+
+  progressFill.style.width = "100%";
+
+  progressBar.setAttribute("aria-valuenow", 5);
+
+  finalScore.textContent = `${score} / 5`;
+
+  // Display a different message based on the final score.
+
+  if (score === 5) {
+
+    resultTitle.textContent =
+      "Certified Breakdown Expert!";
+
+    resultMessage.textContent =
+      "Perfect score! You absolutely understood the assignment. Now go find the nearest circle pit.";
+
+  } else if (score >= 3) {
+
+    resultTitle.textContent =
+      "Solid Work in the Pit!";
+
+    resultMessage.textContent =
+      "You know your heavy hitters! A couple more spins through the discography and you'll be unstoppable.";
+
+  } else {
+
+    resultTitle.textContent =
+      "Back to the Breakdowns!";
+
+    resultMessage.textContent =
+      "No shame in a little homework. Crank up a playlist, learn a few band facts, and come back swinging.";
+
+  }
+
+  restartButton.focus();
+
+}
+
+
+// ==========================================
+// 8. RESTART THE QUIZ
+// ==========================================
+
+function restartQuiz() {
+
+  currentQuestion = 0;
+  score = 0;
+
+  quizView.hidden = false;
+  resultsView.hidden = true;
+
+  renderQuestion();
+
+}
+
+
+// ==========================================
+// 9. BUTTON EVENT LISTENERS
+// ==========================================
+
+// Connect the buttons to their functions.
+
+nextButton.addEventListener(
+  "click",
+  goToNextQuestion
+);
+
+restartButton.addEventListener(
+  "click",
+  restartQuiz
+);
+
+
+// ==========================================
+// 10. KEYBOARD CONTROLS
+// ==========================================
+
+// 1, 2, 3, 4 select answers A, B, C, D.
+// Enter or Space advances to the next question.
+// Enter or Space restarts the quiz on the results screen.
+
+document.addEventListener("keydown", (event) => {
+
+  if (event.altKey || event.ctrlKey || event.metaKey) {
+    return;
+  }
+
+  // Keyboard controls on the results screen.
+  if (!resultsView.hidden) {
+
+    if (event.key === "Enter" || event.key === " ") {
+
+      event.preventDefault();
+      restartQuiz();
+
+    }
+
+    return;
+  }
+
+  // Select an answer using number keys.
+  if (/^[1-4]$/.test(event.key) && !hasAnswered) {
+
+    event.preventDefault();
+
+    chooseAnswer(Number(event.key) - 1);
+
+  }
+
+  // Advance after answering.
+  else if (
+    (event.key === "Enter" || event.key === " ") &&
+    hasAnswered
+  ) {
+
+    if (document.activeElement !== nextButton) {
+
+      event.preventDefault();
+
+      goToNextQuestion();
+
+    }
+
+  }
+
+});
+
+
+// ==========================================
+// 11. START THE QUIZ
+// ==========================================
+
+// Display the first question when the page loads.
+
+renderQuestion();
+
+</script>
+
+</body>
+</html>
