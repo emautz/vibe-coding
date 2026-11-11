@@ -1,0 +1,1299 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Habit Tracker</title>
+
+<style>
+/* =========================================
+   HABIT TRACKER v1.0
+   Dark alternative-inspired design
+   ========================================= */
+
+:root {
+    --bg: #101013;
+    --panel: #19191f;
+    --panel2: #22222a;
+    --border: #35343e;
+    --text: #f3f0f2;
+    --muted: #aaa5b0;
+    --red: #d52b48;
+    --red-dark: #721c30;
+    --green: #78c69a;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 24px;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+button, input {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible {
+    outline: 3px solid #ff8296;
+    outline-offset: 3px;
+}
+
+.container {
+    width: 100%;
+    max-width: 1100px;
+    margin: auto;
+}
+
+header {
+    margin-bottom: 28px;
+}
+
+h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin: 0 0 8px;
+    letter-spacing: -1px;
+}
+
+h1 span {
+    color: var(--red);
+}
+
+.subtitle {
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    margin-bottom: 22px;
+}
+
+h2 {
+    font-size: 1.2rem;
+    margin: 0 0 18px;
+}
+
+h3 {
+    font-size: 1rem;
+    margin: 0 0 12px;
+}
+
+.add-form {
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    min-width: 0;
+    flex: 1;
+    padding: 13px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--panel2);
+    color: white;
+}
+
+input::placeholder {
+    color: #aaa5b0;
+}
+
+.primary-btn,
+.secondary-btn,
+.danger-btn {
+    padding: 12px 17px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.primary-btn {
+    background: var(--red);
+    color: white;
+}
+
+.primary-btn:hover {
+    background: #ef405e;
+}
+
+.secondary-btn {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    color: white;
+}
+
+.secondary-btn:hover {
+    background: #34343e;
+}
+
+.danger-btn {
+    background: #651c2b;
+    color: white;
+    border: 1px solid #a22b42;
+}
+
+.danger-btn:hover {
+    background: #8c233b;
+}
+
+.habit-list {
+    display: grid;
+    gap: 10px;
+}
+
+.habit-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 13px 15px;
+}
+
+.habit-name {
+    font-weight: bold;
+    overflow-wrap: anywhere;
+}
+
+.remove-btn {
+    background: transparent;
+    border: 1px solid #773044;
+    color: #ff8296;
+    border-radius: 7px;
+    padding: 8px 11px;
+    flex-shrink: 0;
+}
+
+.remove-btn:hover {
+    background: #461c29;
+}
+
+.grid-wrapper {
+    overflow-x: auto;
+    width: 100%;
+}
+
+.tracker-grid {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+}
+
+.tracker-grid th,
+.tracker-grid td {
+    padding: 12px 8px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+}
+
+.tracker-grid th {
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.tracker-grid th:first-child,
+.tracker-grid td:first-child {
+    text-align: left;
+    min-width: 145px;
+}
+
+.today-column {
+    background: rgba(213, 43, 72, 0.08);
+}
+
+.day-name {
+    display: block;
+    font-weight: bold;
+    color: white;
+}
+
+.day-date {
+    display: block;
+    font-size: 0.75rem;
+    margin-top: 4px;
+}
+
+.day-button {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    background: #292831;
+    color: #aaa5b0;
+    border: 1px solid #494651;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.day-button:hover {
+    border-color: var(--red);
+    background: #3b2830;
+}
+
+.day-button[aria-pressed="true"] {
+    background: var(--red-dark);
+    color: white;
+    border: 2px solid #ed5570;
+}
+
+.day-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.streak-list {
+    display: grid;
+    gap: 12px;
+}
+
+.streak-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+}
+
+.streak-count {
+    color: #ff718a;
+    font-size: 1.1rem;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.storage-warning {
+    display: none;
+    background: #512b19;
+    color: #ffe0bd;
+    border: 1px solid #a76a38;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.status-message {
+    color: var(--green);
+    min-height: 22px;
+    margin-top: 12px;
+    font-size: 0.9rem;
+}
+
+.empty-message {
+    color: var(--muted);
+    font-style: italic;
+}
+
+footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+    padding: 15px;
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 15px;
+    }
+
+    .panel {
+        padding: 16px;
+    }
+
+    .add-form {
+        flex-direction: column;
+    }
+
+    .add-form button {
+        width: 100%;
+    }
+
+    .toolbar button {
+        flex: 1 1 100%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <h1>MY <span>HABITS.</span></h1>
+    <p class="subtitle">
+        Small steps. Consistent progress. One day at a time.
+    </p>
+</header>
+
+<div id="storageWarning" class="storage-warning"
+     role="alert" aria-live="assertive">
+    <strong>Storage unavailable!</strong>
+    Your browser is not allowing this page to save data.
+    Your tracker will continue working while this page remains open,
+    but your changes may not survive closing or refreshing it.
+</div>
+
+<!-- ADD AND MANAGE HABITS -->
+<section class="panel" aria-labelledby="habitsHeading">
+    <h2 id="habitsHeading">Your Habits</h2>
+
+    <form class="add-form" id="habitForm">
+        <label for="habitInput" class="visually-hidden">
+            New habit name
+        </label>
+        <input
+            id="habitInput"
+            type="text"
+            maxlength="80"
+            placeholder="Add a new habit..."
+            required
+        >
+        <button class="primary-btn" type="submit">
+            + Add Habit
+        </button>
+    </form>
+
+    <div style="height:16px"></div>
+
+    <div id="habitList" class="habit-list"></div>
+</section>
+
+<!-- SEVEN DAY TRACKER -->
+<section class="panel" aria-labelledby="trackerHeading">
+    <h2 id="trackerHeading">Your Last 7 Days</h2>
+
+    <p class="subtitle" style="margin-bottom:18px">
+        Press a button to mark a habit complete.
+        Press it again to undo.
+    </p>
+
+    <div class="grid-wrapper">
+        <table class="tracker-grid" id="trackerTable">
+        </table>
+    </div>
+</section>
+
+<!-- STREAKS -->
+<section class="panel" aria-labelledby="streakHeading">
+    <h2 id="streakHeading">Current Streaks 🔥</h2>
+    <div id="streakList" class="streak-list"></div>
+</section>
+
+<!-- DATA MANAGEMENT -->
+<section class="panel" aria-labelledby="dataHeading">
+    <h2 id="dataHeading">Data Management</h2>
+
+    <p class="subtitle" style="margin-bottom:18px">
+        Your information stays on this device. Export a backup
+        whenever you want.
+    </p>
+
+    <div class="toolbar">
+        <button class="primary-btn" id="exportBtn" type="button">
+            ↓ Export My Data
+        </button>
+
+        <button class="secondary-btn" id="importBtn" type="button">
+            ↑ Import a File
+        </button>
+
+        <button class="danger-btn" id="deleteBtn" type="button">
+            Delete Everything
+        </button>
+
+        <input
+            type="file"
+            id="fileInput"
+            accept=".json,application/json"
+            hidden
+        >
+    </div>
+
+    <div id="statusMessage" class="status-message"
+         role="status" aria-live="polite"></div>
+</section>
+
+<footer>
+    HABIT TRACKER v1.0 · Your data. Your progress. Your device.
+</footer>
+
+</div>
+
+<script>
+
+/* =========================================================
+   HABIT TRACKER v1.0
+   Vanilla JavaScript - no external libraries.
+
+   TEACHER / USER EDITABLE HABITS:
+   Change the names in this array to customize the
+   three habits that appear when the tracker is first opened.
+   ========================================================= */
+
+const DEFAULT_HABITS = [
+    "Practice the bass",
+    "Read a book",
+    "Bed by 11pm"
+];
+
+/* =========================================================
+   SECTION 1: SETTINGS AND STARTING DATA
+
+   STORAGE_KEY is the name used to save our JSON data
+   inside the browser's localStorage.
+
+   The version number helps us identify the data format.
+   ========================================================= */
+
+const STORAGE_KEY = "darkHabitTracker_v1";
+
+let storageAvailable = true;
+
+let appData = {
+    version: 1,
+    habits: [],
+    records: {}
+};
+
+/* =========================================================
+   SECTION 2: HELPER FUNCTIONS
+
+   These functions handle dates, IDs, and other small
+   jobs used throughout the application.
+   ========================================================= */
+
+// Create a unique ID for each habit.
+function createId() {
+    if (crypto && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+
+    return "habit-" + Date.now() + "-" +
+        Math.random().toString(36).slice(2);
+}
+
+// Convert a Date into a local YYYY-MM-DD date.
+// We deliberately avoid toISOString() because that uses UTC
+// and could accidentally shift the day for some users.
+function dateKey(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+// Get a date a certain number of days before another date.
+function subtractDays(date, amount) {
+    const result = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+    );
+
+    result.setDate(result.getDate() - amount);
+    return result;
+}
+
+// Format a date for the tracker headings.
+function formatDate(date) {
+    return date.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric"
+    });
+}
+
+// Display a message to the user.
+function showMessage(message) {
+    document.getElementById("statusMessage").textContent = message;
+}
+
+// Check if a date string is a real calendar date.
+function isValidDateKey(key) {
+    if (typeof key !== "string" ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(key)) {
+        return false;
+    }
+
+    const parts = key.split("-").map(Number);
+    const date = new Date(parts[0], parts[1] - 1, parts[2]);
+
+    return dateKey(date) === key;
+}
+
+/* =========================================================
+   SECTION 3: LOCAL STORAGE
+
+   We save the complete appData object as JSON.
+
+   If localStorage is unavailable, the app continues using
+   the JavaScript object in memory instead.
+   ========================================================= */
+
+function saveData() {
+    if (!storageAvailable) return false;
+
+    try {
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(appData, null, 2)
+        );
+
+        return true;
+
+    } catch (error) {
+        storageAvailable = false;
+        updateStorageWarning();
+        return false;
+    }
+}
+
+function updateStorageWarning() {
+    document.getElementById("storageWarning").style.display =
+        storageAvailable ? "none" : "block";
+}
+
+// Load saved data when the page opens.
+function loadData() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+
+        if (saved === null) {
+            appData.habits = DEFAULT_HABITS.map(name => ({
+                id: createId(),
+                name: name
+            }));
+
+            saveData();
+            return;
+        }
+
+        const parsed = JSON.parse(saved);
+
+        if (!validateData(parsed)) {
+            throw new Error("Saved data is invalid.");
+        }
+
+        appData = parsed;
+
+    } catch (error) {
+        storageAvailable = false;
+
+        appData = {
+            version: 1,
+            habits: DEFAULT_HABITS.map(name => ({
+                id: createId(),
+                name
+            })),
+            records: {}
+        };
+
+        updateStorageWarning();
+    }
+}
+
+/* =========================================================
+   SECTION 4: DATA VALIDATION
+
+   This function checks imported and stored JSON before
+   accepting it.
+
+   It verifies:
+   - Correct version.
+   - Habits are an array.
+   - Each habit has a unique ID and valid name.
+   - Records contain valid dates.
+   - Every completion value is a boolean.
+   - Records only refer to existing habits.
+   ========================================================= */
+
+function validateData(data) {
+    if (!data || typeof data !== "object" ||
+        Array.isArray(data)) {
+        return false;
+    }
+
+    if (data.version !== 1 ||
+        !Array.isArray(data.habits) ||
+        !data.records ||
+        typeof data.records !== "object" ||
+        Array.isArray(data.records)) {
+        return false;
+    }
+
+    if (data.habits.length > 500) return false;
+
+    const ids = new Set();
+
+    for (const habit of data.habits) {
+        if (!habit ||
+            typeof habit.id !== "string" ||
+            habit.id.length < 1 ||
+            habit.id.length > 150 ||
+            typeof habit.name !== "string" ||
+            habit.name.trim().length < 1 ||
+            habit.name.length > 80 ||
+            ids.has(habit.id)) {
+            return false;
+        }
+
+        ids.add(habit.id);
+    }
+
+    const dateKeys = Object.keys(data.records);
+
+    if (dateKeys.length > 10000) return false;
+
+    for (const date of dateKeys) {
+        if (!isValidDateKey(date)) return false;
+
+        const dayRecords = data.records[date];
+
+        if (!dayRecords ||
+            typeof dayRecords !== "object" ||
+            Array.isArray(dayRecords)) {
+            return false;
+        }
+
+        for (const [habitId, completed] of
+            Object.entries(dayRecords)) {
+
+            if (!ids.has(habitId) ||
+                typeof completed !== "boolean") {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/* =========================================================
+   SECTION 5: HABIT MANAGEMENT
+
+   Users can add habits or remove them.
+
+   Removing a habit also removes its historical completion
+   records so old data does not become orphaned.
+   ========================================================= */
+
+document.getElementById("habitForm")
+    .addEventListener("submit", function(event) {
+
+        event.preventDefault();
+
+        const input = document.getElementById("habitInput");
+        const name = input.value.trim();
+
+        if (!name) return;
+
+        if (appData.habits.length >= 500) {
+            showMessage("You have reached the habit limit.");
+            return;
+        }
+
+        appData.habits.push({
+            id: createId(),
+            name: name
+        });
+
+        input.value = "";
+
+        saveData();
+        renderApp();
+
+        showMessage("Habit added successfully!");
+    });
+
+// Remove a habit after confirmation.
+function removeHabit(id) {
+    const habit = appData.habits.find(item => item.id === id);
+
+    if (!habit) return;
+
+    const confirmed = confirm(
+        `Are you sure you want to remove "${habit.name}"? ` +
+        "Its completion history will also be deleted."
+    );
+
+    if (!confirmed) return;
+
+    appData.habits = appData.habits.filter(
+        item => item.id !== id
+    );
+
+    // Remove this habit from every saved date.
+    for (const date of Object.keys(appData.records)) {
+        delete appData.records[date][id];
+
+        // Remove dates that no longer contain any records.
+        if (Object.keys(appData.records[date]).length === 0) {
+            delete appData.records[date];
+        }
+    }
+
+    saveData();
+    renderApp();
+
+    showMessage("Habit removed.");
+}
+
+/* =========================================================
+   SECTION 6: DAILY COMPLETION BUTTONS
+
+   Every button is a real HTML button.
+
+   aria-pressed tells screen readers whether the habit
+   is currently complete for that date.
+
+   The visible check mark provides a second indication
+   besides color.
+   ========================================================= */
+
+function toggleHabit(habitId, date) {
+    if (!appData.habits.some(h => h.id === habitId)) return;
+
+    if (!appData.records[date]) {
+        appData.records[date] = {};
+    }
+
+    const currentlyCompleted =
+        appData.records[date][habitId] === true;
+
+    appData.records[date][habitId] = !currentlyCompleted;
+
+    // Keep the data tidy by removing empty dates.
+    if (Object.values(appData.records[date]).every(
+        value => value === false
+    )) {
+        delete appData.records[date];
+    }
+
+    saveData();
+    renderApp();
+}
+
+/* =========================================================
+   SECTION 7: CALCULATE STREAKS
+
+   A streak counts consecutive completed days.
+
+   IMPORTANT:
+   If today is not completed yet, the streak can still
+   continue from yesterday.
+
+   This means a streak is not broken until midnight if
+   today's habit has not yet been marked complete.
+
+   Example:
+   Monday: completed
+   Tuesday: completed
+   Wednesday: not completed yet
+
+   Wednesday still displays a streak of 2.
+   ========================================================= */
+
+function calculateStreak(habitId) {
+    const today = new Date();
+
+    let checkDate = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate()
+    );
+
+    const todayKey = dateKey(checkDate);
+
+    // If today is not completed, begin checking yesterday.
+    if (appData.records[todayKey]?.[habitId] !== true) {
+        checkDate.setDate(checkDate.getDate() - 1);
+    }
+
+    let streak = 0;
+
+    // Continue backwards until we encounter a missed day.
+    while (true) {
+        const key = dateKey(checkDate);
+
+        if (appData.records[key]?.[habitId] !== true) {
+            break;
+        }
+
+        streak++;
+
+        checkDate.setDate(checkDate.getDate() - 1);
+
+        // Safety limit to avoid endless loops.
+        if (streak > 100000) break;
+    }
+
+    return streak;
+}
+
+/* =========================================================
+   SECTION 8: RENDER THE HABIT LIST
+
+   This builds the visible list of habits and their
+   remove buttons.
+   ========================================================= */
+
+function renderHabitList() {
+    const container = document.getElementById("habitList");
+
+    container.replaceChildren();
+
+    if (appData.habits.length === 0) {
+        const message = document.createElement("p");
+        message.className = "empty-message";
+        message.textContent =
+            "No habits yet. Add your first habit above!";
+        container.appendChild(message);
+        return;
+    }
+
+    for (const habit of appData.habits) {
+        const item = document.createElement("div");
+        item.className = "habit-item";
+
+        const name = document.createElement("span");
+        name.className = "habit-name";
+        name.textContent = habit.name;
+
+        const remove = document.createElement("button");
+        remove.className = "remove-btn";
+        remove.type = "button";
+        remove.textContent = "Remove";
+        remove.setAttribute(
+            "aria-label",
+            `Remove habit ${habit.name}`
+        );
+
+        remove.addEventListener("click", () => {
+            removeHabit(habit.id);
+        });
+
+        item.append(name, remove);
+        container.appendChild(item);
+    }
+}
+
+/* =========================================================
+   SECTION 9: RENDER THE SEVEN-DAY GRID
+
+   The grid displays the last seven calendar days,
+   including today.
+
+   Each cell contains an accessible toggle button.
+   Future dates are never displayed.
+
+   Dates are calculated using the user's local timezone.
+   ========================================================= */
+
+function renderTracker() {
+    const table = document.getElementById("trackerTable");
+    table.replaceChildren();
+
+    const today = new Date();
+
+    // Build the last seven days in chronological order.
+    const days = [];
+
+    for (let i = 6; i >= 0; i--) {
+        days.push(subtractDays(today, i));
+    }
+
+    // Build the table heading.
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+
+    const habitHeader = document.createElement("th");
+    habitHeader.scope = "col";
+    habitHeader.textContent = "Habit";
+
+    headerRow.appendChild(habitHeader);
+
+    days.forEach(day => {
+        const th = document.createElement("th");
+        const key = dateKey(day);
+
+        if (key === dateKey(today)) {
+            th.classList.add("today-column");
+        }
+
+        th.scope = "col";
+
+        const dayName = document.createElement("span");
+        dayName.className = "day-name";
+        dayName.textContent = day.toLocaleDateString(
+            undefined, { weekday: "short" }
+        );
+
+        const dayDate = document.createElement("span");
+        dayDate.className = "day-date";
+        dayDate.textContent = formatDate(day);
+
+        th.append(dayName, dayDate);
+        headerRow.appendChild(th);
+    });
+
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Build the table body.
+    const tbody = document.createElement("tbody");
+
+    for (const habit of appData.habits) {
+        const row = document.createElement("tr");
+
+        const habitCell = document.createElement("th");
+        habitCell.scope = "row";
+        habitCell.textContent = habit.name;
+
+        row.appendChild(habitCell);
+
+        days.forEach(day => {
+            const key = dateKey(day);
+
+            const completed =
+                appData.records[key]?.[habit.id] === true;
+
+            const cell = document.createElement("td");
+
+            if (key === dateKey(today)) {
+                cell.classList.add("today-column");
+            }
+
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.className = "day-button";
+
+            // Show a check mark when complete.
+            button.textContent = completed ? "✓" : "○";
+
+            // Tell screen readers the state of the button.
+            button.setAttribute(
+                "aria-pressed",
+                completed ? "true" : "false"
+            );
+
+            button.setAttribute(
+                "aria-label",
+                `${habit.name}, ${day.toLocaleDateString(
+                    undefined,
+                    {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric"
+                    }
+                )}: ${completed ? "completed" : "not completed"}`
+            );
+
+            button.addEventListener("click", () => {
+                toggleHabit(habit.id, key);
+            });
+
+            cell.appendChild(button);
+            row.appendChild(cell);
+        });
+
+        tbody.appendChild(row);
+    }
+
+    if (appData.habits.length === 0) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+
+        cell.colSpan = 8;
+        cell.textContent =
+            "Add a habit to start tracking your progress.";
+        cell.className = "empty-message";
+
+        row.appendChild(cell);
+        tbody.appendChild(row);
+    }
+
+    table.appendChild(tbody);
+}
+
+/* =========================================================
+   SECTION 10: RENDER STREAKS
+
+   Each habit gets its own streak counter.
+
+   Singular and plural wording is handled automatically.
+   ========================================================= */
+
+function renderStreaks() {
+    const container = document.getElementById("streakList");
+
+    container.replaceChildren();
+
+    if (appData.habits.length === 0) {
+        const message = document.createElement("p");
+        message.className = "empty-message";
+        message.textContent = "No streaks to display yet.";
+        container.appendChild(message);
+        return;
+    }
+
+    for (const habit of appData.habits) {
+        const item = document.createElement("div");
+        item.className = "streak-item";
+
+        const name = document.createElement("span");
+        name.textContent = habit.name;
+
+        const count = calculateStreak(habit.id);
+
+        const streak = document.createElement("span");
+        streak.className = "streak-count";
+        streak.textContent =
+            `🔥 ${count} ${count === 1 ? "day" : "days"}`;
+
+        item.append(name, streak);
+        container.appendChild(item);
+    }
+}
+
+/* =========================================================
+   SECTION 11: RENDER EVERYTHING
+
+   This single function refreshes the entire screen after
+   a change is made.
+   ========================================================= */
+
+function renderApp() {
+    renderHabitList();
+    renderTracker();
+    renderStreaks();
+}
+
+/* =========================================================
+   SECTION 12: EXPORT DATA
+
+   Downloads a readable JSON file containing all habits
+   and all saved completion records.
+   ========================================================= */
+
+document.getElementById("exportBtn")
+    .addEventListener("click", function() {
+
+        const json = JSON.stringify(appData, null, 2);
+
+        const blob = new Blob(
+            [json],
+            { type: "application/json" }
+        );
+
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "my-habit-tracker-backup.json";
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        URL.revokeObjectURL(url);
+
+        showMessage("Your JSON backup has been exported!");
+    });
+
+/* =========================================================
+   SECTION 13: IMPORT DATA
+
+   Import process:
+   1. Select a JSON file.
+   2. Read its contents.
+   3. Validate every part of the data.
+   4. Show a summary of the imported information.
+   5. Ask the user before replacing existing data.
+
+   Nothing gets replaced if validation fails or the user
+   cancels the confirmation.
+   ========================================================= */
+
+document.getElementById("importBtn")
+    .addEventListener("click", function() {
+
+        document.getElementById("fileInput").click();
+    });
+
+document.getElementById("fileInput")
+    .addEventListener("change", async function(event) {
+
+        const file = event.target.files[0];
+
+        // Allow selecting the same file again later.
+        event.target.value = "";
+
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            showMessage("File too large. Maximum size is 5 MB.");
+            return;
+        }
+
+        try {
+            const text = await file.text();
+
+            const imported = JSON.parse(text);
+
+            if (!validateData(imported)) {
+                throw new Error("Invalid data format.");
+            }
+
+            // Count all completed habits across all dates.
+            let completionCount = 0;
+
+            for (const records of
+                Object.values(imported.records)) {
+
+                completionCount +=
+                    Object.values(records).filter(Boolean).length;
+            }
+
+            // Build a readable import preview.
+            const habitNames = imported.habits
+                .map(habit => "• " + habit.name)
+                .join("\n");
+
+            const preview =
+                "IMPORT PREVIEW\n\n" +
+                "File: " + file.name + "\n\n" +
+                "Habits (" + imported.habits.length + "):\n" +
+                (habitNames || "No habits") +
+                "\n\nSaved dates: " +
+                Object.keys(imported.records).length +
+                "\nCompleted habit entries: " +
+                completionCount +
+                "\n\nWARNING: Importing will replace ALL " +
+                "currently saved habits and progress.\n\n" +
+                "Do you want to continue?";
+
+            // Only replace existing information if confirmed.
+            const confirmed = confirm(preview);
+
+            if (!confirmed) {
+                showMessage("Import cancelled. Existing data unchanged.");
+                return;
+            }
+
+            // Create a fresh copy so imported data is independent.
+            appData = JSON.parse(JSON.stringify(imported));
+
+            saveData();
+            renderApp();
+
+            showMessage("Import successful! Your data has been replaced.");
+
+        } catch (error) {
+            showMessage(
+                "Import failed. The file may be damaged or invalid."
+            );
+        }
+    });
+
+/* =========================================================
+   SECTION 14: DELETE EVERYTHING
+
+   This action deliberately asks for confirmation twice.
+
+   The first confirmation checks that the user wants to
+   delete their tracker.
+
+   The second confirmation provides a final warning.
+   ========================================================= */
+
+document.getElementById("deleteBtn")
+    .addEventListener("click", function() {
+
+        const firstConfirmation = confirm(
+            "Are you sure you want to delete everything?\n\n" +
+            "This will remove all habits and completion history."
+        );
+
+        if (!firstConfirmation) return;
+
+        const secondConfirmation = confirm(
+            "FINAL WARNING!\n\n" +
+            "All your saved habit data will be permanently deleted.\n\n" +
+            "Are you absolutely sure?"
+        );
+
+        if (!secondConfirmation) {
+            showMessage("Deletion cancelled.");
+            return;
+        }
+
+        // Remove the saved browser data.
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+        } catch (error) {
+            storageAvailable = false;
+        }
+
+        // Start again with the original three habits.
+        appData = {
+            version: 1,
+            habits: DEFAULT_HABITS.map(name => ({
+                id: createId(),
+                name: name
+            })),
+            records: {}
+        };
+
+        saveData();
+        renderApp();
+
+        showMessage("Everything has been reset.");
+    });
+
+/* =========================================================
+   SECTION 15: INITIALIZE THE APP
+
+   Load saved information and display the tracker.
+
+   This runs once when the browser opens the HTML page.
+   ========================================================= */
+
+loadData();
+updateStorageWarning();
+renderApp();
+
+</script>
+
+</body>
+</html>
