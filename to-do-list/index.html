@@ -1,0 +1,1173 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My To-Do List</title>
+
+<!--
+LIBRARIES:
+1. QRCode.js
+   Version: 1.0.0
+   Source: cdnjs
+   URL: https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js
+   Purpose: Generates QR codes for sharing the task list.
+
+VERSION HISTORY:
+v1.0 - Initial build with task management, localStorage,
+       QR sharing, and safe list importing.
+-->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+:root {
+    --bg: #101014;
+    --panel: #1b1b23;
+    --panel2: #252530;
+    --red: #c52b43;
+    --red-dark: #851c30;
+    --text: #f3edf0;
+    --muted: #aaa2ac;
+    --border: #383541;
+    --green: #83c99a;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 30px 16px;
+    min-height: 100vh;
+    background:
+        radial-gradient(ellipse at top, #321722 0%, transparent 55%),
+        var(--bg);
+    color: var(--text);
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    max-width: 650px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+header .symbol {
+    font-size: 35px;
+    color: var(--red);
+}
+
+h1 {
+    font-size: clamp(30px, 7vw, 44px);
+    margin: 8px 0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.subtitle {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 25px rgba(0,0,0,.2);
+}
+
+h2 {
+    font-size: 17px;
+    margin-top: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.input-row {
+    display: flex;
+    gap: 10px;
+}
+
+input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    padding: 13px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    transition: .2s;
+}
+
+button:hover {
+    filter: brightness(1.2);
+    transform: translateY(-1px);
+}
+
+button:focus-visible,
+input:focus-visible {
+    outline: 3px solid #ef7185;
+    outline-offset: 3px;
+}
+
+.primary {
+    background: var(--red);
+    color: white;
+}
+
+.secondary {
+    background: var(--panel2);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.danger {
+    background: #52212b;
+    color: #ffb7c3;
+}
+
+.task-stats {
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 15px;
+}
+
+.progress-track {
+    height: 7px;
+    background: var(--panel2);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--red);
+    transition: width .3s;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.task {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.task:last-child {
+    border-bottom: none;
+}
+
+.task input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--red);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.task-name {
+    flex: 1;
+    overflow-wrap: anywhere;
+    font-size: 15px;
+}
+
+.task.completed .task-name {
+    text-decoration: line-through;
+    color: var(--muted);
+}
+
+.delete-task {
+    background: transparent;
+    color: #e98291;
+    padding: 7px 10px;
+    font-size: 18px;
+}
+
+.empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 25px 5px;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.actions button {
+    flex: 1;
+    min-width: 130px;
+}
+
+.status {
+    color: var(--green);
+    font-size: 13px;
+    margin-top: 12px;
+    min-height: 18px;
+}
+
+#importPanel {
+    display: none;
+    border-color: var(--red);
+}
+
+.import-list {
+    background: var(--bg);
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+.import-list li {
+    padding: 7px 0;
+    overflow-wrap: anywhere;
+}
+
+.import-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.import-actions button {
+    flex: 1;
+}
+
+#qrPanel {
+    display: none;
+    text-align: center;
+}
+
+#qrcode {
+    display: inline-flex;
+    justify-content: center;
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 15px auto;
+    min-width: 20px;
+    min-height: 20px;
+    max-width: 100%;
+    overflow: auto;
+}
+
+#qrcode img {
+    max-width: 100%;
+    height: auto;
+}
+
+.share-link {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 12px;
+    border-radius: 8px;
+    overflow-wrap: anywhere;
+    font-size: 12px;
+    color: #f3a6b4;
+    margin: 12px 0;
+}
+
+.warning {
+    color: #ffb76c;
+    font-size: 13px;
+}
+
+footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 25px;
+}
+
+@media(max-width: 450px) {
+    .panel {
+        padding: 16px;
+    }
+
+    .input-row {
+        flex-direction: column;
+    }
+
+    .input-row button {
+        width: 100%;
+    }
+
+    .actions button {
+        min-width: 100%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<main class="container">
+
+<header>
+    <div class="symbol" aria-hidden="true">✦</div>
+    <h1>My To-Do List</h1>
+    <p class="subtitle">Get things done. One task at a time.</p>
+</header>
+
+<!-- ADD TASK SECTION -->
+<section class="panel" aria-labelledby="addHeading">
+    <h2 id="addHeading">Add a task</h2>
+
+    <form id="taskForm" class="input-row">
+        <input
+            type="text"
+            id="taskInput"
+            placeholder="What needs to get done?"
+            maxlength="500"
+            aria-label="New task"
+            required
+        >
+        <button class="primary" type="submit">+ Add Task</button>
+    </form>
+</section>
+
+<!-- TASK LIST SECTION -->
+<section class="panel" aria-labelledby="listHeading">
+
+    <h2 id="listHeading">Your tasks</h2>
+
+    <div class="task-stats">
+        <span id="taskCount">0 tasks</span>
+        <span id="completionCount">0 completed</span>
+    </div>
+
+    <div
+        class="progress-track"
+        role="progressbar"
+        aria-label="Task completion"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+        id="progressTrack"
+    >
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <ul id="taskList" aria-label="To-do items"></ul>
+
+    <div class="actions" style="margin-top:20px">
+        <button class="secondary" id="clearCompleted">
+            Clear Completed
+        </button>
+
+        <button class="danger" id="clearAll">
+            Clear All Tasks
+        </button>
+    </div>
+
+    <p class="status" id="saveStatus" aria-live="polite">
+        Your list is saved automatically.
+    </p>
+</section>
+
+<!-- SHARE SECTION -->
+<section class="panel" aria-labelledby="shareHeading">
+    <h2 id="shareHeading">Take your list with you</h2>
+
+    <p class="subtitle">
+        Create a QR code that opens this same page with your current tasks.
+        Scan it with your phone to import your list.
+    </p>
+
+    <button class="primary" id="shareButton" style="width:100%">
+        ↗ Send to My Phone
+    </button>
+
+    <div id="qrPanel" style="margin-top:20px">
+
+        <h2>Your QR Code</h2>
+
+        <div id="qrcode" aria-label="QR code containing your task list"></div>
+
+        <p class="subtitle">
+            Scan this code with your phone camera.
+        </p>
+
+        <div class="share-link" id="shareLink"></div>
+
+        <button class="secondary" id="copyLink">
+            Copy Share Link
+        </button>
+
+        <p class="status" id="shareStatus" aria-live="polite"></p>
+    </div>
+</section>
+
+<!-- IMPORT PREVIEW SECTION -->
+<section
+    class="panel"
+    id="importPanel"
+    aria-labelledby="importHeading"
+    aria-live="polite"
+>
+    <h2 id="importHeading">A list was shared with you!</h2>
+
+    <p class="subtitle">
+        Here is what the shared list contains. Nothing will be added
+        until you approve it.
+    </p>
+
+    <ul class="import-list" id="importList"></ul>
+
+    <p class="subtitle" id="importCount"></p>
+
+    <div class="import-actions">
+        <button class="primary" id="acceptImport">
+            Add These Tasks
+        </button>
+
+        <button class="secondary" id="declineImport">
+            Don't Add Them
+        </button>
+    </div>
+
+    <p class="status" id="importStatus" aria-live="polite"></p>
+</section>
+
+<footer>
+    <p>Made for getting stuff done. ✦</p>
+    <p>Your tasks stay in your browser.</p>
+</footer>
+
+</main>
+
+<script>
+/*
+========================================================
+MY TO-DO LIST APP
+VERSION 1.0
+========================================================
+
+EASY EDITING:
+
+The starting tasks are stored in STARTING_TASKS below.
+
+To change the initial tasks, edit the words inside this
+array. These tasks are only used when there is no
+previously saved list.
+
+All tasks are stored locally in the browser.
+
+No task information is sent to a server.
+========================================================
+*/
+
+// -----------------------------------------------------
+// 1. STARTING TASKS
+// Edit these tasks whenever you want to change the
+// initial list for a new user or a cleared browser.
+// -----------------------------------------------------
+
+const STARTING_TASKS = [
+    "Pack for Warped Tour",
+    "Ship old iPhone",
+    "Schedule oil change"
+];
+
+// -----------------------------------------------------
+// 2. SETTINGS
+// These settings control where the list is saved and
+// how much information can be shared in a QR code.
+// -----------------------------------------------------
+
+const STORAGE_KEY = "myTodoList_v1";
+
+// QRCode.js uses error correction level L by default.
+// The maximum QR byte capacity at this level is 2953.
+const MAX_QR_BYTES = 2953;
+
+const MAX_TASKS = 200;
+const MAX_TASK_LENGTH = 500;
+
+// -----------------------------------------------------
+// 3. APP DATA
+// Each task has a name and a completed status.
+// -----------------------------------------------------
+
+let tasks = [];
+let pendingImport = null;
+
+// -----------------------------------------------------
+// 4. SAFE LOCAL STORAGE
+// The app attempts to load the saved list.
+// If localStorage is unavailable, the app still works
+// during the current browser session.
+// -----------------------------------------------------
+
+let storageAvailable = false;
+
+function initializeStorage() {
+    try {
+        const testKey = "__todo_storage_test__";
+
+        localStorage.setItem(testKey, "test");
+        localStorage.removeItem(testKey);
+
+        storageAvailable = true;
+
+        const savedData = localStorage.getItem(STORAGE_KEY);
+
+        if (savedData !== null) {
+            const parsed = JSON.parse(savedData);
+
+            if (
+                Array.isArray(parsed) &&
+                parsed.length <= MAX_TASKS &&
+                parsed.every(task =>
+                    task &&
+                    typeof task.text === "string" &&
+                    task.text.trim().length > 0 &&
+                    task.text.length <= MAX_TASK_LENGTH &&
+                    typeof task.completed === "boolean"
+                )
+            ) {
+                tasks = parsed.map(task => ({
+                    text: task.text,
+                    completed: task.completed
+                }));
+
+                return;
+            }
+        }
+
+    } catch (error) {
+        storageAvailable = false;
+    }
+
+    // Only use the starting tasks when there is no valid
+    // saved list to restore.
+    tasks = STARTING_TASKS.map(text => ({
+        text: text,
+        completed: false
+    }));
+
+    saveTasks();
+}
+
+// -----------------------------------------------------
+// 5. SAVE TASKS
+// Every change is automatically saved.
+// If saving fails, the app continues to work normally.
+// -----------------------------------------------------
+
+function saveTasks() {
+    try {
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(tasks)
+        );
+
+        storageAvailable = true;
+
+        document.getElementById("saveStatus").textContent =
+            "✓ Your list is saved automatically.";
+
+    } catch (error) {
+        storageAvailable = false;
+
+        document.getElementById("saveStatus").textContent =
+            "Your list works, but this browser cannot save it permanently.";
+    }
+}
+
+// -----------------------------------------------------
+// 6. DISPLAY TASKS
+// This function rebuilds the task list whenever
+// something changes.
+// Text is inserted using textContent rather than HTML
+// so task names are always treated as plain text.
+// -----------------------------------------------------
+
+function renderTasks() {
+
+    const list = document.getElementById("taskList");
+
+    list.replaceChildren();
+
+    tasks.forEach((task, index) => {
+
+        const li = document.createElement("li");
+        li.className = "task";
+
+        if (task.completed) {
+            li.classList.add("completed");
+        }
+
+        // Checkbox for marking a task complete.
+        const checkbox = document.createElement("input");
+
+        checkbox.type = "checkbox";
+        checkbox.checked = task.completed;
+        checkbox.setAttribute(
+            "aria-label",
+            "Mark " + task.text + " as completed"
+        );
+
+        checkbox.addEventListener("change", () => {
+
+            tasks[index].completed = checkbox.checked;
+
+            saveTasks();
+            renderTasks();
+        });
+
+        // Task name.
+        const name = document.createElement("span");
+
+        name.className = "task-name";
+        name.textContent = task.text;
+
+        // Delete button.
+        const deleteButton = document.createElement("button");
+
+        deleteButton.className = "delete-task";
+        deleteButton.textContent = "×";
+        deleteButton.type = "button";
+
+        deleteButton.setAttribute(
+            "aria-label",
+            "Remove " + task.text
+        );
+
+        deleteButton.addEventListener("click", () => {
+
+            tasks.splice(index, 1);
+
+            saveTasks();
+            renderTasks();
+        });
+
+        li.appendChild(checkbox);
+        li.appendChild(name);
+        li.appendChild(deleteButton);
+
+        list.appendChild(li);
+    });
+
+    // Display an empty message when no tasks remain.
+    if (tasks.length === 0) {
+
+        const empty = document.createElement("li");
+
+        empty.className = "empty";
+        empty.textContent = "Nothing on your list. Enjoy the break!";
+
+        list.appendChild(empty);
+    }
+
+    // Update the task counters.
+    const completed = tasks.filter(task => task.completed).length;
+
+    document.getElementById("taskCount").textContent =
+        tasks.length + (tasks.length === 1 ? " task" : " tasks");
+
+    document.getElementById("completionCount").textContent =
+        completed + " completed";
+
+    // Update the progress bar.
+    const percentage = tasks.length === 0
+        ? 0
+        : Math.round((completed / tasks.length) * 100);
+
+    document.getElementById("progressBar").style.width =
+        percentage + "%";
+
+    document.getElementById("progressTrack").setAttribute(
+        "aria-valuenow",
+        percentage
+    );
+}
+
+// -----------------------------------------------------
+// 7. ADD A TASK
+// Users can add tasks with the button or by pressing
+// Enter in the input field.
+// -----------------------------------------------------
+
+document.getElementById("taskForm").addEventListener(
+    "submit",
+    function(event) {
+
+        event.preventDefault();
+
+        const input = document.getElementById("taskInput");
+        const text = input.value.trim();
+
+        if (!text) return;
+
+        if (text.length > MAX_TASK_LENGTH) {
+            alert("That task is too long.");
+            return;
+        }
+
+        if (tasks.length >= MAX_TASKS) {
+            alert("You have reached the maximum number of tasks.");
+            return;
+        }
+
+        tasks.push({
+            text: text,
+            completed: false
+        });
+
+        input.value = "";
+
+        saveTasks();
+        renderTasks();
+
+        input.focus();
+    }
+);
+
+// -----------------------------------------------------
+// 8. CLEAR COMPLETED TASKS
+// Removes only tasks that have been checked off.
+// -----------------------------------------------------
+
+document.getElementById("clearCompleted").addEventListener(
+    "click",
+    function() {
+
+        tasks = tasks.filter(task => !task.completed);
+
+        saveTasks();
+        renderTasks();
+    }
+);
+
+// -----------------------------------------------------
+// 9. CLEAR ALL TASKS
+// Asks for confirmation before removing everything.
+// -----------------------------------------------------
+
+document.getElementById("clearAll").addEventListener(
+    "click",
+    function() {
+
+        if (!confirm("Are you sure you want to remove all tasks?")) {
+            return;
+        }
+
+        tasks = [];
+
+        saveTasks();
+        renderTasks();
+    }
+);
+
+// -----------------------------------------------------
+// 10. ENCODE THE LIST FOR SHARING
+// The list is converted into a JSON object and then
+// Base64URL encoded.
+// This makes it safe to put into a URL fragment.
+// The information stays in the link, not on a server.
+// -----------------------------------------------------
+
+function encodeList(list) {
+
+    const data = {
+        type: "todo-list",
+        version: 1,
+        items: list.map(task => ({
+            text: task.text,
+            completed: task.completed
+        }))
+    };
+
+    const json = JSON.stringify(data);
+
+    const bytes = new TextEncoder().encode(json);
+
+    let binary = "";
+
+    bytes.forEach(byte => {
+        binary += String.fromCharCode(byte);
+    });
+
+    return btoa(binary)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/g, "");
+}
+
+// -----------------------------------------------------
+// 11. DECODE AND VALIDATE A SHARED LIST
+// Anything received from a URL is considered plain
+// untrusted text.
+// It must have the correct format before being accepted.
+// Invalid content is ignored.
+// -----------------------------------------------------
+
+function decodeList(encoded) {
+
+    try {
+
+        if (
+            typeof encoded !== "string" ||
+            encoded.length === 0 ||
+            encoded.length > 100000
+        ) {
+            return null;
+        }
+
+        // Only allow Base64URL characters.
+        if (!/^[A-Za-z0-9_-]+$/.test(encoded)) {
+            return null;
+        }
+
+        let base64 = encoded
+            .replace(/-/g, "+")
+            .replace(/_/g, "/");
+
+        base64 += "=".repeat((4 - base64.length % 4) % 4);
+
+        const binary = atob(base64);
+
+        const bytes = Uint8Array.from(
+            binary,
+            char => char.charCodeAt(0)
+        );
+
+        const json = new TextDecoder("utf-8", {
+            fatal: true
+        }).decode(bytes);
+
+        const data = JSON.parse(json);
+
+        // Check that the incoming information is a
+        // properly structured task list.
+        if (
+            !data ||
+            data.type !== "todo-list" ||
+            data.version !== 1 ||
+            !Array.isArray(data.items) ||
+            data.items.length > MAX_TASKS
+        ) {
+            return null;
+        }
+
+        // Every item must have valid text and a valid
+        // completed status.
+        const validItems = data.items.every(item =>
+            item &&
+            typeof item.text === "string" &&
+            item.text.trim().length > 0 &&
+            item.text.length <= MAX_TASK_LENGTH &&
+            typeof item.completed === "boolean"
+        );
+
+        if (!validItems) {
+            return null;
+        }
+
+        return data.items.map(item => ({
+            text: item.text,
+            completed: item.completed
+        }));
+
+    } catch (error) {
+
+        // Bad, corrupted, or unexpected link content
+        // is ignored without changing the current list.
+        return null;
+    }
+}
+
+// -----------------------------------------------------
+// 12. GENERATE A SHARE LINK AND QR CODE
+// The list is placed after the # sign in the current
+// page URL.
+// The QR code is generated locally in the browser.
+// -----------------------------------------------------
+
+document.getElementById("shareButton").addEventListener(
+    "click",
+    function() {
+
+        const qrPanel = document.getElementById("qrPanel");
+        const qrContainer = document.getElementById("qrcode");
+        const shareStatus = document.getElementById("shareStatus");
+
+        qrContainer.replaceChildren();
+
+        qrPanel.style.display = "block";
+
+        if (typeof QRCode === "undefined") {
+
+            shareStatus.textContent =
+                "QR library could not load. Check your internet connection and reload the page.";
+
+            return;
+        }
+
+        const encoded = encodeList(tasks);
+
+        // Build a link to this same page with the list
+        // stored after the hash.
+        const baseURL = window.location.href.split("#")[0];
+
+        const shareURL = baseURL + "#todo=" + encoded;
+
+        document.getElementById("shareLink").textContent =
+            shareURL;
+
+        // Check the actual UTF-8 byte length of the
+        // complete link before attempting QR generation.
+        const byteLength = new TextEncoder().encode(
+            shareURL
+        ).length;
+
+        if (byteLength > MAX_QR_BYTES) {
+
+            shareStatus.textContent =
+                "Your list is too long for one QR code (" +
+                byteLength +
+                " bytes). Remove some tasks or shorten their names.";
+
+            shareStatus.className = "warning";
+
+            return;
+        }
+
+        try {
+
+            new QRCode(qrContainer, {
+                text: shareURL,
+                width: 240,
+                height: 240,
+                colorDark: "#101014",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.L
+            });
+
+            shareStatus.textContent =
+                "QR code created! Scan it with your phone.";
+
+            shareStatus.className = "status";
+
+        } catch (error) {
+
+            qrContainer.replaceChildren();
+
+            shareStatus.textContent =
+                "The QR code could not be generated. Try shortening your list.";
+
+            shareStatus.className = "warning";
+        }
+
+        qrPanel.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest"
+        });
+    }
+);
+
+// -----------------------------------------------------
+// 13. COPY SHARE LINK
+// Copies the complete URL so it can be texted or emailed.
+// -----------------------------------------------------
+
+document.getElementById("copyLink").addEventListener(
+    "click",
+    async function() {
+
+        const link = document.getElementById("shareLink").textContent;
+        const status = document.getElementById("shareStatus");
+
+        try {
+
+            await navigator.clipboard.writeText(link);
+
+            status.textContent = "✓ Link copied!";
+
+        } catch (error) {
+
+            // Fallback for browsers that block clipboard access.
+            const temp = document.createElement("textarea");
+
+            temp.value = link;
+            document.body.appendChild(temp);
+
+            temp.select();
+
+            try {
+                document.execCommand("copy");
+                status.textContent = "✓ Link copied!";
+            } catch (copyError) {
+                status.textContent = "Copy unavailable. Select and copy the link manually.";
+            }
+
+            temp.remove();
+        }
+    }
+);
+
+// -----------------------------------------------------
+// 14. CHECK FOR A SHARED LIST WHEN THE PAGE OPENS
+// If the URL has a valid #todo= list, show a preview.
+// Nothing is added automatically.
+// The user's existing list is never replaced.
+// -----------------------------------------------------
+
+function checkIncomingList() {
+
+    const hash = window.location.hash;
+
+    if (!hash.startsWith("#todo=")) {
+        return;
+    }
+
+    const encoded = hash.slice(6);
+
+    const incoming = decodeList(encoded);
+
+    if (!incoming || incoming.length === 0) {
+
+        // Invalid or empty lists are ignored.
+        return;
+    }
+
+    pendingImport = incoming;
+
+    const importPanel = document.getElementById("importPanel");
+    const importList = document.getElementById("importList");
+
+    importList.replaceChildren();
+
+    // Show a preview of every incoming task.
+    incoming.forEach(task => {
+
+        const li = document.createElement("li");
+
+        li.textContent =
+            (task.completed ? "✓ " : "○ ") + task.text;
+
+        importList.appendChild(li);
+    });
+
+    document.getElementById("importCount").textContent =
+        incoming.length +
+        (incoming.length === 1 ? " task is" : " tasks are") +
+        " ready to import.";
+
+    importPanel.style.display = "block";
+
+    importPanel.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+}
+
+// -----------------------------------------------------
+// 15. ACCEPT AN IMPORT
+// Only adds the incoming tasks after the user presses
+// the approval button.
+// The existing list is preserved.
+// -----------------------------------------------------
+
+document.getElementById("acceptImport").addEventListener(
+    "click",
+    function() {
+
+        if (!pendingImport) return;
+
+        const availableSlots = MAX_TASKS - tasks.length;
+
+        if (pendingImport.length > availableSlots) {
+
+            document.getElementById("importStatus").textContent =
+                "There is not enough room. Remove some tasks before importing this list.";
+
+            return;
+        }
+
+        // Append incoming tasks instead of replacing
+        // anything already in the user's list.
+        pendingImport.forEach(task => {
+
+            tasks.push({
+                text: task.text,
+                completed: task.completed
+            });
+        });
+
+        pendingImport = null;
+
+        saveTasks();
+        renderTasks();
+
+        document.getElementById("importStatus").textContent =
+            "✓ Tasks successfully added to your list!";
+
+        document.getElementById("acceptImport").disabled = true;
+        document.getElementById("declineImport").disabled = true;
+    }
+);
+
+// -----------------------------------------------------
+// 16. DECLINE AN IMPORT
+// Closes the preview without making any changes.
+// -----------------------------------------------------
+
+document.getElementById("declineImport").addEventListener(
+    "click",
+    function() {
+
+        pendingImport = null;
+
+        document.getElementById("importPanel").style.display =
+            "none";
+    }
+);
+
+// -----------------------------------------------------
+// 17. START THE APP
+// Load saved tasks, display them, and check whether
+// the page was opened from a shared list.
+// -----------------------------------------------------
+
+initializeStorage();
+
+renderTasks();
+
+checkIncomingList();
+
+</script>
+
+</body>
+</html>
